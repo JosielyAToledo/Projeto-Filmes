@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Projeto-Filmes</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <strong>Projeto-Filmes</strong>
+        <span>Locadora de filmes</span>
+      </div>
+      <nav>
+        <a href="#filmes">Filmes</a>
+        <a href="#relatorios">Relatorios</a>
+        <a href="#logs">Logs</a>
+      </nav>
+    </header>
+
+    <main class="layout">
+      <section class="panel" id="login">
+        <h1>Acesso</h1>
+        <form id="loginForm" class="form-grid">
+          <input id="email" type="email" placeholder="E-mail" required />
+          <input id="senha" type="password" placeholder="Senha" required />
+          <button type="submit">Entrar</button>
+        </form>
+        <form id="registerForm" class="form-grid">
+          <input id="nomeRegistro" type="text" placeholder="Nome para registro" />
+          <input id="emailRegistro" type="email" placeholder="E-mail para registro" />
+          <input id="senhaRegistro" type="password" placeholder="Senha para registro" />
+          <button type="submit" class="secondary">Registrar</button>
+        </form>
+        <p id="authStatus" class="status">Faça login para acessar as rotas privadas.</p>
+      </section>
+
+      <section class="panel" id="filmes">
+        <div class="section-head">
+          <div>
+            <h2>Filmes</h2>
+            <p>CRUD completo com busca, upload de capa e persistencia MySQL.</p>
+          </div>
+          <button id="logoutBtn" class="ghost">Sair</button>
+        </div>
+
+        <form id="movieForm" class="form-grid">
+          <input id="movieId" type="hidden" />
+          <input id="titulo" type="text" placeholder="Titulo" required />
+          <input id="ano_lancamento" type="number" placeholder="Ano" />
+          <input id="genero_id" type="number" placeholder="ID genero" />
+          <input id="preco_locacao" type="number" step="0.01" placeholder="Preco locacao" />
+          <input id="estoque" type="number" placeholder="Estoque" />
+          <textarea id="descricao" placeholder="Descricao"></textarea>
+          <input id="capa" type="file" accept="image/*" />
+          <button type="submit">Salvar filme</button>
+          <button type="button" id="clearForm" class="secondary">Limpar</button>
+        </form>
+
+        <div class="toolbar">
+          <input id="search" type="search" placeholder="Pesquisar por titulo ou genero" />
+          <button id="searchBtn">Buscar</button>
+          <button id="exportJson">Exportar JSON</button>
+          <label class="file-action">
+            Importar JSON
+            <input id="importJson" type="file" accept="application/json" />
+          </label>
+        </div>
+
+        <div id="movieList" class="movie-list"></div>
+      </section>
+
+      <section class="panel" id="relatorios">
+        <div class="section-head">
+          <div>
+            <h2>Relatorios</h2>
+            <p>PDF gerado no frontend a partir de dados JSON da API.</p>
+          </div>
+          <button id="generatePdf">Baixar PDF</button>
+        </div>
+        <canvas id="rentalsChart"></canvas>
+      </section>
+
+      <section class="panel" id="logs">
+        <div class="section-head">
+          <div>
+            <h2>Logs</h2>
+            <p>Eventos persistidos no MongoDB e exportados em XML.</p>
+          </div>
+          <button id="exportXml">Exportar XML</button>
+        </div>
+        <pre id="logsPreview">[]</pre>
+      </section>
+    </main>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
