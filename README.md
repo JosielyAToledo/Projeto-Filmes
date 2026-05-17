@@ -27,3 +27,18 @@ O backend foi organizado com MVC, Service Layer, Router, DAO, Models, Interfaces
 - cors
 - Chart.js no frontend
 
+## Hospedagem
+
+O projeto pode ser hospedado no Render como um Web Service Node.js. O backend entrega a API e tambem serve o frontend em `/`, entao um unico link publico abre o sistema.
+
+Variaveis de ambiente necessarias na hospedagem:
+
+- `MYSQL_HOST`
+- `MYSQL_PORT`
+- `MYSQL_USER`
+- `MYSQL_PASSWORD`
+- `MYSQL_DATABASE`
+- `MONGODB_URI`
+- `JWT_SECRET`
+- `JWT_EXPIRES_IN`
+- `UPLOAD_DIR`

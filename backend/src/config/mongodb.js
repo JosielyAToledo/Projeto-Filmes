@@ -5,8 +5,32 @@ async function connectMongoDB() {
   const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/projeto_filmes_logs';
 
   mongoose.set('strictQuery', true);
-  await mongoose.connect(uri);
-  console.log('MongoDB conectado');
+
+  try {
+    await withTimeout(
+      mongoose.connect(uri, {
+        serverSelectionTimeoutMS: 5000,
+        connectTimeoutMS: 5000,
+        socketTimeoutMS: 5000
+      }),
+      8000
+    );
+    console.log('MongoDB conectado');
+    return true;
+  } catch (error) {
+    console.warn('MongoDB nao conectado. A API vai subir, mas os logs ficarao desativados temporariamente.');
+    console.warn(`Motivo: ${error.message}`);
+    return false;
+  }
+}
+
+function withTimeout(promise, timeoutMs) {
+  return Promise.race([
+    promise,
+    new Promise((resolve, reject) => {
+      setTimeout(() => reject(new Error(`Tempo limite de conexao MongoDB excedido (${timeoutMs}ms)`)), timeoutMs);
+    })
+  ]);
 }
 
 module.exports = { connectMongoDB };

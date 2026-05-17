@@ -24,7 +24,8 @@ const LogSchema = new mongoose.Schema(
     timestamp: { type: Date, default: Date.now }
   },
   {
-    collection: 'logs'
+    collection: 'logs',
+    bufferCommands: false
   }
 );
 

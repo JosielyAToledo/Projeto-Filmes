@@ -23,11 +23,18 @@ app.use(express.urlencoded({ extended: true }));
 // Disponibiliza capas enviadas por upload para acesso publico.
 app.use('/uploads', express.static(path.resolve(process.env.UPLOAD_DIR || 'backend/src/uploads')));
 
+// Em producao, o Express tambem entrega a interface web.
+app.use(express.static(path.resolve(__dirname, '../../frontend')));
+
 // Registra logs de todas as requisicoes no MongoDB.
 app.use(logMiddleware);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'Projeto-Filmes' });
+});
+
+app.get('/', (req, res) => {
+  res.sendFile(path.resolve(__dirname, '../../frontend/index.html'));
 });
 
 // Routers separam cada modulo da aplicacao.

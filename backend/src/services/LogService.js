@@ -1,7 +1,12 @@
+const mongoose = require('mongoose');
 const Log = require('../models/Log');
 
 class LogService {
   async registrar(dados) {
+    if (!isMongoConnected()) {
+      return null;
+    }
+
     return Log.create({
       timestamp: new Date(),
       ...dados
@@ -9,6 +14,10 @@ class LogService {
   }
 
   async listar(filtros = {}) {
+    if (!isMongoConnected()) {
+      return [];
+    }
+
     const query = {};
 
     if (filtros.metodo) {
@@ -57,6 +66,10 @@ class LogService {
 
     return `<?xml version="1.0" encoding="UTF-8"?>\n<logs>\n${itens}\n</logs>`;
   }
+}
+
+function isMongoConnected() {
+  return mongoose.connection.readyState === 1;
 }
 
 function escapeXml(value) {
