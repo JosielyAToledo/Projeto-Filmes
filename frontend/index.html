@@ -5,197 +5,222 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MovieHub</title>
     <link rel="stylesheet" href="./styles.css" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
   </head>
   <body>
-    <header class="topbar">
-      <div>
-        <strong>MovieHub</strong>
+    <section class="auth-screen" id="authScreen">
+      <div class="auth-card" id="loginCard">
+        <div class="brand">
+          <div class="brand-icon">M</div>
+          <strong>MOVIE<span>HUB</span></strong>
+        </div>
+
+        <form id="loginForm" class="auth-form">
+          <label for="email">E-mail</label>
+          <input id="email" type="email" placeholder="cine@email.com" required />
+
+          <label for="senha">Senha</label>
+          <input id="senha" type="password" placeholder="********" required />
+
+          <div class="auth-row">
+            <label class="remember">
+              <input type="checkbox" />
+              Lembrar de mim
+            </label>
+            <button type="button" class="link-button">Esqueceu sua senha?</button>
+          </div>
+
+          <button type="submit" class="primary-button">Entrar</button>
+        </form>
+
+        <p class="switch-text">Não tem uma conta? <button type="button" id="showRegister">Cadastre-se</button></p>
+        <p id="authStatus" class="status" aria-live="polite"></p>
       </div>
-      <nav>
-        <a href="#dashboard">Dashboard</a>
-        <a href="#filmes">Filmes</a>
-        <a href="#clientes">Clientes</a>
-        <a href="#relatorios">Relatórios</a>
-        <a href="#logs">Logs</a>
-      </nav>
-    </header>
 
-    <main class="layout">
-      <section class="login-screen" id="login">
-        <div class="login-panel">
-          <div class="brand-lockup">
-            <div class="brand-mark">M</div>
-            <div>
-              <strong>MOVIE<span>HUB</span></strong>
-            </div>
-          </div>
-
-          <form id="loginForm" class="login-form">
-            <label for="email">E-mail</label>
-            <input id="email" type="email" placeholder="cine@email.com" required />
-
-            <label for="senha">Senha</label>
-            <input id="senha" type="password" placeholder="********" required />
-
-            <div class="login-options">
-              <label class="remember-option">
-                <input type="checkbox" />
-                Lembrar de mim
-              </label>
-              <a href="#registerForm">Esqueceu sua senha?</a>
-            </div>
-
-            <button type="submit">Entrar</button>
-          </form>
-
-          <div class="auth-switch">
-            <p>Não tem uma conta? <button type="button" id="showRegister">Cadastre-se</button></p>
-          </div>
-
-          <p id="authStatus" class="status" aria-live="polite"></p>
+      <div class="auth-card register-card" id="registerCard">
+        <div class="brand">
+          <div class="brand-icon">M</div>
+          <strong>MOVIE<span>HUB</span></strong>
         </div>
 
-        <div class="login-panel register-panel" id="registerPanel">
-          <div class="brand-lockup">
-            <div class="brand-mark">M</div>
-            <div>
-              <strong>MOVIE<span>HUB</span></strong>
-            </div>
-          </div>
+        <form id="registerForm" class="auth-form">
+          <label for="nomeRegistro">Nome</label>
+          <input id="nomeRegistro" type="text" placeholder="Seu nome" required />
 
-          <h1>Crie sua conta</h1>
-          <form id="registerForm" class="login-form">
-            <label for="nomeRegistro">Nome</label>
-            <input id="nomeRegistro" type="text" placeholder="Nome" />
+          <label for="emailRegistro">E-mail</label>
+          <input id="emailRegistro" type="email" placeholder="cine@email.com" required />
 
-            <label for="emailRegistro">E-mail</label>
-            <input id="emailRegistro" type="email" placeholder="E-mail" />
+          <label for="senhaRegistro">Senha</label>
+          <input id="senhaRegistro" type="password" placeholder="********" required />
 
-            <label for="senhaRegistro">Senha</label>
-            <input id="senhaRegistro" type="password" placeholder="Senha" />
+          <label for="confirmarSenhaRegistro">Confirmar senha</label>
+          <input id="confirmarSenhaRegistro" type="password" placeholder="********" required />
 
-            <label for="confirmarSenhaRegistro">Confirmar senha</label>
-            <input id="confirmarSenhaRegistro" type="password" placeholder="Confirmar senha" />
-
-            <button type="submit">Cadastrar</button>
-          </form>
-
-          <div class="auth-switch">
-            <p>Já tem uma conta? <button type="button" id="showLogin">Faça login</button></p>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel" id="dashboard">
-        <div class="section-head">
-          <div>
-            <h2>Dashboard</h2>
-            <p>Resumo operacional carregado da API.</p>
-          </div>
-          <button id="refreshDashboard">Atualizar</button>
-        </div>
-        <div class="stats-grid">
-          <article>
-            <span>Filmes</span>
-            <strong id="statMovies">0</strong>
-          </article>
-          <article>
-            <span>Clientes</span>
-            <strong id="statClients">0</strong>
-          </article>
-          <article>
-            <span>Locacoes</span>
-            <strong id="statRentals">0</strong>
-          </article>
-        </div>
-      </section>
-
-      <section class="panel" id="filmes">
-        <div class="section-head">
-          <div>
-            <h2>Filmes</h2>
-            <p>CRUD completo com busca, upload de capa e persistência MySQL.</p>
-          </div>
-          <button id="logoutBtn" class="ghost">Sair</button>
-        </div>
-
-        <form id="movieForm" class="form-grid">
-          <input id="movieId" type="hidden" />
-          <input id="titulo" type="text" placeholder="Titulo" required />
-          <input id="ano_lancamento" type="number" placeholder="Ano" />
-          <input id="genero_id" type="number" placeholder="ID do gênero" />
-          <input id="preco_locacao" type="number" step="0.01" placeholder="Preço da locação" />
-          <input id="estoque" type="number" placeholder="Estoque" />
-          <textarea id="descricao" placeholder="Descrição"></textarea>
-          <input id="capa" type="file" accept="image/*" />
-          <button type="submit">Salvar filme</button>
-          <button type="button" id="clearForm" class="secondary">Limpar</button>
+          <button type="submit" class="primary-button">Cadastrar</button>
         </form>
 
-        <div class="toolbar">
-          <input id="search" type="search" placeholder="Pesquisar por título ou gênero" />
-          <button id="searchBtn">Buscar</button>
-          <button id="exportJson">Exportar JSON</button>
-          <label class="file-action">
-            Importar JSON
-            <input id="importJson" type="file" accept="application/json" />
-          </label>
+        <p class="switch-text">Já tem uma conta? <button type="button" id="showLogin">Faça login</button></p>
+      </div>
+    </section>
+
+    <section class="app-shell" id="appShell">
+      <aside class="sidebar">
+        <div class="side-brand">
+          <div class="brand-icon small">M</div>
+          <strong>MOVIE<span>HUB</span></strong>
         </div>
 
-        <div id="movieList" class="movie-list"></div>
-      </section>
+        <nav>
+          <a href="#inicio" class="nav-link active" data-page="inicio">Início</a>
+          <a href="#filmes" class="nav-link" data-page="filmes">Filmes</a>
+          <a href="#categorias" class="nav-link" data-page="categorias">Categorias</a>
+          <a href="#favoritos" class="nav-link" data-page="favoritos">Meus favoritos</a>
+        </nav>
+      </aside>
 
-      <section class="panel" id="clientes">
-        <div class="section-head">
-          <div>
-            <h2>Clientes</h2>
-            <p>CRUD REST protegido por JWT e salvo no MySQL.</p>
+      <main class="content">
+        <header class="topbar">
+          <div class="search-box">
+            <span>Buscar</span>
+            <input id="globalSearch" type="search" placeholder="Buscar filmes, categorias..." />
           </div>
-        </div>
 
-        <form id="clientForm" class="form-grid">
-          <input id="clientId" type="hidden" />
-          <input id="clientName" type="text" placeholder="Nome" required />
-          <input id="clientEmail" type="email" placeholder="E-mail" />
-          <input id="clientPhone" type="text" placeholder="Telefone" />
-          <input id="clientDocument" type="text" placeholder="Documento" />
-          <button type="submit">Salvar cliente</button>
-          <button type="button" id="clearClientForm" class="secondary">Limpar</button>
-        </form>
-
-        <div class="toolbar">
-          <input id="clientSearch" type="search" placeholder="Pesquisar cliente" />
-          <button id="clientSearchBtn">Buscar</button>
-        </div>
-
-        <div id="clientList" class="table-list"></div>
-      </section>
-
-      <section class="panel" id="relatorios">
-        <div class="section-head">
-          <div>
-            <h2>Relatórios</h2>
-            <p>PDF gerado no frontend a partir dos dados JSON da API.</p>
+          <div class="user-box">
+            <span>Olá, <strong id="currentUserName">usuário</strong></span>
+            <div class="avatar">M</div>
+            <button id="logoutBtn" type="button">Sair</button>
           </div>
-          <button id="generatePdf">Baixar PDF</button>
-        </div>
-        <canvas id="rentalsChart"></canvas>
-      </section>
+        </header>
 
-      <section class="panel" id="logs">
-        <div class="section-head">
-          <div>
-            <h2>Logs</h2>
-            <p>Eventos persistidos no MongoDB e exportados em XML.</p>
+        <section class="page active" id="inicioPage">
+          <div class="hero">
+            <div>
+              <span>Bem-vindo ao</span>
+              <h1>MovieHub</h1>
+              <p>Explore, descubra e organize seus filmes favoritos.</p>
+              <button type="button" id="goMovies">Explorar filmes</button>
+            </div>
           </div>
-          <button id="exportXml">Exportar XML</button>
-        </div>
-        <pre id="logsPreview">[]</pre>
-      </section>
-    </main>
+
+          <div class="section-title">
+            <h2>Em destaque</h2>
+          </div>
+
+          <div class="featured-grid" id="featuredGrid"></div>
+        </section>
+
+        <section class="page" id="filmesPage">
+          <div class="movies-header">
+            <h1>Filmes</h1>
+            <p>Explore todos os filmes disponíveis.</p>
+          </div>
+
+          <div class="movies-toolbar">
+            <input id="movieSearch" type="search" placeholder="Buscar filmes..." />
+            <button id="filterBtn" type="button">Filtros</button>
+          </div>
+
+          <div class="movies-grid" id="movieGrid"></div>
+
+          <div class="pagination">
+            <button class="active" type="button">1</button>
+            <button type="button">2</button>
+            <button type="button">3</button>
+            <span>...</span>
+            <button type="button">10</button>
+            <button type="button">›</button>
+          </div>
+        </section>
+
+        <section class="page" id="categoriasPage">
+          <div class="movies-header">
+            <h1>Categorias</h1>
+            <p>Navegue por categorias de filmes.</p>
+          </div>
+
+          <div class="categories-grid">
+            <article>
+              <div class="category-icon orange">A</div>
+              <div>
+                <strong>Ação</strong>
+                <span>120 filmes</span>
+              </div>
+            </article>
+            <article>
+              <div class="category-icon yellow">V</div>
+              <div>
+                <strong>Aventura</strong>
+                <span>90 filmes</span>
+              </div>
+            </article>
+            <article>
+              <div class="category-icon amber">C</div>
+              <div>
+                <strong>Comédia</strong>
+                <span>150 filmes</span>
+              </div>
+            </article>
+            <article>
+              <div class="category-icon gold">D</div>
+              <div>
+                <strong>Drama</strong>
+                <span>134 filmes</span>
+              </div>
+            </article>
+            <article>
+              <div class="category-icon blue">F</div>
+              <div>
+                <strong>Ficção Científica</strong>
+                <span>70 filmes</span>
+              </div>
+            </article>
+            <article>
+              <div class="category-icon red">T</div>
+              <div>
+                <strong>Terror</strong>
+                <span>63 filmes</span>
+              </div>
+            </article>
+            <article>
+              <div class="category-icon rose">R</div>
+              <div>
+                <strong>Romance</strong>
+                <span>98 filmes</span>
+              </div>
+            </article>
+            <article>
+              <div class="category-icon sun">N</div>
+              <div>
+                <strong>Animação</strong>
+                <span>43 filmes</span>
+              </div>
+            </article>
+            <article>
+              <div class="category-icon purple">D</div>
+              <div>
+                <strong>Documentário</strong>
+                <span>38 filmes</span>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="page" id="favoritosPage">
+          <div class="movies-header">
+            <h1>Meus favoritos</h1>
+            <p>Filmes marcados para assistir depois.</p>
+          </div>
+
+          <div class="movies-grid" id="favoritesGrid"></div>
+        </section>
+      </main>
+    </section>
+
+    <div class="movie-modal" id="movieModal" aria-hidden="true">
+      <div class="movie-modal-card" role="dialog" aria-modal="true" aria-labelledby="modalMovieTitle">
+        <button class="modal-close" id="closeMovieModal" type="button" aria-label="Fechar">×</button>
+        <div id="movieModalContent"></div>
+      </div>
+    </div>
 
     <script src="./script.js"></script>
   </body>
