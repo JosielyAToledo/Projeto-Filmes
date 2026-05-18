@@ -25,20 +25,46 @@
     </header>
 
     <main class="layout">
-      <section class="panel" id="login">
-        <h1>Acesso</h1>
-        <form id="loginForm" class="form-grid">
-          <input id="email" type="email" placeholder="E-mail" required />
-          <input id="senha" type="password" placeholder="Senha" required />
-          <button type="submit">Entrar</button>
-        </form>
-        <form id="registerForm" class="form-grid">
-          <input id="nomeRegistro" type="text" placeholder="Nome para registro" />
-          <input id="emailRegistro" type="email" placeholder="E-mail para registro" />
-          <input id="senhaRegistro" type="password" placeholder="Senha para registro" />
-          <button type="submit" class="secondary">Registrar</button>
-        </form>
-        <p id="authStatus" class="status">Faca login para acessar as rotas privadas.</p>
+      <section class="login-screen" id="login">
+        <div class="login-panel">
+          <div class="brand-lockup">
+            <div class="brand-mark">M</div>
+            <div>
+              <strong>MOVIE<span>HUB</span></strong>
+              <small>Locadora de filmes</small>
+            </div>
+          </div>
+
+          <h1>Entre na sua conta</h1>
+          <form id="loginForm" class="login-form">
+            <label for="email">E-mail</label>
+            <input id="email" type="email" placeholder="cine@email.com" required />
+
+            <label for="senha">Senha</label>
+            <input id="senha" type="password" placeholder="********" required />
+
+            <div class="login-options">
+              <label class="remember-option">
+                <input type="checkbox" />
+                Lembrar de mim
+              </label>
+              <a href="#registerForm">Esqueceu sua senha?</a>
+            </div>
+
+            <button type="submit">Entrar</button>
+          </form>
+
+          <form id="registerForm" class="register-inline">
+            <p>Nao tem uma conta? <strong>Cadastre-se</strong></p>
+            <input id="nomeRegistro" type="text" placeholder="Nome" />
+            <input id="emailRegistro" type="email" placeholder="E-mail" />
+            <input id="senhaRegistro" type="password" placeholder="Senha" />
+            <button type="submit" class="secondary">Criar conta</button>
+          </form>
+
+          <p id="authStatus" class="status">Faca login para acessar as rotas privadas.</p>
+        </div>
+        <div class="login-art" aria-hidden="true"></div>
       </section>
 
       <section class="panel" id="dashboard">

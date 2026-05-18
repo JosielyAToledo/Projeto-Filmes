@@ -8,6 +8,10 @@ let currentClients = [];
 
 const authStatus = document.getElementById('authStatus');
 
+function syncSessionView() {
+  document.body.classList.toggle('logged-in', Boolean(token));
+}
+
 function headers(extra = {}) {
   return token ? { Authorization: `Bearer ${token}`, ...extra } : extra;
 }
@@ -55,6 +59,7 @@ document.getElementById('loginForm').addEventListener('submit', async (event) =>
     currentUser = result.usuario;
     localStorage.setItem('token', token);
     localStorage.setItem('usuario', JSON.stringify(currentUser));
+    syncSessionView();
     setStatus(`Logado como ${result.usuario.nome}`);
     await loadPrivateData();
   } catch (error) {
@@ -90,6 +95,7 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   currentUser = null;
   localStorage.removeItem('token');
   localStorage.removeItem('usuario');
+  syncSessionView();
   setStatus('Sessao encerrada.');
 });
 
@@ -384,6 +390,9 @@ async function downloadProtected(path, filename) {
 }
 
 if (token) {
+  syncSessionView();
   setStatus('Token encontrado. Carregando dados...');
   loadPrivateData().catch((error) => setStatus(error.message));
+} else {
+  syncSessionView();
 }
