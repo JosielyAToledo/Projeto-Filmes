@@ -54,15 +54,42 @@
             <button type="submit">Entrar</button>
           </form>
 
-          <form id="registerForm" class="register-inline">
-            <p>Nao tem uma conta? <strong>Cadastre-se</strong></p>
-            <input id="nomeRegistro" type="text" placeholder="Nome" />
-            <input id="emailRegistro" type="email" placeholder="E-mail" />
-            <input id="senhaRegistro" type="password" placeholder="Senha" />
-            <button type="submit" class="secondary">Criar conta</button>
-          </form>
+          <div class="auth-switch">
+            <p>Nao tem uma conta? <button type="button" id="showRegister">Cadastre-se</button></p>
+          </div>
 
           <p id="authStatus" class="status">Faca login para acessar as rotas privadas.</p>
+        </div>
+
+        <div class="login-panel register-panel" id="registerPanel">
+          <div class="brand-lockup">
+            <div class="brand-mark">M</div>
+            <div>
+              <strong>MOVIE<span>HUB</span></strong>
+              <small>Locadora de filmes</small>
+            </div>
+          </div>
+
+          <h1>Crie sua conta</h1>
+          <form id="registerForm" class="login-form">
+            <label for="nomeRegistro">Nome</label>
+            <input id="nomeRegistro" type="text" placeholder="Nome" />
+
+            <label for="emailRegistro">E-mail</label>
+            <input id="emailRegistro" type="email" placeholder="E-mail" />
+
+            <label for="senhaRegistro">Senha</label>
+            <input id="senhaRegistro" type="password" placeholder="Senha" />
+
+            <label for="confirmarSenhaRegistro">Confirmar senha</label>
+            <input id="confirmarSenhaRegistro" type="password" placeholder="Confirmar senha" />
+
+            <button type="submit">Cadastrar</button>
+          </form>
+
+          <div class="auth-switch">
+            <p>Ja tem uma conta? <button type="button" id="showLogin">Faca login</button></p>
+          </div>
         </div>
         <div class="login-art" aria-hidden="true"></div>
       </section>

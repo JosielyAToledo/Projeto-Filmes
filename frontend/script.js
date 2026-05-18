@@ -12,6 +12,16 @@ function syncSessionView() {
   document.body.classList.toggle('logged-in', Boolean(token));
 }
 
+function showRegisterPanel() {
+  document.getElementById('login').classList.add('register-mode');
+  setStatus('Preencha os dados para criar sua conta.');
+}
+
+function showLoginPanel() {
+  document.getElementById('login').classList.remove('register-mode');
+  setStatus('Faca login para acessar as rotas privadas.');
+}
+
 function headers(extra = {}) {
   return token ? { Authorization: `Bearer ${token}`, ...extra } : extra;
 }
@@ -71,15 +81,24 @@ document.getElementById('registerForm').addEventListener('submit', async (event)
   event.preventDefault();
 
   try {
+    const senha = document.getElementById('senhaRegistro').value;
+    const confirmarSenha = document.getElementById('confirmarSenhaRegistro').value;
+
+    if (senha !== confirmarSenha) {
+      setStatus('As senhas nao conferem.');
+      return;
+    }
+
     await api('/auth/registrar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         nome: document.getElementById('nomeRegistro').value,
         email: document.getElementById('emailRegistro').value,
-        senha: document.getElementById('senhaRegistro').value
+        senha
       })
     });
+    showLoginPanel();
     setStatus('Usuario registrado. Agora faca login.');
   } catch (error) {
     setStatus(error.message);
@@ -156,6 +175,8 @@ document.getElementById('clientForm').addEventListener('submit', async (event) =
 
 document.getElementById('clearForm').addEventListener('click', clearForm);
 document.getElementById('clearClientForm').addEventListener('click', clearClientForm);
+document.getElementById('showRegister').addEventListener('click', showRegisterPanel);
+document.getElementById('showLogin').addEventListener('click', showLoginPanel);
 document.getElementById('searchBtn').addEventListener('click', () => loadMovies(document.getElementById('search').value));
 document.getElementById('clientSearchBtn').addEventListener('click', () => loadClients(document.getElementById('clientSearch').value));
 document.getElementById('generatePdf').addEventListener('click', generatePdf);

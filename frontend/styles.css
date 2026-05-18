@@ -99,6 +99,18 @@ body:not(.logged-in) .layout {
   border-right: 1px solid rgba(255, 255, 255, 0.06);
 }
 
+.login-screen.register-mode .login-panel:not(.register-panel) {
+  display: none;
+}
+
+.register-panel {
+  display: none;
+}
+
+.login-screen.register-mode .register-panel {
+  display: flex;
+}
+
 .brand-lockup {
   display: flex;
   align-items: center;
@@ -199,14 +211,25 @@ body:not(.logged-in) .layout {
   box-shadow: 0 14px 28px rgba(220, 22, 29, 0.22);
 }
 
-.register-inline {
+.auth-switch {
   margin-top: 22px;
+  width: min(100%, 420px);
 }
 
-.register-inline p {
+.auth-switch p {
   margin: 0;
   color: #9aa7b7;
   text-align: center;
+}
+
+.auth-switch button {
+  border: 0;
+  min-height: auto;
+  padding: 0;
+  background: transparent;
+  color: #ef1c24;
+  font-weight: 800;
+  cursor: pointer;
 }
 
 .register-inline strong {
@@ -225,6 +248,12 @@ body:not(.logged-in) .layout {
   background:
     linear-gradient(90deg, rgba(7, 13, 20, 0.98) 0%, rgba(7, 13, 20, 0.24) 42%, rgba(7, 13, 20, 0.08) 100%),
     url("https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1400&q=80") center / cover;
+}
+
+.login-screen.register-mode .login-art {
+  background:
+    linear-gradient(90deg, rgba(7, 13, 20, 0.98) 0%, rgba(7, 13, 20, 0.34) 46%, rgba(7, 13, 20, 0.14) 100%),
+    url("https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=1400&q=80") center / cover;
 }
 
 .login-art::after {
