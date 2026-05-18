@@ -14,12 +14,12 @@ function syncSessionView() {
 
 function showRegisterPanel() {
   document.getElementById('login').classList.add('register-mode');
-  setStatus('Preencha os dados para criar sua conta.');
+  setStatus('');
 }
 
 function showLoginPanel() {
   document.getElementById('login').classList.remove('register-mode');
-  setStatus('Faca login para acessar as rotas privadas.');
+  setStatus('');
 }
 
 function headers(extra = {}) {
@@ -27,14 +27,20 @@ function headers(extra = {}) {
 }
 
 async function api(path, options = {}) {
-  const response = await fetch(`${API_URL}${path}`, {
-    ...options,
-    headers: headers(options.headers || {})
-  });
+  let response;
+
+  try {
+    response = await fetch(`${API_URL}${path}`, {
+      ...options,
+      headers: headers(options.headers || {})
+    });
+  } catch (error) {
+    throw new Error('Não foi possível conectar ao servidor. Verifique se a API está online.');
+  }
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: 'Erro inesperado.' }));
-    throw new Error(error.message || `Erro ${response.status}`);
+    throw new Error(formatApiError(error.message, response.status));
   }
 
   if (response.status === 204) {
@@ -42,6 +48,31 @@ async function api(path, options = {}) {
   }
 
   return response.json();
+}
+
+function formatApiError(message, status) {
+  const knownMessages = {
+    'Credenciais invalidas.': 'E-mail ou senha incorretos.',
+    'Token nao informado.': 'Faça login para continuar.',
+    'Token invalido ou expirado.': 'Sua sessão expirou. Faça login novamente.',
+    'Campos obrigatorios ausentes.': 'Preencha todos os campos obrigatórios.',
+    'E-mail ja cadastrado.': 'Este e-mail já está cadastrado.',
+    'Arquivo JSON invalido.': 'O arquivo enviado não é um JSON válido.'
+  };
+
+  if (knownMessages[message]) {
+    return knownMessages[message];
+  }
+
+  if (status === 500) {
+    return 'Ocorreu um erro no servidor. Tente novamente em instantes.';
+  }
+
+  if (status === 404) {
+    return 'Registro não encontrado.';
+  }
+
+  return message || 'Não foi possível concluir a operação.';
 }
 
 function setStatus(message) {
@@ -70,7 +101,7 @@ document.getElementById('loginForm').addEventListener('submit', async (event) =>
     localStorage.setItem('token', token);
     localStorage.setItem('usuario', JSON.stringify(currentUser));
     syncSessionView();
-    setStatus(`Logado como ${result.usuario.nome}`);
+    setStatus(`Logado como ${result.usuario.nome}.`);
     await loadPrivateData();
   } catch (error) {
     setStatus(error.message);
@@ -85,7 +116,7 @@ document.getElementById('registerForm').addEventListener('submit', async (event)
     const confirmarSenha = document.getElementById('confirmarSenhaRegistro').value;
 
     if (senha !== confirmarSenha) {
-      setStatus('As senhas nao conferem.');
+      setStatus('As senhas não conferem.');
       return;
     }
 
@@ -99,7 +130,7 @@ document.getElementById('registerForm').addEventListener('submit', async (event)
       })
     });
     showLoginPanel();
-    setStatus('Usuario registrado. Agora faca login.');
+    setStatus('Conta criada com sucesso. Agora faça login.');
   } catch (error) {
     setStatus(error.message);
   }
@@ -115,7 +146,7 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   localStorage.removeItem('token');
   localStorage.removeItem('usuario');
   syncSessionView();
-  setStatus('Sessao encerrada.');
+  setStatus('Sessão encerrada.');
 });
 
 document.getElementById('refreshDashboard').addEventListener('click', () => {
@@ -196,7 +227,7 @@ document.getElementById('importJson').addEventListener('change', async (event) =
       body: formData
     });
     await Promise.all([loadDashboard(), loadMovies(), loadLogs()]);
-    alert('Importacao concluida.');
+    alert('Importação concluída.');
   } catch (error) {
     alert(error.message);
   }
@@ -228,7 +259,7 @@ function renderMovies(movies) {
       ${movie.capa_url ? `<img src="${API_URL}${movie.capa_url}" alt="Capa de ${movie.titulo}">` : '<img alt="Sem capa">'}
       <div>
         <h3>${movie.titulo}</h3>
-        <p>${movie.genero_nome || 'Sem genero'} | ${movie.ano_lancamento || 'Ano nao informado'}</p>
+        <p>${movie.genero_nome || 'Sem gênero'} | ${movie.ano_lancamento || 'Ano não informado'}</p>
         <p>Estoque: ${movie.estoque} | R$ ${Number(movie.preco_locacao).toFixed(2)}</p>
         <div class="card-actions">
           <button onclick="editMovie(${movie.id})">Editar</button>
@@ -287,7 +318,7 @@ function renderClients(clients) {
           <th>E-mail</th>
           <th>Telefone</th>
           <th>Documento</th>
-          <th>Acoes</th>
+          <th>Ações</th>
         </tr>
       </thead>
       <tbody>
@@ -372,7 +403,7 @@ async function generatePdf() {
   doc.text('Relatorio da Locadora Projeto-Filmes', 14, 18);
   doc.setFontSize(10);
   doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 26);
-  doc.text(`Usuario: ${currentUser ? currentUser.nome : 'Nao identificado'}`, 14, 32);
+  doc.text(`Usuário: ${currentUser ? currentUser.nome : 'Não identificado'}`, 14, 32);
 
   doc.autoTable({
     startY: 40,
@@ -395,7 +426,7 @@ async function downloadProtected(path, filename) {
     });
 
     if (!response.ok) {
-      throw new Error('Nao foi possivel baixar o arquivo.');
+      throw new Error('Não foi possível baixar o arquivo.');
     }
 
     const blob = await response.blob();
