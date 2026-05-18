@@ -8,11 +8,11 @@ class UsuarioDAO {
 
   async create(usuario) {
     const [result] = await pool.execute(
-      'INSERT INTO usuarios (nome, email, senha, perfil) VALUES (?, ?, ?, ?)',
-      [usuario.nome, usuario.email, usuario.senha, usuario.perfil || 'operador']
+      'INSERT INTO usuarios (nome, email, senha) VALUES (?, ?, ?)',
+      [usuario.nome, usuario.email, usuario.senha]
     );
 
-    return { id: result.insertId, ...usuario, senha: undefined };
+    return { id: result.insertId, nome: usuario.nome, email: usuario.email, perfil: usuario.perfil || 'operador' };
   }
 }
 

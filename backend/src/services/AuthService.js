@@ -38,7 +38,7 @@ class AuthService {
     }
 
     const token = jwt.sign(
-      { id: usuario.id, nome: usuario.nome, email: usuario.email, perfil: usuario.perfil },
+      { id: usuario.id, nome: usuario.nome, email: usuario.email, perfil: usuario.perfil || 'operador' },
       process.env.JWT_SECRET || 'troque_esta_chave_em_producao',
       { expiresIn: process.env.JWT_EXPIRES_IN || '1d' }
     );
@@ -49,7 +49,7 @@ class AuthService {
         id: usuario.id,
         nome: usuario.nome,
         email: usuario.email,
-        perfil: usuario.perfil
+        perfil: usuario.perfil || 'operador'
       }
     };
   }

@@ -2,6 +2,11 @@
 
 Sistema web full stack para uma locadora de filmes, criado com Node.js, Express, MySQL como banco principal e MongoDB para logs do sistema.
 
+## Link Online
+
+- Sistema no Render: https://projeto-filmes.onrender.com
+- Health check: https://projeto-filmes.onrender.com/health
+
 ## Arquitetura
 
 O backend foi organizado com MVC, Service Layer, Router, DAO, Models, Interfaces e Middlewares. Essa separacao deixa o projeto preparado para crescer sem misturar regra de negocio, SQL, HTTP e infraestrutura.
@@ -26,6 +31,10 @@ O backend foi organizado com MVC, Service Layer, Router, DAO, Models, Interfaces
 - dotenv
 - cors
 - Chart.js no frontend
+- jsPDF para relatorio PDF
+- Railway MySQL
+- MongoDB Atlas
+- Render
 
 ## Funcionalidades
 
@@ -41,6 +50,36 @@ O backend foi organizado com MVC, Service Layer, Router, DAO, Models, Interfaces
 - Grafico Chart.js com dados da API.
 - Logs de acesso, login, logout, inclusao, alteracao, exclusao e erros.
 
+## Bancos de Dados
+
+O sistema utiliza dois bancos:
+
+- MySQL Railway: banco relacional principal, com as tabelas `usuarios`, `clientes`, `generos`, `filmes`, `locacoes` e `itens_locacao`.
+- MongoDB Atlas: banco NoSQL usado para logs do sistema, com registros de acesso, autenticacao, cadastro, alteracao, exclusao e erros.
+
+O MySQL atende aos relacionamentos exigidos no trabalho:
+
+- 1:N entre `generos` e `filmes`.
+- 1:N entre `clientes` e `locacoes`.
+- 1:N entre `usuarios` e `locacoes`.
+- N:N entre `locacoes` e `filmes`, usando `itens_locacao`.
+
+## Como Rodar Localmente
+
+```bash
+npm install
+cp .env.example .env
+npm run dev
+```
+
+No Windows PowerShell, se `npm` estiver bloqueado:
+
+```powershell
+npm.cmd run dev
+```
+
+Para usar MySQL local, configure o `.env` com os dados do banco local. Para usar os bancos online, preencha o `.env` com as credenciais do Railway e do MongoDB Atlas.
+
 ## Hospedagem
 
 O projeto pode ser hospedado no Render como um Web Service Node.js. O backend entrega a API e tambem serve o frontend em `/`, entao um unico link publico abre o sistema.
@@ -53,6 +92,8 @@ Na hospedagem, use:
 
 Variaveis de ambiente necessarias na hospedagem:
 
+- `NODE_ENV=production`
+- `PORT`
 - `MYSQL_HOST`
 - `MYSQL_PORT`
 - `MYSQL_USER`
@@ -62,3 +103,81 @@ Variaveis de ambiente necessarias na hospedagem:
 - `JWT_SECRET`
 - `JWT_EXPIRES_IN`
 - `UPLOAD_DIR`
+
+Comandos usados no Render:
+
+- Build Command: `npm install`
+- Start Command: `npm start`
+
+## Endpoints Principais
+
+### Auth
+
+- `POST /auth/registrar`
+- `POST /auth/login`
+- `POST /auth/logout`
+
+### Filmes
+
+- `GET /filmes`
+- `GET /filmes/:id`
+- `POST /filmes`
+- `PUT /filmes/:id`
+- `DELETE /filmes/:id`
+- `GET /filmes/exportar/json`
+- `POST /filmes/importar/json`
+
+### Clientes
+
+- `GET /clientes`
+- `GET /clientes/:id`
+- `POST /clientes`
+- `PUT /clientes/:id`
+- `DELETE /clientes/:id`
+
+### Relatorios
+
+- `GET /relatorios/json`
+- `GET /relatorios/grafico-locacoes`
+- `GET /relatorios/pdf`
+
+### Logs
+
+- `GET /logs`
+- `GET /logs/exportar/xml`
+
+## Estrutura
+
+```text
+backend/
+  src/
+    config/
+    controllers/
+    dao/
+    interfaces/
+    middlewares/
+    models/
+    routes/
+    services/
+    uploads/
+frontend/
+database/
+docs/
+```
+
+## Apresentacao Academica
+
+Na demonstracao, mostre:
+
+- Arquitetura MVC + Service Layer.
+- Interfaces `IDAO`, `IService` e `IController`.
+- Middlewares de autenticacao, log, validacao e erro.
+- MySQL Railway com tabelas relacionais.
+- MongoDB Atlas recebendo logs.
+- Login com JWT.
+- CRUD de filmes com upload de capa.
+- CRUD de clientes.
+- Exportacao/importacao JSON.
+- Exportacao XML de logs.
+- Relatorio PDF.
+- Grafico Chart.js.
