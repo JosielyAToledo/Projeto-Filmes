@@ -8,6 +8,7 @@ O sistema escolhido e uma locadora de filmes. O objetivo e controlar usuarios, c
 
 - Somente usuarios autenticados podem cadastrar, alterar, excluir, importar e exportar dados protegidos.
 - Filmes devem possuir titulo obrigatorio.
+- Clientes devem possuir nome obrigatorio.
 - Capas de filmes devem ser enviadas como imagem.
 - Importacoes JSON validam estrutura antes da insercao.
 - Logs de acesso, autenticacao, cadastro, alteracao, exclusao e erro sao salvos no MongoDB.
@@ -26,7 +27,7 @@ O sistema escolhido e uma locadora de filmes. O objetivo e controlar usuarios, c
 - `IService`: contrato para regras de negocio.
 - `IController`: contrato para controllers CRUD.
 
-`FilmeDAO`, `FilmeService` e `FilmeController` implementam esses contratos.
+`FilmeDAO`, `FilmeService`, `FilmeController`, `ClienteDAO`, `ClienteService` e `ClienteController` implementam esses contratos.
 
 ## Banco MySQL
 

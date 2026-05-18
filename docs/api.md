@@ -16,6 +16,14 @@
 - `GET /filmes/exportar/json` com JWT
 - `POST /filmes/importar/json` com JWT
 
+## Clientes
+
+- `GET /clientes` com JWT
+- `GET /clientes/:id` com JWT
+- `POST /clientes` com JWT
+- `PUT /clientes/:id` com JWT
+- `DELETE /clientes/:id` com JWT
+
 ## Relatorios
 
 - `GET /relatorios/json`

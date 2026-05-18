@@ -136,6 +136,31 @@ button,
   margin: 18px 0;
 }
 
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.stats-grid article {
+  padding: 18px;
+  border: 1px solid #dce2ea;
+  border-radius: 8px;
+  background: #fbfcfd;
+}
+
+.stats-grid span {
+  display: block;
+  color: #566579;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.stats-grid strong {
+  display: block;
+  font-size: 32px;
+}
+
 .movie-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -171,6 +196,32 @@ button,
   margin-top: 10px;
 }
 
+.table-list {
+  overflow-x: auto;
+}
+
+.table-list table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-list th,
+.table-list td {
+  border-bottom: 1px solid #dce2ea;
+  padding: 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.table-list th {
+  background: #f4f6f8;
+}
+
+.table-actions {
+  display: flex;
+  gap: 8px;
+}
+
 pre {
   max-height: 260px;
   overflow: auto;
@@ -197,7 +248,8 @@ canvas {
   }
 
   .form-grid,
-  .toolbar {
+  .toolbar,
+  .stats-grid {
     grid-template-columns: 1fr;
   }
 

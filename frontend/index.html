@@ -16,7 +16,9 @@
         <span>Locadora de filmes</span>
       </div>
       <nav>
+        <a href="#dashboard">Dashboard</a>
         <a href="#filmes">Filmes</a>
+        <a href="#clientes">Clientes</a>
         <a href="#relatorios">Relatorios</a>
         <a href="#logs">Logs</a>
       </nav>
@@ -36,7 +38,31 @@
           <input id="senhaRegistro" type="password" placeholder="Senha para registro" />
           <button type="submit" class="secondary">Registrar</button>
         </form>
-        <p id="authStatus" class="status">Faça login para acessar as rotas privadas.</p>
+        <p id="authStatus" class="status">Faca login para acessar as rotas privadas.</p>
+      </section>
+
+      <section class="panel" id="dashboard">
+        <div class="section-head">
+          <div>
+            <h2>Dashboard</h2>
+            <p>Resumo operacional carregado da API.</p>
+          </div>
+          <button id="refreshDashboard">Atualizar</button>
+        </div>
+        <div class="stats-grid">
+          <article>
+            <span>Filmes</span>
+            <strong id="statMovies">0</strong>
+          </article>
+          <article>
+            <span>Clientes</span>
+            <strong id="statClients">0</strong>
+          </article>
+          <article>
+            <span>Locacoes</span>
+            <strong id="statRentals">0</strong>
+          </article>
+        </div>
       </section>
 
       <section class="panel" id="filmes">
@@ -72,6 +98,32 @@
         </div>
 
         <div id="movieList" class="movie-list"></div>
+      </section>
+
+      <section class="panel" id="clientes">
+        <div class="section-head">
+          <div>
+            <h2>Clientes</h2>
+            <p>CRUD REST protegido por JWT e persistido no MySQL.</p>
+          </div>
+        </div>
+
+        <form id="clientForm" class="form-grid">
+          <input id="clientId" type="hidden" />
+          <input id="clientName" type="text" placeholder="Nome" required />
+          <input id="clientEmail" type="email" placeholder="E-mail" />
+          <input id="clientPhone" type="text" placeholder="Telefone" />
+          <input id="clientDocument" type="text" placeholder="Documento" />
+          <button type="submit">Salvar cliente</button>
+          <button type="button" id="clearClientForm" class="secondary">Limpar</button>
+        </form>
+
+        <div class="toolbar">
+          <input id="clientSearch" type="search" placeholder="Pesquisar cliente" />
+          <button id="clientSearchBtn">Buscar</button>
+        </div>
+
+        <div id="clientList" class="table-list"></div>
       </section>
 
       <section class="panel" id="relatorios">

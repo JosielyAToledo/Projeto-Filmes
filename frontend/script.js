@@ -1,8 +1,10 @@
 const API_URL = window.location.protocol === 'file:' ? 'http://localhost:3000' : window.location.origin;
+
 let token = localStorage.getItem('token') || '';
 let currentUser = JSON.parse(localStorage.getItem('usuario') || 'null');
 let rentalsChart;
 let currentMovies = [];
+let currentClients = [];
 
 const authStatus = document.getElementById('authStatus');
 
@@ -32,6 +34,10 @@ function setStatus(message) {
   authStatus.textContent = message;
 }
 
+async function loadPrivateData() {
+  await Promise.all([loadDashboard(), loadMovies(), loadClients(), loadChart(), loadLogs()]);
+}
+
 document.getElementById('loginForm').addEventListener('submit', async (event) => {
   event.preventDefault();
 
@@ -50,7 +56,7 @@ document.getElementById('loginForm').addEventListener('submit', async (event) =>
     localStorage.setItem('token', token);
     localStorage.setItem('usuario', JSON.stringify(currentUser));
     setStatus(`Logado como ${result.usuario.nome}`);
-    await Promise.all([loadMovies(), loadChart(), loadLogs()]);
+    await loadPrivateData();
   } catch (error) {
     setStatus(error.message);
   }
@@ -79,11 +85,16 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   if (token) {
     await api('/auth/logout', { method: 'POST' }).catch(() => null);
   }
+
   token = '';
   currentUser = null;
   localStorage.removeItem('token');
   localStorage.removeItem('usuario');
   setStatus('Sessao encerrada.');
+});
+
+document.getElementById('refreshDashboard').addEventListener('click', () => {
+  loadDashboard().catch((error) => setStatus(error.message));
 });
 
 document.getElementById('movieForm').addEventListener('submit', async (event) => {
@@ -107,14 +118,40 @@ document.getElementById('movieForm').addEventListener('submit', async (event) =>
       body: formData
     });
     clearForm();
-    await Promise.all([loadMovies(), loadLogs()]);
+    await Promise.all([loadDashboard(), loadMovies(), loadLogs()]);
+  } catch (error) {
+    alert(error.message);
+  }
+});
+
+document.getElementById('clientForm').addEventListener('submit', async (event) => {
+  event.preventDefault();
+
+  const id = document.getElementById('clientId').value;
+  const payload = {
+    nome: document.getElementById('clientName').value,
+    email: document.getElementById('clientEmail').value,
+    telefone: document.getElementById('clientPhone').value,
+    documento: document.getElementById('clientDocument').value
+  };
+
+  try {
+    await api(id ? `/clientes/${id}` : '/clientes', {
+      method: id ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    clearClientForm();
+    await Promise.all([loadDashboard(), loadClients(), loadLogs()]);
   } catch (error) {
     alert(error.message);
   }
 });
 
 document.getElementById('clearForm').addEventListener('click', clearForm);
+document.getElementById('clearClientForm').addEventListener('click', clearClientForm);
 document.getElementById('searchBtn').addEventListener('click', () => loadMovies(document.getElementById('search').value));
+document.getElementById('clientSearchBtn').addEventListener('click', () => loadClients(document.getElementById('clientSearch').value));
 document.getElementById('generatePdf').addEventListener('click', generatePdf);
 document.getElementById('exportJson').addEventListener('click', () => downloadProtected('/filmes/exportar/json', 'filmes.json'));
 document.getElementById('exportXml').addEventListener('click', () => downloadProtected('/logs/exportar/xml', 'logs.xml'));
@@ -131,12 +168,19 @@ document.getElementById('importJson').addEventListener('change', async (event) =
       method: 'POST',
       body: formData
     });
-    await loadMovies();
+    await Promise.all([loadDashboard(), loadMovies(), loadLogs()]);
     alert('Importacao concluida.');
   } catch (error) {
     alert(error.message);
   }
 });
+
+async function loadDashboard() {
+  const resumo = await api('/relatorios/json');
+  document.getElementById('statMovies').textContent = resumo.filmes;
+  document.getElementById('statClients').textContent = resumo.clientes;
+  document.getElementById('statRentals').textContent = resumo.locacoes;
+}
 
 async function loadMovies(query = '') {
   const path = query ? `/filmes?q=${encodeURIComponent(query)}` : '/filmes';
@@ -183,7 +227,7 @@ window.deleteMovie = async (id) => {
 
   try {
     await api(`/filmes/${id}`, { method: 'DELETE' });
-    await Promise.all([loadMovies(), loadLogs()]);
+    await Promise.all([loadDashboard(), loadMovies(), loadLogs()]);
   } catch (error) {
     alert(error.message);
   }
@@ -192,6 +236,78 @@ window.deleteMovie = async (id) => {
 function clearForm() {
   document.getElementById('movieForm').reset();
   document.getElementById('movieId').value = '';
+}
+
+async function loadClients(query = '') {
+  const path = query ? `/clientes?q=${encodeURIComponent(query)}` : '/clientes';
+  currentClients = await api(path);
+  renderClients(currentClients);
+}
+
+function renderClients(clients) {
+  const list = document.getElementById('clientList');
+
+  if (!clients.length) {
+    list.innerHTML = '<p>Nenhum cliente encontrado.</p>';
+    return;
+  }
+
+  list.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>E-mail</th>
+          <th>Telefone</th>
+          <th>Documento</th>
+          <th>Acoes</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${clients.map((client) => `
+          <tr>
+            <td>${client.nome}</td>
+            <td>${client.email || '-'}</td>
+            <td>${client.telefone || '-'}</td>
+            <td>${client.documento || '-'}</td>
+            <td>
+              <div class="table-actions">
+                <button onclick="editClient(${client.id})">Editar</button>
+                <button class="ghost" onclick="deleteClient(${client.id})">Excluir</button>
+              </div>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+window.editClient = (id) => {
+  const client = currentClients.find((item) => item.id === id);
+  if (!client) return;
+
+  document.getElementById('clientId').value = client.id;
+  document.getElementById('clientName').value = client.nome || '';
+  document.getElementById('clientEmail').value = client.email || '';
+  document.getElementById('clientPhone').value = client.telefone || '';
+  document.getElementById('clientDocument').value = client.documento || '';
+};
+
+window.deleteClient = async (id) => {
+  if (!confirm('Deseja excluir este cliente?')) return;
+
+  try {
+    await api(`/clientes/${id}`, { method: 'DELETE' });
+    await Promise.all([loadDashboard(), loadClients(), loadLogs()]);
+  } catch (error) {
+    alert(error.message);
+  }
+};
+
+function clearClientForm() {
+  document.getElementById('clientForm').reset();
+  document.getElementById('clientId').value = '';
 }
 
 async function loadChart() {
@@ -246,24 +362,28 @@ async function generatePdf() {
 }
 
 async function downloadProtected(path, filename) {
-  const response = await fetch(`${API_URL}${path}`, {
-    headers: headers()
-  });
+  try {
+    const response = await fetch(`${API_URL}${path}`, {
+      headers: headers()
+    });
 
-  if (!response.ok) {
-    throw new Error('Nao foi possivel baixar o arquivo.');
+    if (!response.ok) {
+      throw new Error('Nao foi possivel baixar o arquivo.');
+    }
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    alert(error.message);
   }
-
-  const blob = await response.blob();
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(url);
 }
 
 if (token) {
   setStatus('Token encontrado. Carregando dados...');
-  Promise.all([loadMovies(), loadChart(), loadLogs()]).catch((error) => setStatus(error.message));
+  loadPrivateData().catch((error) => setStatus(error.message));
 }
