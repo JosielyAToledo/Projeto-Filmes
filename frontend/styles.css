@@ -519,6 +519,32 @@ button {
   color: #ffffff;
 }
 
+.watched-grid .poster-wrap button {
+  display: none;
+}
+
+.watched-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: 50%;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.watched-badge.positive {
+  background: #16a34a;
+}
+
+.watched-badge.negative {
+  background: #dc161d;
+}
+
 .movie-card strong,
 .movie-card span {
   display: block;

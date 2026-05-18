@@ -331,18 +331,20 @@ function renderFeatured() {
   const featured = movies.slice(0, 5);
   document.getElementById('featuredGrid').innerHTML = featured.map(renderMovieCard).join('');
   document.getElementById('favoritesGrid').innerHTML = movies.slice(0, 4).map(renderMovieCard).join('');
+  document.getElementById('watchedGrid').innerHTML = movies.slice(1, 9).map((movie, index) => renderMovieCard(movie, { watched: true, positive: index % 3 !== 0 })).join('');
 }
 
 function renderMovies(items) {
   document.getElementById('movieGrid').innerHTML = items.map(renderMovieCard).join('');
 }
 
-function renderMovieCard(movie) {
+function renderMovieCard(movie, options = {}) {
   return `
     <article class="movie-card" onclick="openMovieModal(${movie.id})">
       <div class="poster-wrap">
         <img src="${resolveImageUrl(movie.capa_url)}" alt="Capa de ${movie.titulo}" />
         <button type="button" aria-label="Favoritar" onclick="event.stopPropagation()">♥</button>
+        ${options.watched ? `<span class="watched-badge ${options.positive ? 'positive' : 'negative'}">${options.positive ? '✓' : '•'}</span>` : ''}
       </div>
       <strong>${movie.titulo}</strong>
       <span>${movie.ano_lancamento || 'Ano não informado'}</span>
