@@ -288,24 +288,65 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
 document.querySelectorAll('.nav-link').forEach((link) => {
   link.addEventListener('click', (event) => {
     event.preventDefault();
+    if (link.dataset.page === 'filmes') {
+      showAllMovies();
+      return;
+    }
+
     showPage(link.dataset.page);
   });
 });
 
-document.getElementById('goMovies').addEventListener('click', () => showPage('filmes'));
+document.getElementById('goMovies').addEventListener('click', showAllMovies);
 document.getElementById('editProfileBtn').addEventListener('click', () => {
   renderProfileForm();
   showPage('editarPerfil');
 });
 document.getElementById('openExportPageBtn').addEventListener('click', () => showPage('exportar'));
-document.getElementById('movieSearch').addEventListener('input', (event) => renderMovies(filterMovies(event.target.value)));
+document.getElementById('downloadPdfBtn').addEventListener('click', downloadPDFReport);
+document.getElementById('downloadPdfIconBtn').addEventListener('click', downloadPDFReport);
+document.getElementById('downloadXmlBtn').addEventListener('click', downloadXMLExport);
+document.getElementById('downloadXmlIconBtn').addEventListener('click', downloadXMLExport);
+document.getElementById('movieSearch').addEventListener('input', (event) => {
+  setMoviesHeader('Filmes', 'Explore todos os filmes disponiveis.');
+  renderMovies(filterMovies(event.target.value));
+});
 document.getElementById('globalSearch').addEventListener('keydown', (event) => {
   if (event.key === 'Enter') {
     event.preventDefault();
     showPage('filmes');
+    setMoviesHeader('Filmes', 'Resultado da busca.');
     document.getElementById('movieSearch').value = event.target.value;
     renderMovies(filterMovies(event.target.value));
   }
+});
+
+const categoryNames = [
+  'Ação',
+  'Aventura',
+  'Comédia',
+  'Drama',
+  'Ficção Científica',
+  'Terror',
+  'Romance',
+  'Animação',
+  'Documentário'
+];
+
+document.querySelectorAll('.categories-grid article').forEach((card, index) => {
+  const category = categoryNames[index];
+
+  card.tabIndex = 0;
+  card.setAttribute('role', 'button');
+  card.setAttribute('aria-label', `Ver filmes de ${category}`);
+
+  card.addEventListener('click', () => showCategoryMovies(category));
+  card.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      showCategoryMovies(category);
+    }
+  });
 });
 
 function showPage(page) {
@@ -335,12 +376,47 @@ async function loadMovies() {
   renderProfile();
 }
 
+function normalizeText(value = '') {
+  return value.toString()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
+
+function setMoviesHeader(title, subtitle) {
+  document.getElementById('moviesPageTitle').textContent = title;
+  document.querySelector('#filmesPage .movies-header p').textContent = subtitle;
+}
+
+function showAllMovies() {
+  document.getElementById('movieSearch').value = '';
+  setMoviesHeader('Filmes', 'Explore todos os filmes disponiveis.');
+  renderMovies(movies);
+  showPage('filmes');
+}
+
+function showCategoryMovies(category) {
+  const filteredMovies = movies.filter((movie) => {
+    return normalizeText(movie.genero_nome) === normalizeText(category);
+  });
+
+  document.getElementById('movieSearch').value = category;
+  setMoviesHeader(`Filmes de ${category}`, `Explore filmes da categoria ${category}.`);
+  renderMovies(filteredMovies);
+  showPage('filmes');
+}
+
 function filterMovies(query = '') {
   if (!query) {
     return movies;
   }
 
-  return movies.filter((movie) => movie.titulo.toLowerCase().includes(query.toLowerCase()));
+  const normalizedQuery = normalizeText(query);
+
+  return movies.filter((movie) => {
+    return normalizeText(movie.titulo).includes(normalizedQuery)
+      || normalizeText(movie.genero_nome).includes(normalizedQuery);
+  });
 }
 
 function renderFeatured() {
@@ -351,7 +427,9 @@ function renderFeatured() {
 }
 
 function renderMovies(items) {
-  document.getElementById('movieGrid').innerHTML = items.map(renderMovieCard).join('');
+  document.getElementById('movieGrid').innerHTML = items.length
+    ? items.map(renderMovieCard).join('')
+    : '<p class="empty-state">Nenhum filme encontrado para esta categoria.</p>';
 }
 
 function getProfileUser() {
@@ -411,6 +489,106 @@ document.querySelector('.edit-profile-form').addEventListener('submit', (event) 
   syncView();
   showPage('perfil');
 });
+
+function downloadBlob(content, filename, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function selectedExportItems() {
+  return Array.from(document.querySelectorAll('.export-data input:checked'))
+    .map((input) => input.parentElement.textContent.trim());
+}
+
+function escapePDFText(text) {
+  return text.normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[()\\]/g, '\\$&');
+}
+
+function makeSimplePDF(lines) {
+  const content = [
+    'BT',
+    '/F1 18 Tf',
+    '50 790 Td',
+    '(Relatorio MovieHub) Tj',
+    '/F1 11 Tf',
+    '0 -28 Td',
+    ...lines.map((line) => `(${escapePDFText(line)}) Tj 0 -18 Td`),
+    'ET'
+  ].join('\n');
+  const objects = [
+    '1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n',
+    '2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n',
+    '3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>\nendobj\n',
+    '4 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n',
+    `5 0 obj\n<< /Length ${content.length} >>\nstream\n${content}\nendstream\nendobj\n`
+  ];
+  let pdf = '%PDF-1.4\n';
+  const offsets = [0];
+
+  objects.forEach((object) => {
+    offsets.push(pdf.length);
+    pdf += object;
+  });
+
+  const xref = pdf.length;
+  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+  offsets.slice(1).forEach((offset) => {
+    pdf += `${String(offset).padStart(10, '0')} 00000 n \n`;
+  });
+  pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+
+  return pdf;
+}
+
+function downloadPDFReport() {
+  const lines = [
+    `Periodo: ${document.querySelector('.export-period-grid select').value}`,
+    `Data inicial: ${document.querySelector('[aria-label="Data inicial"]').value}`,
+    `Data final: ${document.querySelector('[aria-label="Data final"]').value}`,
+    `Dados exportados: ${selectedExportItems().join(', ') || 'Nenhum item selecionado'}`,
+    'Resumo: Importacoes e exportacoes do sistema.'
+  ];
+
+  downloadBlob(makeSimplePDF(lines), 'relatorio-moviehub.pdf', 'application/pdf');
+}
+
+function buildFallbackXML() {
+  const items = selectedExportItems()
+    .map((item) => `    <item>${item}</item>`)
+    .join('\n');
+
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<exportacao>\n  <periodo>${document.querySelector('.export-period-grid select').value}</periodo>\n  <dataInicial>${document.querySelector('[aria-label="Data inicial"]').value}</dataInicial>\n  <dataFinal>${document.querySelector('[aria-label="Data final"]').value}</dataFinal>\n  <dados>\n${items}\n  </dados>\n</exportacao>`;
+}
+
+async function downloadXMLExport() {
+  let xml = '';
+
+  if (token) {
+    try {
+      const response = await fetch(`${API_URL}/logs/exportar/xml`, {
+        headers: headers()
+      });
+
+      if (response.ok) {
+        xml = await response.text();
+      }
+    } catch (error) {
+      xml = '';
+    }
+  }
+
+  downloadBlob(xml || buildFallbackXML(), 'relatorio-moviehub.xml', 'application/xml');
+}
 
 function renderMovieCard(movie, options = {}) {
   return `
