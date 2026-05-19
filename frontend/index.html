@@ -75,6 +75,9 @@
           <a href="#categorias" class="nav-link" data-page="categorias">Categorias</a>
           <a href="#favoritos" class="nav-link" data-page="favoritos">Meus favoritos</a>
           <a href="#assistidos" class="nav-link" data-page="assistidos">Assistidos</a>
+          <a href="#relatorios" class="nav-link" data-page="relatorios">Relatorios</a>
+          <a href="#logs" class="nav-link" data-page="logs">Logs do Sistema</a>
+          <a href="#perfil" class="nav-link" data-page="perfil">Perfil</a>
         </nav>
       </aside>
 
@@ -221,6 +224,330 @@
           </div>
 
           <div class="movies-grid watched-grid" id="watchedGrid"></div>
+        </section>
+
+        <section class="page" id="relatoriosPage">
+          <div class="reports-page">
+            <div class="movies-header">
+              <h1>Relatorios</h1>
+              <p>Visualize os dados de importacao e exportacao.</p>
+            </div>
+
+            <div class="reports-filters">
+              <label for="reportPeriod">
+                Periodo
+                <select id="reportPeriod">
+                  <option>Ultimos 6 meses</option>
+                  <option>Ultimos 12 meses</option>
+                  <option>Este ano</option>
+                </select>
+              </label>
+
+              <label for="reportType">
+                Tipo
+                <select id="reportType">
+                  <option>Todos</option>
+                  <option>Importacoes</option>
+                  <option>Exportacoes</option>
+                </select>
+              </label>
+
+              <button id="openExportPageBtn" class="report-export-button" type="button">Exportacao</button>
+            </div>
+
+            <section class="report-panel" aria-labelledby="importsExportsTitle">
+              <h2 id="importsExportsTitle">Importacoes vs Exportacoes</h2>
+
+              <div class="report-legend" aria-hidden="true">
+                <span><i class="legend-import"></i>Importacoes</span>
+                <span><i class="legend-export"></i>Exportacoes</span>
+              </div>
+
+              <div class="bar-chart" aria-label="Grafico de importacoes e exportacoes por mes">
+                <div class="chart-scale">
+                  <span>50</span>
+                  <span>40</span>
+                  <span>30</span>
+                  <span>20</span>
+                  <span>10</span>
+                  <span>0</span>
+                </div>
+
+                <div class="chart-grid">
+                  <article>
+                    <div class="bar-group">
+                      <span class="bar import" style="height: 58%"></span>
+                      <span class="bar export" style="height: 46%"></span>
+                    </div>
+                    <strong>Jan</strong>
+                  </article>
+                  <article>
+                    <div class="bar-group">
+                      <span class="bar import" style="height: 62%"></span>
+                      <span class="bar export" style="height: 51%"></span>
+                    </div>
+                    <strong>Fev</strong>
+                  </article>
+                  <article>
+                    <div class="bar-group">
+                      <span class="bar import" style="height: 43%"></span>
+                      <span class="bar export" style="height: 67%"></span>
+                    </div>
+                    <strong>Mar</strong>
+                  </article>
+                  <article>
+                    <div class="bar-group">
+                      <span class="bar import" style="height: 55%"></span>
+                      <span class="bar export" style="height: 89%"></span>
+                    </div>
+                    <strong>Mai</strong>
+                  </article>
+                  <article>
+                    <div class="bar-group">
+                      <span class="bar import" style="height: 46%"></span>
+                      <span class="bar export" style="height: 84%"></span>
+                    </div>
+                    <strong>Jun</strong>
+                  </article>
+                </div>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="page" id="exportarPage">
+          <div class="export-page">
+            <div class="movies-header">
+              <h1>Exportar Dados</h1>
+              <p>Escolha o formato e o periodo para exportar os dados do sistema.</p>
+            </div>
+
+            <form class="export-form">
+              <fieldset class="export-type">
+                <legend>Tipo de Exportacao</legend>
+                <div class="export-type-options">
+                  <label>
+                    <input type="radio" name="exportType" checked />
+                    <span>PDF</span>
+                  </label>
+                  <label>
+                    <input type="radio" name="exportType" />
+                    <span>XML</span>
+                  </label>
+                </div>
+              </fieldset>
+
+              <fieldset class="export-period">
+                <legend>Periodo</legend>
+                <div class="export-period-grid">
+                  <select aria-label="Periodo">
+                    <option>Ultimos 6 meses</option>
+                    <option>Ultimos 12 meses</option>
+                    <option>Este ano</option>
+                  </select>
+                  <input type="text" value="01/01/2024" aria-label="Data inicial" />
+                  <span>ate</span>
+                  <input type="text" value="30/06/2024" aria-label="Data final" />
+                </div>
+              </fieldset>
+
+              <fieldset class="export-data">
+                <legend>Dados a Exportar</legend>
+                <label><input type="checkbox" checked />Filmes</label>
+                <label><input type="checkbox" checked />Categorias</label>
+                <label><input type="checkbox" checked />Usuarios</label>
+                <label><input type="checkbox" checked />Logs do Sistema</label>
+                <label><input type="checkbox" checked />Importacoes/Exportacoes</label>
+              </fieldset>
+
+              <div class="export-actions">
+                <button class="export-primary" type="button">Exportar PDF</button>
+                <button class="export-icon" type="button" aria-label="Baixar PDF">PDF</button>
+                <button class="export-secondary" type="button">Exportar XML</button>
+                <button class="export-icon" type="button" aria-label="Baixar XML">XML</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <section class="page" id="logsPage">
+          <div class="logs-page">
+            <div class="movies-header">
+              <h1>Logs do Sistema</h1>
+              <p>Visualize as atividades registradas no sistema.</p>
+            </div>
+
+            <div class="logs-toolbar">
+              <div class="reports-filters logs-filters">
+                <label for="logsPeriod">
+                  Periodo
+                  <select id="logsPeriod">
+                    <option>Todos</option>
+                    <option>Hoje</option>
+                    <option>Ultimos 7 dias</option>
+                    <option>Ultimos 30 dias</option>
+                  </select>
+                </label>
+
+                <label for="logsType">
+                  Tipo de Log
+                  <select id="logsType">
+                    <option>Todos</option>
+                    <option>Login</option>
+                    <option>Exportacao</option>
+                    <option>Importacao</option>
+                    <option>Cadastro</option>
+                    <option>Edicao</option>
+                  </select>
+                </label>
+              </div>
+
+              <button class="logs-filter-button" type="button">Filtros</button>
+            </div>
+
+            <section class="logs-panel" aria-label="Tabela de logs do sistema">
+              <div class="logs-table-wrap">
+                <table class="logs-table">
+                  <thead>
+                    <tr>
+                      <th>Data/Hora</th>
+                      <th>Usuario</th>
+                      <th>Acao</th>
+                      <th>Descricao</th>
+                      <th>IP</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>01/06/2024 14:35:23</td>
+                      <td>Lucas Silva</td>
+                      <td>Login</td>
+                      <td>Login realizado com sucesso</td>
+                      <td>192.168.1.10</td>
+                    </tr>
+                    <tr>
+                      <td>01/06/2024 14:37:45</td>
+                      <td>Lucas Silva</td>
+                      <td>Exportacao</td>
+                      <td>Dados exportados em PDF</td>
+                      <td>192.168.1.10</td>
+                    </tr>
+                    <tr>
+                      <td>01/06/2024 14:40:12</td>
+                      <td>Maria Oliveira</td>
+                      <td>Importacao</td>
+                      <td>Dados importados via XML</td>
+                      <td>192.168.1.15</td>
+                    </tr>
+                    <tr>
+                      <td>01/06/2024 14:42:01</td>
+                      <td>Admin</td>
+                      <td>Cadastro</td>
+                      <td>Novo filme cadastrado</td>
+                      <td>192.168.1.8</td>
+                    </tr>
+                    <tr>
+                      <td>01/06/2024 14:45:33</td>
+                      <td>Joao Santos</td>
+                      <td>Edicao</td>
+                      <td>Filme atualizado</td>
+                      <td>192.168.1.12</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="logs-pagination">
+                <button class="active" type="button">1</button>
+                <button type="button">2</button>
+                <button type="button">3</button>
+                <button type="button">&rsaquo;</button>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="page" id="perfilPage">
+          <div class="profile-page">
+            <div class="profile-hero">
+              <div class="profile-avatar" id="profileAvatar">LS</div>
+              <div>
+                <h1 id="profileName">Lucas Silva</h1>
+                <p id="profileEmail">lucas@email.com</p>
+                <span id="profileMemberSince">Membro desde: Maio de 2024</span>
+              </div>
+            </div>
+
+            <section class="profile-panel" aria-labelledby="profileStatsTitle">
+              <h2 id="profileStatsTitle">Estatisticas</h2>
+              <div class="profile-stats">
+                <article>
+                  <strong id="favoriteCount">32</strong>
+                  <span>Filmes Favoritos</span>
+                </article>
+                <article>
+                  <strong id="watchedCount">18</strong>
+                  <span>Filmes Assistidos</span>
+                </article>
+                <article>
+                  <strong id="categoryCount">6</strong>
+                  <span>Categorias Preferidas</span>
+                </article>
+              </div>
+            </section>
+
+            <section class="profile-panel" aria-labelledby="accountInfoTitle">
+              <h2 id="accountInfoTitle">Informacoes da Conta</h2>
+              <dl class="account-info">
+                <div>
+                  <dt>Nome</dt>
+                  <dd id="accountName">Lucas Silva</dd>
+                </div>
+                <div>
+                  <dt>E-mail</dt>
+                  <dd id="accountEmail">lucas@email.com</dd>
+                </div>
+              </dl>
+              <div class="profile-actions">
+                <button id="editProfileBtn" type="button">Editar Perfil</button>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="page" id="editarPerfilPage">
+          <div class="edit-profile-page">
+            <div class="movies-header">
+              <h1>Editar Perfil</h1>
+              <p>Atualize suas informacoes pessoais.</p>
+            </div>
+
+            <form class="edit-profile-form">
+              <aside class="edit-photo">
+                <div class="profile-avatar" id="editProfileAvatar">LS</div>
+                <button type="button">Alterar Foto</button>
+              </aside>
+
+              <div class="edit-fields">
+                <label for="editName">Nome</label>
+                <input id="editName" type="text" value="Lucas Silva" />
+
+                <label for="editEmail">E-mail</label>
+                <input id="editEmail" type="email" value="lucas@email.com" />
+
+                <label for="currentPassword">Senha Atual</label>
+                <input id="currentPassword" type="password" value="123456789" />
+
+                <label for="newPassword">Nova Senha</label>
+                <input id="newPassword" type="password" value="123456789" />
+
+                <label for="confirmNewPassword">Confirmar Nova Senha</label>
+                <input id="confirmNewPassword" type="password" value="123456789" />
+
+                <button type="submit">Salvar Alteracoes</button>
+              </div>
+            </form>
+          </div>
         </section>
       </main>
     </section>

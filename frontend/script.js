@@ -150,9 +150,15 @@ function syncView() {
   document.body.classList.toggle('logged-in', isLogged);
   document.getElementById('authScreen').classList.toggle('hidden', isLogged);
   document.getElementById('appShell').classList.toggle('visible', isLogged);
+  renderProfile();
 
   const name = currentUser ? currentUser.nome || currentUser.email || 'usuário' : 'Preview';
   document.getElementById('currentUserName').textContent = name.split(' ')[0];
+  document.querySelector('.user-box .avatar').textContent = getInitials(name);
+  if (previewMode && !currentUser) {
+    document.getElementById('currentUserName').textContent = 'Lucas';
+    document.querySelector('.user-box .avatar').textContent = 'LS';
+  }
 }
 
 function showRegister() {
@@ -287,6 +293,11 @@ document.querySelectorAll('.nav-link').forEach((link) => {
 });
 
 document.getElementById('goMovies').addEventListener('click', () => showPage('filmes'));
+document.getElementById('editProfileBtn').addEventListener('click', () => {
+  renderProfileForm();
+  showPage('editarPerfil');
+});
+document.getElementById('openExportPageBtn').addEventListener('click', () => showPage('exportar'));
 document.getElementById('movieSearch').addEventListener('input', (event) => renderMovies(filterMovies(event.target.value)));
 document.getElementById('globalSearch').addEventListener('keydown', (event) => {
   if (event.key === 'Enter') {
@@ -301,7 +312,11 @@ function showPage(page) {
   document.querySelectorAll('.page').forEach((item) => item.classList.remove('active'));
   document.querySelectorAll('.nav-link').forEach((item) => item.classList.remove('active'));
   document.getElementById(`${page}Page`).classList.add('active');
-  document.querySelector(`[data-page="${page}"]`).classList.add('active');
+  const activeLink = document.querySelector(`[data-page="${page}"]`);
+
+  if (activeLink) {
+    activeLink.classList.add('active');
+  }
 }
 
 async function loadMovies() {
@@ -317,6 +332,7 @@ async function loadMovies() {
 
   renderFeatured();
   renderMovies(movies);
+  renderProfile();
 }
 
 function filterMovies(query = '') {
@@ -337,6 +353,64 @@ function renderFeatured() {
 function renderMovies(items) {
   document.getElementById('movieGrid').innerHTML = items.map(renderMovieCard).join('');
 }
+
+function getProfileUser() {
+  return currentUser || {
+    nome: 'Lucas Silva',
+    email: 'lucas@email.com'
+  };
+}
+
+function getInitials(name = '') {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+
+  if (!parts.length) {
+    return 'M';
+  }
+
+  return parts.slice(0, 2).map((part) => part[0]).join('').toUpperCase();
+}
+
+function renderProfile() {
+  const user = getProfileUser();
+  const name = user.nome || user.email || 'Usuario MovieHub';
+  const email = user.email || 'email@moviehub.com';
+  const uniqueCategories = new Set(movies.map((movie) => movie.genero_nome).filter(Boolean));
+
+  document.getElementById('profileAvatar').textContent = getInitials(name);
+  document.getElementById('profileName').textContent = name;
+  document.getElementById('profileEmail').textContent = email;
+  document.getElementById('profileMemberSince').textContent = 'Membro desde: Maio de 2024';
+  document.getElementById('favoriteCount').textContent = movies.length ? Math.min(movies.length, 32) : 32;
+  document.getElementById('watchedCount').textContent = movies.length ? Math.min(Math.max(movies.length - 2, 1), 18) : 18;
+  document.getElementById('categoryCount').textContent = uniqueCategories.size || 6;
+  document.getElementById('accountName').textContent = name;
+  document.getElementById('accountEmail').textContent = email;
+}
+
+function renderProfileForm() {
+  const user = getProfileUser();
+  const name = user.nome || user.email || 'Usuario MovieHub';
+  const email = user.email || 'email@moviehub.com';
+
+  document.getElementById('editProfileAvatar').textContent = getInitials(name);
+  document.getElementById('editName').value = name;
+  document.getElementById('editEmail').value = email;
+}
+
+document.querySelector('.edit-profile-form').addEventListener('submit', (event) => {
+  event.preventDefault();
+
+  currentUser = {
+    ...(currentUser || {}),
+    nome: document.getElementById('editName').value,
+    email: document.getElementById('editEmail').value
+  };
+
+  localStorage.setItem('usuario', JSON.stringify(currentUser));
+  syncView();
+  showPage('perfil');
+});
 
 function renderMovieCard(movie, options = {}) {
   return `
