@@ -2,13 +2,18 @@ const mongoose = require('mongoose');
 
 // MongoDB e usado para registros operacionais sem misturar logs ao banco relacional.
 async function connectMongoDB() {
-  const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/projeto_filmes_logs';
+  const mongoURI = process.env.MONGODB_URI;
 
   mongoose.set('strictQuery', true);
 
+  if (!mongoURI) {
+    console.warn('MongoDB nao conectado. Variavel MONGODB_URI nao definida.');
+    return false;
+  }
+
   try {
     await withTimeout(
-      mongoose.connect(uri, {
+      mongoose.connect(mongoURI, {
         serverSelectionTimeoutMS: 5000,
         connectTimeoutMS: 5000,
         socketTimeoutMS: 5000

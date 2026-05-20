@@ -767,6 +767,48 @@ svg {
   border: 1px solid #24364a;
 }
 
+.rating-control {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  border: 1px solid #24364a;
+  border-radius: 6px;
+  background: #111c29;
+}
+
+.rating-control > span {
+  color: #c9d5e4;
+  font-weight: 900;
+}
+
+.rating-stars {
+  display: flex;
+  gap: 2px;
+}
+
+.detail-actions .rating-stars button {
+  min-width: 26px;
+  min-height: 34px;
+  padding: 0;
+  background: transparent;
+  color: #657387;
+  font-size: 23px;
+  line-height: 1;
+}
+
+.detail-actions .rating-stars button.active,
+.detail-actions .rating-stars button:hover {
+  color: #ff8000;
+}
+
+.rating-control strong {
+  min-width: 58px;
+  color: #9aa8b9;
+  font-size: 13px;
+}
+
 .movie-info {
   margin-top: 22px;
   border: 1px solid #17283a;
@@ -1848,4 +1890,300 @@ svg {
     align-items: flex-start;
     gap: 8px;
   }
+}
+
+/* Letterboxd-inspired color theme */
+:root {
+  --lb-page: #14191f;
+  --lb-top: #11161c;
+  --lb-panel: #1b222b;
+  --lb-panel-2: #202936;
+  --lb-line: #2c3846;
+  --lb-soft-line: rgba(156, 174, 194, 0.16);
+  --lb-text: #f4f7fa;
+  --lb-muted: #9fb0c2;
+  --lb-subtle: #6f8094;
+  --lb-orange: #ff8000;
+  --lb-green: #00c030;
+  --lb-blue: #40bcf4;
+  --lb-link: #a9c7df;
+  --lb-danger: #ff375f;
+  color: var(--lb-text);
+  background: var(--lb-page);
+}
+
+body {
+  background: var(--lb-page);
+  color: var(--lb-text);
+}
+
+.auth-screen {
+  background:
+    linear-gradient(180deg, rgba(20, 25, 31, 0.72), rgba(20, 25, 31, 0.96)),
+    url("https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1800&q=85") center / cover;
+}
+
+.auth-screen::before {
+  background:
+    linear-gradient(90deg, rgba(255, 128, 0, 0.16), rgba(0, 192, 48, 0.12), rgba(64, 188, 244, 0.14)),
+    linear-gradient(180deg, transparent, rgba(20, 25, 31, 0.88));
+}
+
+.auth-card,
+.movie-modal-card {
+  border-color: var(--lb-soft-line);
+  background: rgba(27, 34, 43, 0.94);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.45);
+}
+
+.brand-icon {
+  border-color: var(--lb-orange);
+  color: var(--lb-orange);
+  box-shadow: 0 0 22px rgba(255, 128, 0, 0.22);
+}
+
+.brand strong,
+.side-brand strong {
+  color: var(--lb-text);
+  letter-spacing: -0.02em;
+  text-transform: none;
+}
+
+.brand span,
+.side-brand span {
+  color: var(--lb-text);
+}
+
+.auth-form input,
+.search-box input,
+.movies-toolbar input,
+.reports-filters select,
+.export-period-grid select,
+.export-period-grid input,
+.edit-fields input {
+  border-color: var(--lb-line);
+  background: #2c3542;
+  color: var(--lb-text);
+}
+
+.primary-button,
+.hero button,
+.report-export-button,
+.profile-actions button,
+.edit-fields button,
+.detail-actions button,
+.export-primary,
+#logoutBtn {
+  background: var(--lb-green);
+  color: #08100c;
+  box-shadow: none;
+}
+
+.link-button,
+.switch-text button {
+  color: var(--lb-blue);
+}
+
+.app-shell.visible {
+  display: block;
+  min-height: 100vh;
+  background: var(--lb-page);
+}
+
+.sidebar {
+  border-color: var(--lb-soft-line);
+  background: var(--lb-top);
+}
+
+.sidebar a {
+  color: var(--lb-link);
+}
+
+.sidebar a.active,
+.sidebar a:hover {
+  background: #2c3542;
+  color: var(--lb-text);
+  box-shadow: inset 4px 0 0 var(--lb-orange);
+}
+
+.search-box {
+  border-color: var(--lb-line);
+  background: #2d3745;
+}
+
+.search-box span {
+  color: var(--lb-subtle);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.search-box input {
+  background: transparent;
+}
+
+.user-box {
+  color: var(--lb-muted);
+}
+
+.avatar,
+.profile-avatar {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.02)),
+    #334050;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hero {
+  border-color: var(--lb-soft-line);
+  background:
+    linear-gradient(90deg, rgba(20, 25, 31, 0.98) 0%, rgba(20, 25, 31, 0.72) 45%, rgba(20, 25, 31, 0.12) 100%),
+    url("https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=1600&q=85") center / cover;
+}
+
+.hero span {
+  color: var(--lb-blue);
+}
+
+.hero h1 {
+  color: var(--lb-orange);
+}
+
+.hero p {
+  color: #d6e0ea;
+}
+
+.section-title,
+.movies-header {
+  border-color: var(--lb-soft-line);
+}
+
+.section-title h2,
+.movies-header h1,
+.profile-hero h1,
+.movie-detail-content h2 {
+  color: var(--lb-text);
+  letter-spacing: -0.01em;
+}
+
+.movies-header p,
+.movie-card span,
+.categories-grid span,
+.profile-hero p,
+.profile-hero span {
+  color: var(--lb-muted);
+}
+
+.movie-card {
+  border-color: var(--lb-soft-line);
+  background: var(--lb-panel);
+}
+
+.poster-wrap img {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--lb-panel-2);
+}
+
+.movie-card:hover .poster-wrap img {
+  border-color: var(--lb-blue);
+}
+
+.poster-wrap button {
+  background: rgba(0, 192, 48, 0.94);
+  color: #06120a;
+}
+
+.movie-card strong {
+  color: #dfe7ef;
+  font-size: 14px;
+}
+
+.movies-toolbar button,
+.detail-actions .secondary-action,
+.export-secondary,
+.export-icon,
+.logs-filter-button {
+  border: 1px solid var(--lb-line) !important;
+  background: var(--lb-panel-2);
+  color: var(--lb-text);
+}
+
+.categories-grid article,
+.profile-panel,
+.report-panel,
+.logs-panel,
+.account-info,
+.export-type-options span,
+.empty-state,
+.movie-info {
+  border-color: var(--lb-soft-line);
+  background: var(--lb-panel);
+}
+
+.categories-grid article:hover,
+.movie-card:hover {
+  border-color: var(--lb-blue);
+}
+
+.category-icon {
+  border-color: currentColor;
+}
+
+.pagination button,
+.logs-pagination button {
+  border-color: var(--lb-line);
+  background: var(--lb-panel-2);
+}
+
+.pagination button.active,
+.logs-pagination button.active {
+  border-color: var(--lb-orange);
+  background: var(--lb-orange);
+  color: #120a02;
+}
+
+.profile-hero {
+  border-color: var(--lb-soft-line);
+}
+
+.profile-stats article,
+.logs-table th,
+.logs-table td,
+.account-info div,
+.movie-info h3,
+.movie-info dl > div {
+  border-color: var(--lb-soft-line);
+  background: transparent;
+}
+
+.profile-stats strong {
+  color: var(--lb-text);
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.profile-stats span,
+.logs-table th,
+.reports-filters label,
+.export-form legend,
+.edit-fields label {
+  color: var(--lb-muted);
+}
+
+.legend-import,
+.bar.import {
+  background: var(--lb-green);
+}
+
+.legend-export,
+.bar.export {
+  background: var(--lb-orange);
+}
+
+.logs-table tbody tr:hover {
+  background: rgba(64, 188, 244, 0.05);
+}
+
+input:focus,
+select:focus {
+  border-color: var(--lb-blue);
+  box-shadow: 0 0 0 3px rgba(64, 188, 244, 0.12);
 }

@@ -4,6 +4,7 @@ const previewMode = new URLSearchParams(window.location.search).get('preview') =
 let token = localStorage.getItem('token') || '';
 let currentUser = JSON.parse(localStorage.getItem('usuario') || 'null');
 let movies = [];
+let movieRatings = JSON.parse(localStorage.getItem('movieRatings') || '{}');
 
 const authStatus = document.getElementById('authStatus');
 const sampleMovies = [
@@ -401,7 +402,7 @@ function showCategoryMovies(category) {
   });
 
   document.getElementById('movieSearch').value = category;
-  setMoviesHeader(`Filmes de ${category}`, `Explore filmes da categoria ${category}.`);
+  setMoviesHeader(`Filmes de ${category}`, `Explore filmes do gênero ${category}.`);
   renderMovies(filteredMovies);
   showPage('filmes');
 }
@@ -429,7 +430,7 @@ function renderFeatured() {
 function renderMovies(items) {
   document.getElementById('movieGrid').innerHTML = items.length
     ? items.map(renderMovieCard).join('')
-    : '<p class="empty-state">Nenhum filme encontrado para esta categoria.</p>';
+    : '<p class="empty-state">Nenhum filme encontrado para este gênero.</p>';
 }
 
 function getProfileUser() {
@@ -604,6 +605,31 @@ function renderMovieCard(movie, options = {}) {
   `;
 }
 
+function getMovieRating(id) {
+  return Number(movieRatings[id] || 0);
+}
+
+function renderRatingStars(id) {
+  const rating = getMovieRating(id);
+
+  return `
+    <div class="rating-control" role="group" aria-label="Avaliar filme">
+      <span>Avaliar</span>
+      <div class="rating-stars">
+        ${[1, 2, 3, 4, 5].map((value) => `
+          <button
+            type="button"
+            class="${value <= rating ? 'active' : ''}"
+            aria-label="Avaliar com ${value} estrela${value > 1 ? 's' : ''}"
+            onclick="setMovieRating(${id}, ${value})"
+          >★</button>
+        `).join('')}
+      </div>
+      <strong>${rating ? `${rating}/5` : 'Sem nota'}</strong>
+    </div>
+  `;
+}
+
 window.openMovieModal = (id) => {
   const movie = movies.find((item) => Number(item.id) === Number(id));
   if (!movie) return;
@@ -622,7 +648,7 @@ window.openMovieModal = (id) => {
         </div>
         <p>${movie.descricao || 'Filme disponível no catálogo MovieHub.'}</p>
         <div class="detail-actions">
-          <button type="button">Assistir trailer</button>
+          ${renderRatingStars(movie.id)}
           <button type="button" class="secondary-action">Adicionar aos favoritos</button>
         </div>
       </div>
@@ -647,6 +673,16 @@ window.openMovieModal = (id) => {
   `;
   modal.classList.add('visible');
   modal.setAttribute('aria-hidden', 'false');
+};
+
+window.setMovieRating = (id, rating) => {
+  movieRatings[id] = rating;
+  localStorage.setItem('movieRatings', JSON.stringify(movieRatings));
+
+  const ratingControl = document.querySelector('.rating-control');
+  if (ratingControl) {
+    ratingControl.outerHTML = renderRatingStars(id);
+  }
 };
 
 function closeMovieModal() {

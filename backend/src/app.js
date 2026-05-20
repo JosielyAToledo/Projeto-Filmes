@@ -10,6 +10,7 @@ const filmesRoutes = require('./routes/filmes_routes');
 const locacoesRoutes = require('./routes/locacoes_routes');
 const relatoriosRoutes = require('./routes/relatorios_routes');
 const logsRoutes = require('./routes/logs_routes');
+const mysqlPool = require('./config/mysql');
 const logMiddleware = require('./middlewares/log_middleware');
 const errorMiddleware = require('./middlewares/error_middleware');
 
@@ -31,6 +32,19 @@ app.use(logMiddleware);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'Projeto-Filmes' });
+});
+
+app.get('/health/mysql', async (req, res) => {
+  try {
+    await mysqlPool.query('SELECT 1');
+    return res.json({ status: 'ok', mysql: 'connected' });
+  } catch (error) {
+    return res.status(500).json({
+      status: 'error',
+      mysql: 'disconnected',
+      code: error.code || 'UNKNOWN'
+    });
+  }
 });
 
 app.get('/', (req, res) => {
