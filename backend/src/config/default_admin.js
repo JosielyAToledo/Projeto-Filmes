@@ -4,13 +4,13 @@ const DEFAULT_ADMIN_PASSWORD_HASH = '$2a$10$DddNgW.uzbVmUkcDig4BUONe/lMRQVHLOnCc
 
 async function ensureDefaultAdmin() {
   await pool.execute(
-    `INSERT INTO usuarios (nome, email, senha, perfil)
+    `INSERT INTO usuarios (nome, email, senha_hash, tipo_usuario)
      VALUES (?, ?, ?, ?)
      ON DUPLICATE KEY UPDATE
        nome = VALUES(nome),
-       senha = VALUES(senha),
-       perfil = VALUES(perfil)`,
-    ['admin', 'admin@catalogo7.local', DEFAULT_ADMIN_PASSWORD_HASH, 'admin']
+       senha_hash = VALUES(senha_hash),
+       tipo_usuario = VALUES(tipo_usuario)`,
+    ['Administrador', 'admin@catalogo7.com', DEFAULT_ADMIN_PASSWORD_HASH, 'admin']
   );
 }
 

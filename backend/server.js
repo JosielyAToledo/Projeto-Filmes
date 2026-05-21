@@ -8,7 +8,13 @@ const PORT = process.env.PORT || 3000;
 async function startServer() {
   try {
     await connectMongoDB();
-    await ensureDefaultAdmin();
+
+    try {
+      await ensureDefaultAdmin();
+    } catch (error) {
+      console.warn('Admin padrao nao foi sincronizado com o MySQL.');
+      console.warn(`Motivo: ${error.code || error.message}`);
+    }
 
     app.listen(PORT, () => {
       console.log(`Servidor rodando na porta ${PORT}`);

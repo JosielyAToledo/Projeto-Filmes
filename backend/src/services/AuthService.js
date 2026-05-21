@@ -29,7 +29,8 @@ class AuthService {
       throw error;
     }
 
-    const senhaValida = await bcrypt.compare(senha, usuario.senha);
+    const tipoUsuario = usuario.tipo_usuario;
+    const senhaValida = await bcrypt.compare(senha, usuario.senha_hash);
 
     if (!senhaValida) {
       const error = new Error('Credenciais invalidas.');
@@ -38,7 +39,7 @@ class AuthService {
     }
 
     const token = jwt.sign(
-      { id: usuario.id, nome: usuario.nome, email: usuario.email, perfil: usuario.perfil || 'operador' },
+      { id: usuario.id, nome: usuario.nome, email: usuario.email, tipo_usuario: tipoUsuario },
       process.env.JWT_SECRET || 'troque_esta_chave_em_producao',
       { expiresIn: process.env.JWT_EXPIRES_IN || '1d' }
     );
@@ -49,7 +50,7 @@ class AuthService {
         id: usuario.id,
         nome: usuario.nome,
         email: usuario.email,
-        perfil: usuario.perfil || 'operador'
+        tipo_usuario: tipoUsuario
       }
     };
   }

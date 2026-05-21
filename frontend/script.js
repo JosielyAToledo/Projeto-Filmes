@@ -436,7 +436,7 @@ function normalizeText(value = '') {
 function isAdminUser(usuario = {}) {
   return usuario.tipo === 'admin'
     || usuario.role === 'admin'
-    || usuario.perfil === 'admin'
+    || usuario.tipo_usuario === 'admin'
     || normalizeText(usuario.nome || '') === 'admin'
     || normalizeText(usuario.email || '').includes('admin');
 }
