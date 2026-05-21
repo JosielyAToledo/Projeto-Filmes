@@ -7,19 +7,31 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <section class="auth-screen" id="authScreen">
+    <section class="auth-screen catalog-login-screen" id="authScreen">
       <div class="auth-card" id="loginCard">
         <div class="brand">
-          <div class="brand-icon">M</div>
-          <strong>MOVIE<span>HUB</span></strong>
+          <strong>catálogo<span>7</span></strong>
+        </div>
+
+        <div class="auth-intro">
+          <h1>Bem-vindo</h1>
+          <p>Faça login para continuar explorando histórias incríveis.</p>
+          <span aria-hidden="true">✦</span>
         </div>
 
         <form id="loginForm" class="auth-form">
-          <label for="email">E-mail</label>
-          <input id="email" type="email" placeholder="cine@email.com" required />
+          <label for="email">Usuário ou e-mail</label>
+          <div class="auth-field">
+            <span aria-hidden="true">✉</span>
+            <input id="email" type="text" placeholder="seu@email.com ou admin" required />
+          </div>
 
           <label for="senha">Senha</label>
-          <input id="senha" type="password" placeholder="********" required />
+          <div class="auth-field">
+            <span aria-hidden="true">♙</span>
+            <input id="senha" type="password" placeholder="Digite sua senha" required />
+            <span aria-hidden="true">⊙</span>
+          </div>
 
           <div class="auth-row">
             <label class="remember">
@@ -32,41 +44,150 @@
           <button type="submit" class="primary-button">Entrar</button>
         </form>
 
-        <p class="switch-text">Não tem uma conta? <button type="button" id="showRegister">Cadastre-se</button></p>
+        <div class="auth-divider"><span>ou</span></div>
+        <p class="switch-text auth-create"><button type="button" id="showRegister">Criar conta</button></p>
         <p id="authStatus" class="status" aria-live="polite"></p>
       </div>
 
       <div class="auth-card register-card" id="registerCard">
         <div class="brand">
-          <div class="brand-icon">M</div>
-          <strong>MOVIE<span>HUB</span></strong>
+          <strong>catálogo<span>7</span></strong>
+        </div>
+
+        <div class="auth-intro">
+          <h1>Criar conta</h1>
+          <p>Entre para salvar filmes, avaliações e memórias de cinema.</p>
+          <span aria-hidden="true">✦</span>
         </div>
 
         <form id="registerForm" class="auth-form">
-          <label for="nomeRegistro">Nome</label>
-          <input id="nomeRegistro" type="text" placeholder="Seu nome" required />
+          <label for="nomeRegistro">Nome completo</label>
+          <div class="auth-field">
+            <span aria-hidden="true">♙</span>
+            <input id="nomeRegistro" type="text" placeholder="Seu nome completo" required />
+          </div>
 
           <label for="emailRegistro">E-mail</label>
-          <input id="emailRegistro" type="email" placeholder="cine@email.com" required />
+          <div class="auth-field">
+            <span aria-hidden="true">✉</span>
+            <input id="emailRegistro" type="email" placeholder="seu@email.com" required />
+          </div>
 
           <label for="senhaRegistro">Senha</label>
-          <input id="senhaRegistro" type="password" placeholder="********" required />
+          <div class="auth-field">
+            <span aria-hidden="true">♙</span>
+            <input id="senhaRegistro" type="password" placeholder="Digite sua senha" required />
+          </div>
 
           <label for="confirmarSenhaRegistro">Confirmar senha</label>
-          <input id="confirmarSenhaRegistro" type="password" placeholder="********" required />
+          <div class="auth-field">
+            <span aria-hidden="true">♙</span>
+            <input id="confirmarSenhaRegistro" type="password" placeholder="Confirme sua senha" required />
+          </div>
 
-          <button type="submit" class="primary-button">Cadastrar</button>
+          <button type="submit" class="primary-button">Criar conta</button>
         </form>
 
-        <p class="switch-text">Já tem uma conta? <button type="button" id="showLogin">Faça login</button></p>
+        <div class="auth-divider"><span>ou</span></div>
+        <p class="switch-text auth-login"><button type="button" id="showLogin">Fazer login</button></p>
       </div>
+
     </section>
 
-    <section class="app-shell" id="appShell">
-      <aside class="sidebar">
+    <section class="admin-shell" id="adminShell">
+      <aside class="admin-sidebar">
+        <div class="admin-brand">catálogo<span>7</span></div>
+        <button class="admin-menu-button" type="button" aria-label="Menu">☰</button>
+        <nav>
+          <a class="active" href="#adminDashboard">Dashboard</a>
+          <a href="#adminFilmes">Filmes</a>
+          <a href="#adminSeries">Séries</a>
+          <a href="#adminUsuarios">Usuários</a>
+          <a href="#adminComentarios">Comentários</a>
+          <a href="#adminListas">Listas</a>
+          <a href="#adminGeneros">Gêneros</a>
+          <a href="#adminDiretores">Diretores</a>
+          <a href="#adminAtores">Atores</a>
+          <a href="#adminAtividades">Atividades</a>
+          <a href="#adminConfig">Configurações</a>
+          <a href="#adminLogs">Logs</a>
+        </nav>
+        <button id="adminLogoutBtn" class="admin-exit" type="button">Sair</button>
+      </aside>
+
+      <main class="admin-main">
+        <header class="admin-topbar">
+          <div>
+            <h1>Painel Administrativo</h1>
+            <p>Visão geral do sistema</p>
+          </div>
+          <div class="admin-tools">
+            <div class="admin-search">
+              <input type="search" placeholder="Buscar filmes, usuários, etc..." />
+              <span>⌕</span>
+            </div>
+            <button type="button" aria-label="Notificações">♢</button>
+            <div class="admin-user"><span></span><strong>Admin</strong></div>
+          </div>
+        </header>
+
+        <section class="admin-stats">
+          <article><span>Filmes</span><strong>128</strong><p>Total de filmes</p></article>
+          <article><span>Usuários</span><strong>1.234</strong><p>Total de usuários</p></article>
+          <article><span>Comentários</span><strong>532</strong><p>Total de comentários</p></article>
+          <article><span>Avaliações</span><strong>2.456</strong><p>Total de avaliações</p></article>
+        </section>
+
+        <section class="admin-grid">
+          <article class="admin-panel admin-chart">
+            <h2>Filmes adicionados (últimos 7 dias)</h2>
+            <div class="chart-line" aria-hidden="true">
+              <span style="left: 8%; bottom: 28%"></span>
+              <span style="left: 24%; bottom: 42%"></span>
+              <span style="left: 40%; bottom: 54%"></span>
+              <span style="left: 56%; bottom: 32%"></span>
+              <span style="left: 72%; bottom: 50%"></span>
+              <span style="left: 88%; bottom: 66%"></span>
+            </div>
+          </article>
+
+          <article class="admin-panel admin-activity">
+            <h2>Atividades recentes</h2>
+            <ul>
+              <li>Filme “Duna: Parte 2” foi adicionado <span>Hoje, 14:32</span></li>
+              <li>Usuário “marina” comentou em “Interestelar” <span>Hoje, 13:15</span></li>
+              <li>Filme “Oppenheimer” foi atualizado <span>Hoje, 11:06</span></li>
+              <li>Usuário “joao” avaliou “Clube da Luta” <span>Hoje, 10:22</span></li>
+            </ul>
+            <button type="button">Ver todas atividades</button>
+          </article>
+
+          <article class="admin-panel">
+            <h2>Filmes em destaque</h2>
+            <div class="admin-posters">
+              <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=240&q=80" alt="Poster Duna" />
+              <img src="https://images.unsplash.com/photo-1542204165-65bf26472b9b?auto=format&fit=crop&w=240&q=80" alt="Poster sci-fi" />
+              <img src="https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=240&q=80" alt="Poster cinema" />
+              <img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?auto=format&fit=crop&w=240&q=80" alt="Poster drama" />
+            </div>
+          </article>
+
+          <article class="admin-panel admin-genres">
+            <h2>Gêneros mais populares</h2>
+            <p><span>Drama</span><i style="width: 85%"></i><strong>35%</strong></p>
+            <p><span>Ação</span><i style="width: 65%"></i><strong>25%</strong></p>
+            <p><span>Ficção Científica</span><i style="width: 52%"></i><strong>20%</strong></p>
+            <p><span>Suspense</span><i style="width: 32%"></i><strong>10%</strong></p>
+            <p><span>Outros</span><i style="width: 28%"></i><strong>10%</strong></p>
+          </article>
+        </section>
+      </main>
+    </section>
+
+    <section class="app-shell user-home-shell" id="appShell">
+      <aside class="sidebar user-header">
         <div class="side-brand">
-          <div class="brand-icon small">M</div>
-          <strong>MOVIE<span>HUB</span></strong>
+          <strong>catálogo<span>7</span></strong>
         </div>
 
         <nav>
@@ -79,6 +200,21 @@
           <a href="#logs" class="nav-link" data-page="logs">Logs do Sistema</a>
           <a href="#perfil" class="nav-link" data-page="perfil">Perfil</a>
         </nav>
+
+        <div class="header-actions">
+          <div class="search-box">
+            <input id="globalSearch" type="search" placeholder="Buscar filmes, diretores, atores..." />
+            <span aria-hidden="true">⌕</span>
+          </div>
+
+          <button class="notify-button" type="button" aria-label="Notificações">♢</button>
+
+          <div class="user-box">
+            <span>Olá, <strong id="currentUserName">usuário</strong></span>
+            <div class="avatar">M</div>
+            <button id="logoutBtn" type="button">Sair</button>
+          </div>
+        </div>
       </aside>
 
       <main class="content">
@@ -97,12 +233,18 @@
 
         <section class="page active" id="inicioPage">
           <div class="hero">
+            <button class="hero-arrow prev" type="button" aria-label="Filme anterior">‹</button>
             <div>
-              <span>Bem-vindo ao</span>
-              <h1>MovieHub</h1>
-              <p>Explore, descubra e organize seus filmes favoritos.</p>
-              <button type="button" id="goMovies">Explorar filmes</button>
+              <h1>O TERCEIRO HOMEM <span>1949</span></h1>
+              <p class="hero-kicker">Cinema para quem observa.</p>
+              <p class="hero-director">Direção: Carol Reed</p>
+              <p>Um escritor americano chega à Viena pós-guerra para encontrar seu amigo, e acaba envolvido em uma teia de segredos e traições.</p>
+              <div class="hero-actions">
+                <button type="button" id="goMovies">Assistir de novo</button>
+                <button class="add-button" type="button" aria-label="Adicionar à lista">+</button>
+              </div>
             </div>
+            <button class="hero-arrow next" type="button" aria-label="Próximo filme">›</button>
           </div>
 
           <div class="section-title">

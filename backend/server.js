@@ -1,5 +1,6 @@
 const app = require('./src/app');
 const { connectMongoDB } = require('./src/config/mongodb');
+const { ensureDefaultAdmin } = require('./src/config/default_admin');
 
 const PORT = process.env.PORT || 3000;
 
@@ -7,6 +8,7 @@ const PORT = process.env.PORT || 3000;
 async function startServer() {
   try {
     await connectMongoDB();
+    await ensureDefaultAdmin();
 
     app.listen(PORT, () => {
       console.log(`Servidor rodando na porta ${PORT}`);

@@ -20,8 +20,8 @@ class AuthService {
     return this.usuarioDAO.create({ ...dados, senha: senhaHash });
   }
 
-  async login(email, senha) {
-    const usuario = await this.usuarioDAO.findByEmail(email);
+  async login(login, senha) {
+    const usuario = await this.usuarioDAO.findByLogin(login);
 
     if (!usuario) {
       const error = new Error('Credenciais invalidas.');

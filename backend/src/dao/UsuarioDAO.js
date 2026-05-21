@@ -6,6 +6,14 @@ class UsuarioDAO {
     return rows[0] || null;
   }
 
+  async findByLogin(login) {
+    const [rows] = await pool.execute(
+      'SELECT * FROM usuarios WHERE email = ? OR nome = ? LIMIT 1',
+      [login, login]
+    );
+    return rows[0] || null;
+  }
+
   async create(usuario) {
     const [result] = await pool.execute(
       'INSERT INTO usuarios (nome, email, senha) VALUES (?, ?, ?)',

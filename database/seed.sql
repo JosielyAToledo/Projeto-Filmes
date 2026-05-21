@@ -1,5 +1,12 @@
 USE projeto_filmes;
 
+INSERT INTO usuarios (nome, email, senha, perfil) VALUES
+  ('admin', 'admin@catalogo7.local', '$2a$10$DddNgW.uzbVmUkcDig4BUONe/lMRQVHLOnCclZ9SiWijCWp4m7YOa', 'admin')
+ON DUPLICATE KEY UPDATE
+  nome = VALUES(nome),
+  senha = VALUES(senha),
+  perfil = VALUES(perfil);
+
 INSERT INTO clientes (nome, email, telefone, documento) VALUES
   ('Cliente Exemplo', 'cliente@example.com', '(11) 99999-9999', '00000000000');
 

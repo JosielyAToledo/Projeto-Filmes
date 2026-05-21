@@ -5,6 +5,7 @@ let token = localStorage.getItem('token') || '';
 let currentUser = JSON.parse(localStorage.getItem('usuario') || 'null');
 let movies = [];
 let movieRatings = JSON.parse(localStorage.getItem('movieRatings') || '{}');
+let adminSession = localStorage.getItem('adminSession') === '1';
 
 const authStatus = document.getElementById('authStatus');
 const sampleMovies = [
@@ -147,10 +148,12 @@ function setStatus(message) {
 }
 
 function syncView() {
-  const isLogged = Boolean(token) || previewMode;
+  const isLogged = !adminSession && (Boolean(token) || previewMode);
   document.body.classList.toggle('logged-in', isLogged);
-  document.getElementById('authScreen').classList.toggle('hidden', isLogged);
+  document.body.classList.toggle('admin-logged-in', adminSession);
+  document.getElementById('authScreen').classList.toggle('hidden', isLogged || adminSession);
   document.getElementById('appShell').classList.toggle('visible', isLogged);
+  document.getElementById('adminShell').classList.toggle('visible', adminSession);
   renderProfile();
 
   const name = currentUser ? currentUser.nome || currentUser.email || 'usuário' : 'Preview';
@@ -218,9 +221,12 @@ function formatApiError(message, status) {
   return message || 'Não foi possível concluir a operação.';
 }
 
-document.getElementById('showRegister').addEventListener('click', showRegister);
-document.getElementById('showLogin').addEventListener('click', showLogin);
-
+document.querySelectorAll('#showRegister').forEach((button) => {
+  button.addEventListener('click', showRegister);
+});
+document.querySelectorAll('#showLogin').forEach((button) => {
+  button.addEventListener('click', showLogin);
+});
 document.getElementById('loginForm').addEventListener('submit', async (event) => {
   event.preventDefault();
 
@@ -236,10 +242,19 @@ document.getElementById('loginForm').addEventListener('submit', async (event) =>
 
     token = result.token;
     currentUser = result.usuario;
+    adminSession = isAdminUser(currentUser);
     localStorage.setItem('token', token);
     localStorage.setItem('usuario', JSON.stringify(currentUser));
+    if (adminSession) {
+      localStorage.setItem('adminSession', '1');
+    } else {
+      localStorage.removeItem('adminSession');
+    }
+
     syncView();
-    await loadMovies();
+    if (!adminSession) {
+      await loadMovies();
+    }
   } catch (error) {
     setStatus(error.message);
   }
@@ -281,8 +296,25 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
 
   token = '';
   currentUser = null;
+  adminSession = false;
   localStorage.removeItem('token');
   localStorage.removeItem('usuario');
+  localStorage.removeItem('adminSession');
+  syncView();
+});
+
+document.getElementById('adminLogoutBtn').addEventListener('click', async () => {
+  if (token) {
+    await api('/auth/logout', { method: 'POST' }).catch(() => null);
+  }
+
+  token = '';
+  currentUser = null;
+  adminSession = false;
+  localStorage.removeItem('token');
+  localStorage.removeItem('usuario');
+  localStorage.removeItem('adminSession');
+  showLogin();
   syncView();
 });
 
@@ -296,6 +328,23 @@ document.querySelectorAll('.nav-link').forEach((link) => {
 
     showPage(link.dataset.page);
   });
+});
+
+const userNavLabels = {
+  filmes: 'FILMES',
+  favoritos: 'LISTAS',
+  perfil: 'MEMBROS',
+  assistidos: 'DIÁRIO'
+};
+
+document.querySelectorAll('.user-header .nav-link').forEach((link) => {
+  const label = userNavLabels[link.dataset.page];
+
+  if (label) {
+    link.textContent = label;
+  } else {
+    link.classList.add('user-nav-hidden');
+  }
 });
 
 document.getElementById('goMovies').addEventListener('click', showAllMovies);
@@ -382,6 +431,14 @@ function normalizeText(value = '') {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
+}
+
+function isAdminUser(usuario = {}) {
+  return usuario.tipo === 'admin'
+    || usuario.role === 'admin'
+    || usuario.perfil === 'admin'
+    || normalizeText(usuario.nome || '') === 'admin'
+    || normalizeText(usuario.email || '').includes('admin');
 }
 
 function setMoviesHeader(title, subtitle) {
