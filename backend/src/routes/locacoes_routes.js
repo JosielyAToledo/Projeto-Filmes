@@ -11,6 +11,9 @@ class LocacoesRoutes {
 
   register() {
     this.router.get('/', authMiddleware, this.locacaoController.index);
+    this.router.get('/:id', authMiddleware, this.locacaoController.show);
+    this.router.post('/', authMiddleware, this.locacaoController.store);
+    this.router.patch('/:id/devolver', authMiddleware, this.locacaoController.devolver);
   }
 }
 

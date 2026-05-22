@@ -36,6 +36,71 @@ O backend foi organizado com MVC, Service Layer, Router, DAO, Models, Interfaces
 - MongoDB Atlas
 - Render
 
+## Rodar Localmente Sem Banco
+
+Para abrir na sua maquina sem depender de MySQL ou MongoDB, deixe `LOCAL_MODE=true` no arquivo `.env` e rode:
+
+```bash
+npm install
+npm run dev
+```
+
+Depois acesse `http://localhost:3000` e entre com:
+
+- Login: `admin`
+- Senha: `123456`
+
+Se entrar como admin, o sistema abre o painel administrativo. Se criar uma conta pela janela "Criar conta" e fizer login com esse usuario, o sistema abre a area de usuario comum. As contas criadas no modo local ficam apenas enquanto o servidor estiver rodando.
+
+No Windows, tambem da para abrir tudo dando dois cliques no arquivo `Abrir-Projeto.bat`. Ele inicia o servidor e abre a janela de login no navegador.
+
+Nesse modo local, o sistema pula as conexoes externas. Para publicar/deploy, use `LOCAL_MODE=false` ou remova essa variavel e preencha as credenciais `DB_*` e `MONGODB_URI`.
+
+## Produção: Render + Railway + MongoDB Atlas
+
+Arquitetura oficial mantida:
+
+- Frontend entregue pelo backend hospedado.
+- Backend Node.js/Express no Render.
+- MySQL no Railway para dados relacionais.
+- MongoDB Atlas para logs.
+- GitHub conectado ao deploy automatico do Render.
+
+Variaveis obrigatorias no Render:
+
+```bash
+LOCAL_MODE=false
+DB_HOST=host-do-railway
+DB_PORT=porta-do-railway
+DB_USER=usuario-do-railway
+DB_PASSWORD=senha-do-railway
+DB_NAME=nome-do-banco
+MONGODB_URI=mongodb+srv://...
+JWT_SECRET=uma_chave_forte
+JWT_EXPIRES_IN=1d
+UPLOAD_DIR=backend/src/uploads
+```
+
+O Render executa `npm run db:migrate` no build, conforme `render.yaml`. Para rodar manualmente contra o MySQL do Railway quando precisar:
+
+```bash
+npm run db:migrate
+npm run db:seed
+```
+
+O schema oficial fica em `database/schema.sql`. O script e seguro para producao academica: ele cria tabelas com `CREATE TABLE IF NOT EXISTS`, nao executa `DROP TABLE`, e preserva dados existentes. O admin inicial e criado automaticamente quando o backend sobe em producao:
+
+- Login: `admin` ou `admin@catalogo7.com`
+- Senha: `123456`
+
+Dados persistidos no MySQL:
+
+- usuarios e administradores em `usuarios`;
+- clientes em `clientes`;
+- filmes em `filmes`;
+- locacoes em `locacoes`;
+- filmes de cada locacao em `itens_locacao`.
+
 ## Funcionalidades
 
 - Login, registro e logout com JWT.

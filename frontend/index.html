@@ -30,7 +30,7 @@
           <div class="auth-field">
             <span aria-hidden="true">♙</span>
             <input id="senha" type="password" placeholder="Digite sua senha" required />
-            <span aria-hidden="true">⊙</span>
+            <button id="togglePassword" class="password-toggle" type="button" aria-label="Mostrar senha" aria-pressed="false">◉</button>
           </div>
 
           <div class="auth-row">
@@ -99,8 +99,8 @@
         <div class="admin-brand">catálogo<span>7</span></div>
         <button class="admin-menu-button" type="button" aria-label="Menu">☰</button>
         <nav>
-          <a class="active" href="#adminDashboard">Dashboard</a>
-          <a href="#adminFilmes">Filmes</a>
+          <a class="active" href="#adminDashboard" data-admin-view="dashboard">Dashboard</a>
+          <a href="#adminFilmes" data-admin-view="movies">Filmes</a>
           <a href="#adminSeries">Séries</a>
           <a href="#adminUsuarios">Usuários</a>
           <a href="#adminComentarios">Comentários</a>
@@ -180,6 +180,99 @@
             <p><span>Suspense</span><i style="width: 32%"></i><strong>10%</strong></p>
             <p><span>Outros</span><i style="width: 28%"></i><strong>10%</strong></p>
           </article>
+        </section>
+
+        <section class="admin-movie-create" id="adminMoviesView">
+          <div class="movie-create-shell">
+            <header class="movie-create-header">
+              <span>1. Criar Filme</span>
+              <p>Cadastre um novo filme no sistema.</p>
+            </header>
+
+            <form class="movie-create-form" id="adminMovieForm">
+              <section class="movie-form-card">
+                <div class="movie-form-title">
+                  <strong>Novo Filme</strong>
+                  <span>Preencha os dados do filme</span>
+                </div>
+
+                <nav class="movie-form-tabs" aria-label="Etapas do cadastro">
+                  <button class="active" type="button">Informacoes</button>
+                  <button type="button">Midia</button>
+                  <button type="button">Elenco</button>
+                  <button type="button">Extras</button>
+                </nav>
+
+                <div class="movie-form-grid">
+                  <label>Titulo
+                    <input id="adminMovieTitle" type="text" value="Interestelar" required />
+                  </label>
+                  <label>Titulo Original
+                    <input id="adminMovieOriginalTitle" type="text" value="Interstellar" />
+                  </label>
+                  <label>Ano
+                    <input id="adminMovieYear" type="number" value="2014" />
+                  </label>
+                  <label>Duracao
+                    <input id="adminMovieDuration" type="text" value="169 min" />
+                  </label>
+                  <label>Classificacao
+                    <select id="adminMovieRating">
+                      <option value="12">12</option>
+                      <option value="10">10</option>
+                      <option value="14">14</option>
+                      <option value="16">16</option>
+                      <option value="18">18</option>
+                    </select>
+                  </label>
+                  <label>Genero
+                    <select id="adminMovieGenre">
+                      <option value="4">Ficcao Cientifica</option>
+                      <option value="1">Acao</option>
+                      <option value="3">Drama</option>
+                      <option value="5">Suspense</option>
+                    </select>
+                  </label>
+                  <label>Genero 2
+                    <select id="adminMovieSecondGenre">
+                      <option value=""></option>
+                      <option value="1">Acao</option>
+                      <option value="3">Drama</option>
+                    </select>
+                  </label>
+                  <label>Diretor
+                    <input id="adminMovieDirector" type="text" value="Christopher Nolan" />
+                  </label>
+                  <label>Pais
+                    <input id="adminMovieCountry" type="text" value="Estados Unidos" />
+                  </label>
+                  <label class="movie-synopsis">Sinopse
+                    <textarea id="adminMovieDescription" maxlength="1200">Um grupo de exploradores viaja atraves de um buraco de minhoca no espaco em uma tentativa de garantir a sobrevivencia da humanidade.</textarea>
+                    <small>117/1200</small>
+                  </label>
+                </div>
+
+                <div class="movie-form-actions">
+                  <button class="draft" type="submit" data-movie-status="rascunho">Salvar Rascunho</button>
+                  <button class="publish" type="submit" data-movie-status="publicado">Publicar Filme</button>
+                </div>
+                <p class="movie-form-status" id="adminMovieStatus" aria-live="polite"></p>
+              </section>
+
+              <aside class="movie-media-panel">
+                <article>
+                  <span>Poster</span>
+                  <img src="https://images.unsplash.com/photo-1614726365952-510103b1bbb4?auto=format&fit=crop&w=320&q=80" alt="Previa do poster do filme" />
+                  <button type="button">Alterar Poster</button>
+                </article>
+                <article>
+                  <span>Banner</span>
+                  <img src="https://images.unsplash.com/photo-1462332420958-a05d1e002413?auto=format&fit=crop&w=520&q=80" alt="Previa do banner do filme" />
+                  <button type="button">Alterar Banner</button>
+                </article>
+              </aside>
+            </form>
+          </div>
         </section>
       </main>
     </section>

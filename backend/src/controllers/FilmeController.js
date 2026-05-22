@@ -31,7 +31,11 @@ class FilmeController extends IController {
   store = async (req, res, next) => {
     try {
       const capaUrl = req.file ? `/uploads/${req.file.filename}` : null;
-      const filme = await this.filmeService.criar({ ...req.body, capa_url: capaUrl });
+      const filme = await this.filmeService.criar({
+        ...req.body,
+        capa_url: capaUrl || req.body.capa_url || null,
+        criado_por: req.user.id
+      });
       await this.logService.registrar({
         usuario: req.user.email,
         acao: 'INCLUSAO',
@@ -115,7 +119,10 @@ class FilmeController extends IController {
     try {
       const filmeAtual = await this.filmeService.buscarPorId(req.params.id);
       const capaUrl = req.file ? `/uploads/${req.file.filename}` : filmeAtual.capa_url;
-      const filme = await this.filmeService.atualizar(req.params.id, { ...req.body, capa_url: capaUrl });
+      const filme = await this.filmeService.atualizar(req.params.id, {
+        ...req.body,
+        capa_url: capaUrl || req.body.capa_url || filmeAtual.capa_url
+      });
       await this.logService.registrar({
         usuario: req.user.email,
         acao: 'ALTERACAO',

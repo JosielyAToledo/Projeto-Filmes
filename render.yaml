@@ -3,10 +3,30 @@ services:
     name: projeto-filmes
     env: node
     plan: free
-    buildCommand: npm install
+    buildCommand: npm install && npm run db:migrate
     startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 10000
+      - key: LOCAL_MODE
+        value: false
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        value: 1d
+      - key: UPLOAD_DIR
+        value: backend/src/uploads

@@ -35,16 +35,30 @@ class FilmeDAO extends IDAO {
   async create(filme) {
     const [result] = await pool.execute(
       `INSERT INTO filmes
-       (titulo, descricao, ano_lancamento, genero_id, preco_locacao, estoque, capa_url)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+       (titulo, titulo_original, descricao, ano_lancamento, genero_id, genero_secundario_id,
+        diretor, elenco, duracao, classificacao, pais, preco_locacao, estoque, capa_url,
+        banner_url, trailer_url, status, destaque, criado_por)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         filme.titulo,
+        filme.titulo_original || null,
         filme.descricao || null,
         filme.ano_lancamento || null,
         filme.genero_id || null,
+        filme.genero_secundario_id || null,
+        filme.diretor || null,
+        filme.elenco || null,
+        filme.duracao || null,
+        filme.classificacao || null,
+        filme.pais || null,
         filme.preco_locacao || 0,
         filme.estoque || 0,
-        filme.capa_url || null
+        filme.capa_url || null,
+        filme.banner_url || null,
+        filme.trailer_url || null,
+        filme.status || 'publicado',
+        Boolean(filme.destaque),
+        filme.criado_por || null
       ]
     );
 
@@ -54,17 +68,30 @@ class FilmeDAO extends IDAO {
   async update(id, filme) {
     await pool.execute(
       `UPDATE filmes
-       SET titulo = ?, descricao = ?, ano_lancamento = ?, genero_id = ?,
-           preco_locacao = ?, estoque = ?, capa_url = ?
+       SET titulo = ?, titulo_original = ?, descricao = ?, ano_lancamento = ?, genero_id = ?,
+           genero_secundario_id = ?, diretor = ?, elenco = ?, duracao = ?, classificacao = ?,
+           pais = ?, preco_locacao = ?, estoque = ?, capa_url = ?, banner_url = ?,
+           trailer_url = ?, status = ?, destaque = ?
        WHERE id = ?`,
       [
         filme.titulo,
+        filme.titulo_original || null,
         filme.descricao || null,
         filme.ano_lancamento || null,
         filme.genero_id || null,
+        filme.genero_secundario_id || null,
+        filme.diretor || null,
+        filme.elenco || null,
+        filme.duracao || null,
+        filme.classificacao || null,
+        filme.pais || null,
         filme.preco_locacao || 0,
         filme.estoque || 0,
         filme.capa_url || null,
+        filme.banner_url || null,
+        filme.trailer_url || null,
+        filme.status || 'publicado',
+        Boolean(filme.destaque),
         id
       ]
     );

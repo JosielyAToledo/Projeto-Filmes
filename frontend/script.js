@@ -227,6 +227,18 @@ document.querySelectorAll('#showRegister').forEach((button) => {
 document.querySelectorAll('#showLogin').forEach((button) => {
   button.addEventListener('click', showLogin);
 });
+
+document.getElementById('togglePassword').addEventListener('click', () => {
+  const passwordInput = document.getElementById('senha');
+  const toggleButton = document.getElementById('togglePassword');
+  const shouldShow = passwordInput.type === 'password';
+
+  passwordInput.type = shouldShow ? 'text' : 'password';
+  toggleButton.textContent = shouldShow ? '◎' : '◉';
+  toggleButton.setAttribute('aria-label', shouldShow ? 'Ocultar senha' : 'Mostrar senha');
+  toggleButton.setAttribute('aria-pressed', String(shouldShow));
+});
+
 document.getElementById('loginForm').addEventListener('submit', async (event) => {
   event.preventDefault();
 
@@ -289,25 +301,82 @@ document.getElementById('registerForm').addEventListener('submit', async (event)
   }
 });
 
-document.getElementById('logoutBtn').addEventListener('click', async () => {
-  if (token) {
-    await api('/auth/logout', { method: 'POST' }).catch(() => null);
-  }
-
-  token = '';
-  currentUser = null;
-  adminSession = false;
-  localStorage.removeItem('token');
-  localStorage.removeItem('usuario');
-  localStorage.removeItem('adminSession');
-  syncView();
+document.querySelectorAll('#logoutBtn').forEach((button) => {
+  button.addEventListener('click', logoutAndReload);
 });
 
-document.getElementById('adminLogoutBtn').addEventListener('click', async () => {
+document.getElementById('adminLogoutBtn').addEventListener('click', logoutAndReload);
+
+document.querySelectorAll('.admin-sidebar a[data-admin-view]').forEach((link) => {
+  link.addEventListener('click', (event) => {
+    event.preventDefault();
+    showAdminView(link.dataset.adminView);
+  });
+});
+
+document.getElementById('adminMovieForm').addEventListener('submit', async (event) => {
+  event.preventDefault();
+
+  const submitter = event.submitter;
+  const status = submitter ? submitter.dataset.movieStatus : 'publicado';
+  const statusElement = document.getElementById('adminMovieStatus');
+  statusElement.textContent = 'Salvando filme...';
+
+  try {
+    const filme = await api('/filmes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(buildAdminMoviePayload(status))
+    });
+
+    statusElement.textContent = `Filme "${filme.titulo}" salvo no MySQL.`;
+  } catch (error) {
+    statusElement.textContent = error.message;
+  }
+});
+
+function showAdminView(view) {
+  document.querySelectorAll('.admin-sidebar a').forEach((link) => {
+    link.classList.toggle('active', link.dataset.adminView === view);
+  });
+
+  const isMoviesView = view === 'movies';
+  document.querySelector('.admin-main').classList.toggle('show-movies', isMoviesView);
+  document.querySelector('.admin-topbar h1').textContent = isMoviesView ? 'Filmes' : 'Painel Administrativo';
+  document.querySelector('.admin-topbar p').textContent = isMoviesView ? 'Cadastro e gestao do catalogo' : 'Visao geral do sistema';
+}
+
+function buildAdminMoviePayload(status) {
+  const secondGenre = document.getElementById('adminMovieSecondGenre').value;
+
+  return {
+    titulo: document.getElementById('adminMovieTitle').value.trim(),
+    titulo_original: document.getElementById('adminMovieOriginalTitle').value.trim(),
+    descricao: document.getElementById('adminMovieDescription').value.trim(),
+    ano_lancamento: Number(document.getElementById('adminMovieYear').value) || null,
+    genero_id: Number(document.getElementById('adminMovieGenre').value) || null,
+    genero_secundario_id: secondGenre ? Number(secondGenre) : null,
+    diretor: document.getElementById('adminMovieDirector').value.trim(),
+    duracao: document.getElementById('adminMovieDuration').value.trim(),
+    classificacao: document.getElementById('adminMovieRating').value,
+    pais: document.getElementById('adminMovieCountry').value.trim(),
+    preco_locacao: 9.9,
+    estoque: 1,
+    capa_url: 'https://images.unsplash.com/photo-1614726365952-510103b1bbb4?auto=format&fit=crop&w=320&q=80',
+    banner_url: 'https://images.unsplash.com/photo-1462332420958-a05d1e002413?auto=format&fit=crop&w=520&q=80',
+    status
+  };
+}
+
+async function logoutAndReload() {
   if (token) {
     await api('/auth/logout', { method: 'POST' }).catch(() => null);
   }
 
+  clearSessionAndReload();
+}
+
+function clearSessionAndReload() {
   token = '';
   currentUser = null;
   adminSession = false;
@@ -315,8 +384,8 @@ document.getElementById('adminLogoutBtn').addEventListener('click', async () => 
   localStorage.removeItem('usuario');
   localStorage.removeItem('adminSession');
   showLogin();
-  syncView();
-});
+  window.location.href = window.location.pathname;
+}
 
 document.querySelectorAll('.nav-link').forEach((link) => {
   link.addEventListener('click', (event) => {
