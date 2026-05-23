@@ -916,8 +916,8 @@ function getInitials(name = '') {
 
 function renderProfile() {
   const user = getProfileUser();
-  const name = user.nome || user.email || 'Usuario MovieHub';
-  const email = user.email || 'email@moviehub.com';
+  const name = user.nome || user.email || 'Usuario Catálogo7';
+  const email = user.email || 'email@catalogo7.com';
   const uniqueCategories = new Set(movies.map((movie) => movie.genero_nome).filter(Boolean));
 
   document.getElementById('profileAvatar').textContent = getInitials(name);
@@ -933,8 +933,8 @@ function renderProfile() {
 
 function renderProfileForm() {
   const user = getProfileUser();
-  const name = user.nome || user.email || 'Usuario MovieHub';
-  const email = user.email || 'email@moviehub.com';
+  const name = user.nome || user.email || 'Usuario Catálogo7';
+  const email = user.email || 'email@catalogo7.com';
 
   document.getElementById('editProfileAvatar').textContent = getInitials(name);
   document.getElementById('editName').value = name;
@@ -984,7 +984,7 @@ function makeSimplePDF(lines) {
     'BT',
     '/F1 18 Tf',
     '50 790 Td',
-    '(Relatorio MovieHub) Tj',
+    '(Relatorio Catálogo7) Tj',
     '/F1 11 Tf',
     '0 -28 Td',
     ...lines.map((line) => `(${escapePDFText(line)}) Tj 0 -18 Td`),
@@ -1024,7 +1024,7 @@ function downloadPDFReport() {
     'Resumo: Importacoes e exportacoes do sistema.'
   ];
 
-  downloadBlob(makeSimplePDF(lines), 'relatorio-moviehub.pdf', 'application/pdf');
+  downloadBlob(makeSimplePDF(lines), 'relatorio-catalogo7.pdf', 'application/pdf');
 }
 
 function buildFallbackXML() {
@@ -1052,7 +1052,7 @@ async function downloadXMLExport() {
     }
   }
 
-  downloadBlob(xml || buildFallbackXML(), 'relatorio-moviehub.xml', 'application/xml');
+  downloadBlob(xml || buildFallbackXML(), 'relatorio-catalogo7.xml', 'application/xml');
 }
 
 function renderMovieCard(movie, options = {}) {
@@ -1110,7 +1110,7 @@ window.openMovieModal = (id) => {
           <span>${movie.duracao || '2h 00min'}</span>
           <span>${movie.genero_nome || 'Drama'}</span>
         </div>
-        <p>${movie.descricao || 'Filme disponível no catálogo MovieHub.'}</p>
+        <p>${movie.descricao || 'Filme disponível no catálogo Catálogo7.'}</p>
         <div class="detail-actions">
           ${renderRatingStars(movie.id)}
           <button type="button" class="secondary-action">Adicionar aos favoritos</button>
