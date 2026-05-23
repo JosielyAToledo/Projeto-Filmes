@@ -6,6 +6,10 @@ let currentUser = JSON.parse(localStorage.getItem('usuario') || 'null');
 let movies = [];
 let movieRatings = JSON.parse(localStorage.getItem('movieRatings') || '{}');
 let adminSession = localStorage.getItem('adminSession') === '1';
+let pendingEditMovie = null;
+let pendingDeleteMovie = null;
+let pendingInactiveUser = null;
+let pendingDeleteUser = null;
 
 const authStatus = document.getElementById('authStatus');
 const sampleMovies = [
@@ -311,12 +315,6 @@ document.querySelector('.admin-menu-button').addEventListener('click', () => {
   document.querySelector('.admin-sidebar').classList.toggle('menu-open');
 });
 
-document.querySelector('.admin-config-trigger').addEventListener('click', () => {
-  const menu = document.querySelector('.admin-config-menu');
-  const isOpen = menu.classList.toggle('open');
-  document.querySelector('.admin-config-trigger').setAttribute('aria-expanded', String(isOpen));
-});
-
 document.querySelectorAll('[data-admin-view]').forEach((link) => {
   link.addEventListener('click', (event) => {
     event.preventDefault();
@@ -325,8 +323,6 @@ document.querySelectorAll('[data-admin-view]').forEach((link) => {
     if (link.dataset.adminConfigShortcut) {
       showAdminConfigTab(link.dataset.adminConfigShortcut);
     }
-    document.querySelector('.admin-config-menu')?.classList.remove('open');
-    document.querySelector('.admin-config-trigger')?.setAttribute('aria-expanded', 'false');
     document.querySelector('.admin-sidebar').classList.remove('menu-open');
   });
 });
@@ -343,8 +339,95 @@ document.getElementById('adminOpenMovieForm').addEventListener('click', () => {
 
 document.querySelectorAll('.catalog-action.edit').forEach((button) => {
   button.addEventListener('click', () => {
-    openAdminMovieForm(button.closest('tr').dataset);
+    openEditConfirmModal(button.closest('tr').dataset);
   });
+});
+
+document.getElementById('adminCancelEditConfirm').addEventListener('click', closeEditConfirmModal);
+
+document.getElementById('adminEditConfirmModal').addEventListener('click', (event) => {
+  if (event.target.id === 'adminEditConfirmModal') {
+    closeEditConfirmModal();
+  }
+});
+
+document.getElementById('adminConfirmEditMovie').addEventListener('click', () => {
+  if (pendingEditMovie) {
+    openAdminMovieForm(pendingEditMovie);
+  }
+  closeEditConfirmModal();
+});
+
+document.querySelectorAll('.catalog-action.delete').forEach((button) => {
+  button.addEventListener('click', () => {
+    openDeleteConfirmModal(button.closest('tr').dataset);
+  });
+});
+
+document.getElementById('adminCancelDeleteConfirm').addEventListener('click', closeDeleteConfirmModal);
+
+document.getElementById('adminDeleteConfirmModal').addEventListener('click', (event) => {
+  if (event.target.id === 'adminDeleteConfirmModal') {
+    closeDeleteConfirmModal();
+  }
+});
+
+document.getElementById('adminConfirmDeleteMovie').addEventListener('click', () => {
+  closeDeleteConfirmModal();
+});
+
+document.querySelectorAll('.user-action.lock').forEach((button) => {
+  button.addEventListener('click', () => {
+    const userName = button.closest('tr').querySelector('td strong').textContent;
+    openInactivateUserModal(userName);
+  });
+});
+
+document.getElementById('adminCancelInactivateUser').addEventListener('click', closeInactivateUserModal);
+
+document.getElementById('adminInactivateUserModal').addEventListener('click', (event) => {
+  if (event.target.id === 'adminInactivateUserModal') {
+    closeInactivateUserModal();
+  }
+});
+
+document.getElementById('adminConfirmInactivateUser').addEventListener('click', () => {
+  closeInactivateUserModal();
+});
+
+document.querySelectorAll('.user-action.delete').forEach((button) => {
+  button.addEventListener('click', () => {
+    const row = button.closest('tr');
+    const userName = row.querySelector('td strong').textContent;
+    const isInactive = row.querySelector('.user-status-pill')?.classList.contains('inactive');
+    openDeleteUserModal(userName, isInactive);
+  });
+});
+
+document.getElementById('adminCancelDeleteUser').addEventListener('click', closeDeleteUserModal);
+
+document.getElementById('adminDeleteUserModal').addEventListener('click', (event) => {
+  if (event.target.id === 'adminDeleteUserModal') {
+    closeDeleteUserModal();
+  }
+});
+
+document.getElementById('adminConfirmDeleteUser').addEventListener('click', () => {
+  closeDeleteUserModal();
+});
+
+document.querySelectorAll('.user-action.view').forEach((button) => {
+  button.addEventListener('click', () => {
+    openUserDetailsModal(button.closest('tr'));
+  });
+});
+
+document.getElementById('adminCloseUserDetails').addEventListener('click', closeUserDetailsModal);
+
+document.getElementById('adminUserDetailsModal').addEventListener('click', (event) => {
+  if (event.target.id === 'adminUserDetailsModal') {
+    closeUserDetailsModal();
+  }
 });
 
 document.getElementById('adminBackToCatalog').addEventListener('click', () => {
@@ -410,6 +493,94 @@ function openAdminMovieForm(movie = null) {
   document.querySelector('.movie-preview-meta').innerHTML = `<b>◷</b>${duration} <b>•</b> ${year} <mark>${rating}</mark> ${rating} anos`;
 }
 
+function openEditConfirmModal(movie) {
+  pendingEditMovie = movie;
+  document.getElementById('adminEditConfirmMovie').textContent = movie.title || 'este filme';
+  document.getElementById('adminEditConfirmModal').classList.add('visible');
+  document.getElementById('adminEditConfirmModal').setAttribute('aria-hidden', 'false');
+}
+
+function closeEditConfirmModal() {
+  pendingEditMovie = null;
+  document.getElementById('adminEditConfirmModal').classList.remove('visible');
+  document.getElementById('adminEditConfirmModal').setAttribute('aria-hidden', 'true');
+}
+
+function openDeleteConfirmModal(movie) {
+  pendingDeleteMovie = movie;
+  document.getElementById('adminDeleteConfirmMovie').textContent = movie.title || 'este filme';
+  document.getElementById('adminDeleteConfirmModal').classList.add('visible');
+  document.getElementById('adminDeleteConfirmModal').setAttribute('aria-hidden', 'false');
+}
+
+function closeDeleteConfirmModal() {
+  pendingDeleteMovie = null;
+  document.getElementById('adminDeleteConfirmModal').classList.remove('visible');
+  document.getElementById('adminDeleteConfirmModal').setAttribute('aria-hidden', 'true');
+}
+
+function openInactivateUserModal(userName) {
+  pendingInactiveUser = userName;
+  document.getElementById('adminInactivateUserName').textContent = userName || 'este usuário';
+  document.getElementById('adminInactivateUserModal').classList.add('visible');
+  document.getElementById('adminInactivateUserModal').setAttribute('aria-hidden', 'false');
+}
+
+function closeInactivateUserModal() {
+  pendingInactiveUser = null;
+  document.getElementById('adminInactivateUserModal').classList.remove('visible');
+  document.getElementById('adminInactivateUserModal').setAttribute('aria-hidden', 'true');
+}
+
+function openDeleteUserModal(userName, canDelete) {
+  pendingDeleteUser = canDelete ? userName : null;
+  document.getElementById('adminDeleteUserName').textContent = userName || 'este usuário';
+  document.getElementById('adminDeleteUserMessage').innerHTML = canDelete
+    ? `Deseja excluir <strong id="adminDeleteUserName">${userName}</strong>?`
+    : `Para excluir <strong id="adminDeleteUserName">${userName}</strong>, primeiro inative este usuário.`;
+  document.getElementById('adminConfirmDeleteUser').textContent = canDelete ? 'Excluir usuário' : 'Entendi';
+  document.getElementById('adminConfirmDeleteUser').classList.toggle('danger', canDelete);
+  document.getElementById('adminCancelDeleteUser').style.display = canDelete ? '' : 'none';
+  document.getElementById('adminDeleteUserModal').classList.add('visible');
+  document.getElementById('adminDeleteUserModal').setAttribute('aria-hidden', 'false');
+}
+
+function closeDeleteUserModal() {
+  pendingDeleteUser = null;
+  document.getElementById('adminDeleteUserModal').classList.remove('visible');
+  document.getElementById('adminDeleteUserModal').setAttribute('aria-hidden', 'true');
+  document.getElementById('adminCancelDeleteUser').style.display = '';
+}
+
+function openUserDetailsModal(row) {
+  const cells = row.querySelectorAll('td');
+  const user = {
+    nome: cells[0].querySelector('strong').textContent,
+    email: cells[1].textContent.trim(),
+    tipo: cells[2].textContent.trim(),
+    status: cells[3].textContent.trim(),
+    ultimoAcesso: cells[4].textContent.trim(),
+    cadastro: cells[5].textContent.trim()
+  };
+
+  document.getElementById('adminUserDetailsTitle').textContent = user.nome;
+  document.getElementById('adminUserDetailsList').innerHTML = `
+    <p><span>Nome</span><strong>${user.nome}</strong></p>
+    <p><span>E-mail</span><strong>${user.email}</strong></p>
+    <p><span>Tipo</span><strong>${user.tipo}</strong></p>
+    <p><span>Status</span><strong>${user.status}</strong></p>
+    <p><span>Último acesso</span><strong>${user.ultimoAcesso}</strong></p>
+    <p><span>Data de cadastro</span><strong>${user.cadastro}</strong></p>
+  `;
+  document.getElementById('adminUserDetailsModal').classList.add('visible');
+  document.getElementById('adminUserDetailsModal').setAttribute('aria-hidden', 'false');
+}
+
+function closeUserDetailsModal() {
+  document.getElementById('adminUserDetailsModal').classList.remove('visible');
+  document.getElementById('adminUserDetailsModal').setAttribute('aria-hidden', 'true');
+}
+
 function showAdminView(view) {
   document.querySelectorAll('[data-admin-view]').forEach((link) => {
     link.classList.toggle('active', link.dataset.adminView === view && !link.dataset.adminConfigShortcut);
@@ -417,9 +588,10 @@ function showAdminView(view) {
 
   const isMoviesView = view === 'movies';
   const isConfigView = view === 'config';
+  const isUsersView = view === 'users';
   document.querySelector('.admin-main').classList.toggle('show-movies', isMoviesView);
   document.querySelector('.admin-main').classList.toggle('show-config', isConfigView);
-  document.querySelector('.admin-config-trigger')?.classList.toggle('active', isConfigView);
+  document.querySelector('.admin-main').classList.toggle('show-users', isUsersView);
   if (isMoviesView) {
     document.getElementById('adminMoviesView').classList.remove('creating');
     document.querySelector('.admin-main').classList.remove('creating-movie');
@@ -429,12 +601,43 @@ function showAdminView(view) {
 
   const titles = {
     movies: ['Filmes', 'Cadastro e gestao do catalogo'],
+    users: ['Usuários', 'Gerenciamento de usuários'],
     config: ['Configurações', 'Sistema, segurança e logs'],
     dashboard: ['Painel Administrativo', 'Visao geral do sistema']
   };
   const [title, subtitle] = titles[view] || titles.dashboard;
   document.querySelector('.admin-topbar h1').textContent = title;
   document.querySelector('.admin-topbar p').textContent = subtitle;
+  updateAdminTopFilter(view);
+}
+
+function updateAdminTopFilter(view) {
+  const filter = document.getElementById('adminTopFilter');
+  const search = document.getElementById('adminTopSearch');
+  if (!filter) return;
+
+  if (view === 'users') {
+    if (search) search.placeholder = 'Buscar usuários...';
+    filter.setAttribute('aria-label', 'Filtrar por status');
+    filter.innerHTML = `
+      <option>Todos os status</option>
+      <option>Ativo</option>
+      <option>Inativo</option>
+    `;
+    return;
+  }
+
+  if (search) {
+    search.placeholder = view === 'movies' ? 'Buscar filmes...' : 'Buscar filmes, usuários, etc...';
+  }
+  filter.setAttribute('aria-label', 'Filtrar por gênero');
+  filter.innerHTML = `
+    <option>Todos os gêneros</option>
+    <option>Ação</option>
+    <option>Drama</option>
+    <option>Ficção Científica</option>
+    <option>Suspense</option>
+  `;
 }
 
 function showAdminConfigTab(tab) {

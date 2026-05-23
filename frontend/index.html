@@ -99,13 +99,10 @@
         <a class="admin-brand" href="#adminDashboard" data-admin-view="dashboard" aria-label="Ir para Dashboard">catálogo<span>7</span></a>
         <div class="admin-quick-nav" aria-label="Atalhos do admin">
           <a href="#adminFilmes" data-admin-view="movies">Catálogo</a>
-          <div class="admin-config-menu">
-            <button class="admin-config-trigger" type="button" aria-expanded="false">Configurações</button>
-            <div class="admin-config-dropdown" aria-label="Submenu de configurações">
-              <a href="#adminConfigLog" data-admin-view="config" data-admin-config-shortcut="logs">Log</a>
-              <a href="#adminConfigGrafico" data-admin-view="config" data-admin-config-shortcut="chart">Gráfico</a>
-            </div>
-          </div>
+          <a href="#adminUsuarios" data-admin-view="users">Usuários</a>
+          <a href="#adminConfigLog" data-admin-view="config" data-admin-config-shortcut="logs">Logs</a>
+          <a href="#adminConfigGrafico" data-admin-view="config" data-admin-config-shortcut="chart">Gráficos</a>
+          <a href="#adminConfig" data-admin-view="config">Configurações</a>
         </div>
         <div class="admin-user admin-user-menu"><span></span><strong>Admin</strong></div>
         <button class="admin-menu-button" type="button" aria-label="Menu">☰</button>
@@ -118,22 +115,23 @@
         <header class="admin-topbar">
           <div>
             <button id="adminOpenMovieForm" class="admin-catalog-add admin-topbar-add" type="button">+ Cadastrar Filme</button>
+            <h2 class="admin-user-topbar-title">Usuários</h2>
             <h1>Painel Administrativo</h1>
             <p>Visão geral do sistema</p>
           </div>
           <div class="admin-tools">
             <div class="admin-search">
-              <input type="search" placeholder="Buscar filmes, usuários, etc..." />
+              <input id="adminTopSearch" type="search" placeholder="Buscar filmes, usuários, etc..." />
               <span>⌕</span>
             </div>
-            <select class="admin-genre-select" aria-label="Filtrar por gênero">
+            <select class="admin-genre-select" id="adminTopFilter" aria-label="Filtrar por gênero">
               <option>Todos os gêneros</option>
               <option>Ação</option>
               <option>Drama</option>
               <option>Ficção Científica</option>
               <option>Suspense</option>
             </select>
-            <button type="button" aria-label="Notificações">♢</button>
+            <button class="admin-export-btn" type="button">⇩ Exportar</button>
           </div>
         </header>
 
@@ -203,6 +201,8 @@
                     <th>Nome do filme</th>
                     <th>Gênero</th>
                     <th>Diretor</th>
+                    <th>Ano</th>
+                    <th>Classificação</th>
                     <th>Duração</th>
                     <th>Ações</th>
                   </tr>
@@ -215,10 +215,12 @@
                     </td>
                     <td><span class="genre-pill sci-fi">Ficção Científica</span></td>
                     <td>Christopher Nolan</td>
+                    <td>2014</td>
+                    <td><span class="rating-pill">12</span></td>
                     <td>169 min</td>
                     <td>
                       <button class="catalog-action edit" type="button" aria-label="Editar Interestelar">✎</button>
-                      <button class="catalog-action delete" type="button" aria-label="Excluir Interestelar">⌫</button>
+                      <button class="catalog-action delete" type="button" aria-label="Excluir Interestelar">🗑</button>
                     </td>
                   </tr>
                   <tr data-title="A Origem" data-genre="4" data-genre-label="Ficção Científica" data-director="Christopher Nolan" data-duration="148 min" data-year="2010" data-rating="12">
@@ -228,10 +230,12 @@
                     </td>
                     <td><span class="genre-pill sci-fi">Ficção Científica</span></td>
                     <td>Christopher Nolan</td>
+                    <td>2010</td>
+                    <td><span class="rating-pill">12</span></td>
                     <td>148 min</td>
                     <td>
                       <button class="catalog-action edit" type="button" aria-label="Editar A Origem">✎</button>
-                      <button class="catalog-action delete" type="button" aria-label="Excluir A Origem">⌫</button>
+                      <button class="catalog-action delete" type="button" aria-label="Excluir A Origem">🗑</button>
                     </td>
                   </tr>
                   <tr data-title="Oppenheimer" data-genre="3" data-genre-label="Drama" data-director="Christopher Nolan" data-duration="180 min" data-year="2023" data-rating="16">
@@ -241,10 +245,12 @@
                     </td>
                     <td><span class="genre-pill drama">Drama</span></td>
                     <td>Christopher Nolan</td>
+                    <td>2023</td>
+                    <td><span class="rating-pill">16</span></td>
                     <td>180 min</td>
                     <td>
                       <button class="catalog-action edit" type="button" aria-label="Editar Oppenheimer">✎</button>
-                      <button class="catalog-action delete" type="button" aria-label="Excluir Oppenheimer">⌫</button>
+                      <button class="catalog-action delete" type="button" aria-label="Excluir Oppenheimer">🗑</button>
                     </td>
                   </tr>
                   <tr data-title="Batman: O Cavaleiro das Trevas" data-genre="1" data-genre-label="Ação" data-director="Christopher Nolan" data-duration="152 min" data-year="2008" data-rating="12">
@@ -254,10 +260,12 @@
                     </td>
                     <td><span class="genre-pill action">Ação</span></td>
                     <td>Christopher Nolan</td>
+                    <td>2008</td>
+                    <td><span class="rating-pill">12</span></td>
                     <td>152 min</td>
                     <td>
                       <button class="catalog-action edit" type="button" aria-label="Editar Batman">✎</button>
-                      <button class="catalog-action delete" type="button" aria-label="Excluir Batman">⌫</button>
+                      <button class="catalog-action delete" type="button" aria-label="Excluir Batman">🗑</button>
                     </td>
                   </tr>
                 </tbody>
@@ -380,6 +388,138 @@
           </div>
         </section>
 
+        <section class="admin-users-view" id="adminUsersView">
+          <div class="admin-catalog-shell">
+            <div class="admin-users-toolbar">
+              <span></span>
+            </div>
+
+            <div class="admin-catalog-table-wrap">
+              <table class="admin-catalog-table admin-users-table">
+                <thead>
+                  <tr>
+                    <th>Usuário</th>
+                    <th>E-mail</th>
+                    <th>Tipo</th>
+                    <th>Status</th>
+                    <th>Último acesso</th>
+                    <th>Data de cadastro</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <span class="user-table-avatar purple">J</span>
+                      <strong>João Silva</strong>
+                    </td>
+                    <td>joao.silva@email.com</td>
+                    <td><span class="user-type-pill">Usuário</span></td>
+                    <td><span class="user-status-pill active">Ativo</span></td>
+                    <td>12/05/2024 21:15</td>
+                    <td>10/05/2024 14:32</td>
+                    <td>
+                      <button class="user-action view" type="button" aria-label="Ver João Silva">👁</button>
+                      <button class="user-action lock" type="button" aria-label="Bloquear João Silva"><span class="lock-icon" aria-hidden="true"></span></button>
+                      <button class="user-action delete" type="button" aria-label="Excluir João Silva">🗑</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <span class="user-table-avatar blue">M</span>
+                      <strong>Maria Oliveira</strong>
+                    </td>
+                    <td>maria.oliveira@email.com</td>
+                    <td><span class="user-type-pill">Usuário</span></td>
+                    <td><span class="user-status-pill active">Ativo</span></td>
+                    <td>12/05/2024 19:42</td>
+                    <td>09/05/2024 11:20</td>
+                    <td>
+                      <button class="user-action view" type="button" aria-label="Ver Maria Oliveira">👁</button>
+                      <button class="user-action lock" type="button" aria-label="Bloquear Maria Oliveira"><span class="lock-icon" aria-hidden="true"></span></button>
+                      <button class="user-action delete" type="button" aria-label="Excluir Maria Oliveira">🗑</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><span class="user-table-avatar orange">C</span><strong>Carlos Souza</strong></td>
+                    <td>carlos.souza@email.com</td>
+                    <td><span class="user-type-pill">Usuário</span></td>
+                    <td><span class="user-status-pill active">Ativo</span></td>
+                    <td>11/05/2024 16:30</td>
+                    <td>08/05/2024 09:15</td>
+                    <td>
+                      <button class="user-action view" type="button" aria-label="Ver Carlos Souza">👁</button>
+                      <button class="user-action lock" type="button" aria-label="Bloquear Carlos Souza"><span class="lock-icon" aria-hidden="true"></span></button>
+                      <button class="user-action delete" type="button" aria-label="Excluir Carlos Souza">🗑</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><span class="user-table-avatar teal">A</span><strong>Ana Pereira</strong></td>
+                    <td>ana.pereira@email.com</td>
+                    <td><span class="user-type-pill admin">Admin</span></td>
+                    <td><span class="user-status-pill active">Ativo</span></td>
+                    <td>12/05/2024 20:10</td>
+                    <td>05/05/2024 16:45</td>
+                    <td>
+                      <button class="user-action view" type="button" aria-label="Ver Ana Pereira">👁</button>
+                      <button class="user-action lock" type="button" aria-label="Bloquear Ana Pereira"><span class="lock-icon" aria-hidden="true"></span></button>
+                      <button class="user-action delete" type="button" aria-label="Excluir Ana Pereira">🗑</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><span class="user-table-avatar red">P</span><strong>Pedro Santos</strong></td>
+                    <td>pedro.santos@email.com</td>
+                    <td><span class="user-type-pill">Usuário</span></td>
+                    <td><span class="user-status-pill inactive">Inativo</span></td>
+                    <td>04/05/2024 10:00</td>
+                    <td>04/05/2024 10:00</td>
+                    <td>
+                      <button class="user-action view" type="button" aria-label="Ver Pedro Santos">👁</button>
+                      <button class="user-action lock" type="button" aria-label="Bloquear Pedro Santos"><span class="lock-icon" aria-hidden="true"></span></button>
+                      <button class="user-action delete" type="button" aria-label="Excluir Pedro Santos">🗑</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><span class="user-table-avatar teal">L</span><strong>Lucas Lima</strong></td>
+                    <td>lucas.lima@email.com</td>
+                    <td><span class="user-type-pill">Usuário</span></td>
+                    <td><span class="user-status-pill active">Ativo</span></td>
+                    <td>12/05/2024 18:05</td>
+                    <td>02/05/2024 13:30</td>
+                    <td>
+                      <button class="user-action view" type="button" aria-label="Ver Lucas Lima">👁</button>
+                      <button class="user-action lock" type="button" aria-label="Bloquear Lucas Lima"><span class="lock-icon" aria-hidden="true"></span></button>
+                      <button class="user-action delete" type="button" aria-label="Excluir Lucas Lima">🗑</button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><span class="user-table-avatar yellow">J</span><strong>Juliana Rocha</strong></td>
+                    <td>juliana.rocha@email.com</td>
+                    <td><span class="user-type-pill">Usuário</span></td>
+                    <td><span class="user-status-pill inactive">Inativo</span></td>
+                    <td>-</td>
+                    <td>01/05/2024 08:50</td>
+                    <td>
+                      <button class="user-action view" type="button" aria-label="Ver Juliana Rocha">👁</button>
+                      <button class="user-action lock" type="button" aria-label="Bloquear Juliana Rocha"><span class="lock-icon" aria-hidden="true"></span></button>
+                      <button class="user-action delete" type="button" aria-label="Excluir Juliana Rocha">🗑</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <footer class="admin-catalog-footer">
+              <span>Mostrando 1 a 7 de 7 usuários</span>
+              <div>
+                <button type="button">‹</button>
+                <button class="active" type="button">1</button>
+                <button type="button">›</button>
+              </div>
+            </footer>
+          </div>
+        </section>
+
         <section class="admin-config-view" id="adminConfigView">
           <div class="admin-config-shell">
             <header class="admin-config-header">
@@ -452,6 +592,60 @@
         </section>
       </main>
     </section>
+
+    <div class="admin-confirm-modal" id="adminEditConfirmModal" aria-hidden="true">
+      <div class="admin-confirm-card" role="dialog" aria-modal="true" aria-labelledby="adminEditConfirmTitle">
+        <h2 id="adminEditConfirmTitle">Editar filme?</h2>
+        <p>Deseja abrir a janela de edição para <strong id="adminEditConfirmMovie">este filme</strong>?</p>
+        <div>
+          <button id="adminCancelEditConfirm" type="button">Cancelar</button>
+          <button id="adminConfirmEditMovie" type="button">Editar filme</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-confirm-modal" id="adminDeleteConfirmModal" aria-hidden="true">
+      <div class="admin-confirm-card" role="dialog" aria-modal="true" aria-labelledby="adminDeleteConfirmTitle">
+        <h2 id="adminDeleteConfirmTitle">Excluir filme?</h2>
+        <p>Deseja excluir <strong id="adminDeleteConfirmMovie">este filme</strong> do catálogo?</p>
+        <div>
+          <button id="adminCancelDeleteConfirm" type="button">Cancelar</button>
+          <button id="adminConfirmDeleteMovie" type="button">Excluir filme</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-confirm-modal" id="adminInactivateUserModal" aria-hidden="true">
+      <div class="admin-confirm-card" role="dialog" aria-modal="true" aria-labelledby="adminInactivateUserTitle">
+        <h2 id="adminInactivateUserTitle">Inativar usuário?</h2>
+        <p>Deseja inativar <strong id="adminInactivateUserName">este usuário</strong>?</p>
+        <div>
+          <button id="adminCancelInactivateUser" type="button">Cancelar</button>
+          <button id="adminConfirmInactivateUser" type="button">Inativar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-confirm-modal" id="adminDeleteUserModal" aria-hidden="true">
+      <div class="admin-confirm-card" role="dialog" aria-modal="true" aria-labelledby="adminDeleteUserTitle">
+        <h2 id="adminDeleteUserTitle">Excluir usuário?</h2>
+        <p id="adminDeleteUserMessage">Deseja excluir <strong id="adminDeleteUserName">este usuário</strong>?</p>
+        <div>
+          <button id="adminCancelDeleteUser" type="button">Cancelar</button>
+          <button id="adminConfirmDeleteUser" type="button">Excluir usuário</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-confirm-modal" id="adminUserDetailsModal" aria-hidden="true">
+      <div class="admin-confirm-card admin-user-details-card" role="dialog" aria-modal="true" aria-labelledby="adminUserDetailsTitle">
+        <h2 id="adminUserDetailsTitle">Dados do usuário</h2>
+        <div class="admin-user-details-list" id="adminUserDetailsList"></div>
+        <div>
+          <button id="adminCloseUserDetails" type="button">Fechar</button>
+        </div>
+      </div>
+    </div>
 
     <section class="app-shell user-home-shell" id="appShell">
       <aside class="sidebar user-header">
