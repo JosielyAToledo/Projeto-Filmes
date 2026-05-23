@@ -375,7 +375,7 @@
                   <span>Veja como seu filme aparecerá no catálogo.</span>
                 </div>
                 <article>
-                  <img src="https://images.unsplash.com/photo-1614726365952-510103b1bbb4?auto=format&fit=crop&w=780&q=80" alt="Pré-visualização do filme Interestelar" />
+                  <img id="adminMoviePreviewImage" src="https://images.unsplash.com/photo-1614726365952-510103b1bbb4?auto=format&fit=crop&w=780&q=80" alt="Pré-visualização do filme" />
                   <div>
                     <h3>Interestelar</h3>
                     <p><span>Ficção Científica</span><span>Christopher Nolan</span></p>
@@ -601,6 +601,17 @@
         <div>
           <button id="adminCancelEditConfirm" type="button">Cancelar</button>
           <button id="adminConfirmEditMovie" type="button">Editar filme</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-confirm-modal" id="adminSaveMovieConfirmModal" aria-hidden="true">
+      <div class="admin-confirm-card" role="dialog" aria-modal="true" aria-labelledby="adminSaveMovieConfirmTitle">
+        <h2 id="adminSaveMovieConfirmTitle">Salvar filme?</h2>
+        <p>Confirma o cadastro de <strong id="adminSaveMovieConfirmName">este filme</strong>?</p>
+        <div>
+          <button id="adminCancelSaveMovie" type="button">Cancelar</button>
+          <button id="adminConfirmSaveMovie" type="button">Confirmar</button>
         </div>
       </div>
     </div>

@@ -9,6 +9,7 @@ let adminSession = localStorage.getItem('adminSession') === '1';
 let pendingEditMovie = null;
 let pendingDeleteMovie = null;
 let editingMovieId = null;
+let pendingMovieSaveStatus = 'publicado';
 let pendingInactiveUser = null;
 let pendingDeleteUser = null;
 
@@ -447,11 +448,51 @@ document.getElementById('adminCancelMovieForm').addEventListener('click', () => 
   editingMovieId = null;
 });
 
+document.getElementById('adminMovieCover').addEventListener('change', (event) => {
+  const file = event.target.files[0];
+  if (!file) {
+    updateAdminMoviePreviewImage('');
+    return;
+  }
+
+  updateAdminMoviePreviewImage(URL.createObjectURL(file));
+});
+
+[
+  'adminMovieTitle',
+  'adminMovieGenre',
+  'adminMovieDirector',
+  'adminMovieDuration',
+  'adminMovieYear',
+  'adminMovieRating',
+  'adminMovieDescription'
+].forEach((fieldId) => {
+  document.getElementById(fieldId).addEventListener('input', updateAdminMoviePreview);
+  document.getElementById(fieldId).addEventListener('change', updateAdminMoviePreview);
+});
+
 document.getElementById('adminMovieForm').addEventListener('submit', async (event) => {
   event.preventDefault();
 
   const submitter = event.submitter;
-  const status = submitter ? submitter.dataset.movieStatus : 'publicado';
+  pendingMovieSaveStatus = submitter ? submitter.dataset.movieStatus : 'publicado';
+  openSaveMovieConfirmModal();
+});
+
+document.getElementById('adminCancelSaveMovie').addEventListener('click', closeSaveMovieConfirmModal);
+
+document.getElementById('adminSaveMovieConfirmModal').addEventListener('click', (event) => {
+  if (event.target.id === 'adminSaveMovieConfirmModal') {
+    closeSaveMovieConfirmModal();
+  }
+});
+
+document.getElementById('adminConfirmSaveMovie').addEventListener('click', saveAdminMovie);
+
+async function saveAdminMovie() {
+  closeSaveMovieConfirmModal();
+
+  const status = pendingMovieSaveStatus || 'publicado';
   const statusElement = document.getElementById('adminMovieStatus');
   statusElement.textContent = 'Salvando filme...';
   const isEditing = Boolean(editingMovieId);
@@ -473,7 +514,7 @@ document.getElementById('adminMovieForm').addEventListener('submit', async (even
   } catch (error) {
     statusElement.textContent = error.message;
   }
-});
+}
 
 function openAdminMovieForm(movie = null) {
   const isEditing = Boolean(movie);
@@ -504,10 +545,9 @@ function openAdminMovieForm(movie = null) {
   document.getElementById('adminMovieDescription').value = description;
   document.getElementById('adminMovieStatus').textContent = '';
 
-  document.querySelector('.movie-preview-card h3').textContent = title || 'Novo filme';
-  document.querySelector('.movie-preview-card p span:first-child').textContent = genreLabel;
-  document.querySelector('.movie-preview-card p span:last-child').textContent = director || 'Diretor';
-  document.querySelector('.movie-preview-meta').innerHTML = `<b>◷</b>${duration || '0 min'} <b>•</b> ${year || 'Ano'} <mark>${rating}</mark> ${rating} anos`;
+  document.getElementById('adminMovieCover').value = '';
+  updateAdminMoviePreviewImage(movie?.cover || movie?.capaUrl || '');
+  updateAdminMoviePreview();
 }
 
 function buildAdminMovieFormData(payload, coverFile) {
@@ -521,6 +561,47 @@ function buildAdminMovieFormData(payload, coverFile) {
 
   formData.append('capa', coverFile);
   return formData;
+}
+
+function openSaveMovieConfirmModal() {
+  const movieTitle = document.getElementById('adminMovieTitle').value.trim() || 'este filme';
+  document.getElementById('adminSaveMovieConfirmTitle').textContent = editingMovieId ? 'Salvar alterações?' : 'Cadastrar filme?';
+  document.getElementById('adminSaveMovieConfirmName').textContent = movieTitle;
+  document.getElementById('adminConfirmSaveMovie').textContent = editingMovieId ? 'Salvar alterações' : 'Cadastrar filme';
+  document.getElementById('adminSaveMovieConfirmModal').classList.add('visible');
+  document.getElementById('adminSaveMovieConfirmModal').setAttribute('aria-hidden', 'false');
+}
+
+function closeSaveMovieConfirmModal() {
+  document.getElementById('adminSaveMovieConfirmModal').classList.remove('visible');
+  document.getElementById('adminSaveMovieConfirmModal').setAttribute('aria-hidden', 'true');
+}
+
+function updateAdminMoviePreviewImage(src) {
+  const previewImage = document.getElementById('adminMoviePreviewImage');
+  if (src) {
+    previewImage.src = src;
+  } else {
+    previewImage.src = 'https://images.unsplash.com/photo-1614726365952-510103b1bbb4?auto=format&fit=crop&w=780&q=80';
+  }
+}
+
+function updateAdminMoviePreview() {
+  const title = document.getElementById('adminMovieTitle').value.trim() || 'Novo filme';
+  const genreSelect = document.getElementById('adminMovieGenre');
+  const genreLabel = genreSelect.options[genreSelect.selectedIndex]?.text || 'Gênero';
+  const director = document.getElementById('adminMovieDirector').value.trim() || 'Diretor';
+  const duration = document.getElementById('adminMovieDuration').value.trim() || '0 min';
+  const year = document.getElementById('adminMovieYear').value.trim() || 'Ano';
+  const rating = document.getElementById('adminMovieRating').value || '12';
+  const description = document.getElementById('adminMovieDescription').value.trim()
+    || 'A sinopse do filme aparecerá aqui.';
+
+  document.querySelector('.movie-preview-card h3').textContent = title;
+  document.querySelector('.movie-preview-card p span:first-child').textContent = genreLabel;
+  document.querySelector('.movie-preview-card p span:last-child').textContent = director;
+  document.querySelector('.movie-preview-meta').innerHTML = `<b>◷</b>${duration} <b>•</b> ${year} <mark>${rating}</mark> ${rating} anos`;
+  document.querySelector('.movie-preview-card article > div > p:last-child').textContent = description;
 }
 
 function openEditConfirmModal(movie) {
@@ -590,6 +671,7 @@ function renderAdminMovieRow(movie) {
       data-year="${escapeHtml(String(year))}"
       data-rating="${escapeHtml(String(rating))}"
       data-description="${escapeHtml(movie.descricao || '')}"
+      data-cover="${escapeHtml(poster)}"
     >
       <td>
         <img src="${escapeHtml(poster)}" alt="Poster ${escapeHtml(title)}" />
