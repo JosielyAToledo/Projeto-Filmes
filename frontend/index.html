@@ -96,28 +96,28 @@
 
     <section class="admin-shell" id="adminShell">
       <aside class="admin-sidebar">
-        <div class="admin-brand">catálogo<span>7</span></div>
+        <a class="admin-brand" href="#adminDashboard" data-admin-view="dashboard" aria-label="Ir para Dashboard">catálogo<span>7</span></a>
+        <div class="admin-quick-nav" aria-label="Atalhos do admin">
+          <a href="#adminFilmes" data-admin-view="movies">Catálogo</a>
+          <div class="admin-config-menu">
+            <button class="admin-config-trigger" type="button" aria-expanded="false">Configurações</button>
+            <div class="admin-config-dropdown" aria-label="Submenu de configurações">
+              <a href="#adminConfigLog" data-admin-view="config" data-admin-config-shortcut="logs">Log</a>
+              <a href="#adminConfigGrafico" data-admin-view="config" data-admin-config-shortcut="chart">Gráfico</a>
+            </div>
+          </div>
+        </div>
+        <div class="admin-user admin-user-menu"><span></span><strong>Admin</strong></div>
         <button class="admin-menu-button" type="button" aria-label="Menu">☰</button>
         <nav>
-          <a class="active" href="#adminDashboard" data-admin-view="dashboard">Dashboard</a>
-          <a href="#adminFilmes" data-admin-view="movies">Filmes</a>
-          <a href="#adminSeries">Séries</a>
-          <a href="#adminUsuarios">Usuários</a>
-          <a href="#adminComentarios">Comentários</a>
-          <a href="#adminListas">Listas</a>
-          <a href="#adminGeneros">Gêneros</a>
-          <a href="#adminDiretores">Diretores</a>
-          <a href="#adminAtores">Atores</a>
-          <a href="#adminAtividades">Atividades</a>
-          <a href="#adminConfig">Configurações</a>
-          <a href="#adminLogs">Logs</a>
+          <button id="adminLogoutBtn" class="admin-exit" type="button">Sair</button>
         </nav>
-        <button id="adminLogoutBtn" class="admin-exit" type="button">Sair</button>
       </aside>
 
       <main class="admin-main">
         <header class="admin-topbar">
           <div>
+            <button id="adminOpenMovieForm" class="admin-catalog-add admin-topbar-add" type="button">+ Cadastrar Filme</button>
             <h1>Painel Administrativo</h1>
             <p>Visão geral do sistema</p>
           </div>
@@ -126,8 +126,14 @@
               <input type="search" placeholder="Buscar filmes, usuários, etc..." />
               <span>⌕</span>
             </div>
+            <select class="admin-genre-select" aria-label="Filtrar por gênero">
+              <option>Todos os gêneros</option>
+              <option>Ação</option>
+              <option>Drama</option>
+              <option>Ficção Científica</option>
+              <option>Suspense</option>
+            </select>
             <button type="button" aria-label="Notificações">♢</button>
-            <div class="admin-user"><span></span><strong>Admin</strong></div>
           </div>
         </header>
 
@@ -183,95 +189,265 @@
         </section>
 
         <section class="admin-movie-create" id="adminMoviesView">
-          <div class="movie-create-shell">
-            <header class="movie-create-header">
-              <span>1. Criar Filme</span>
-              <p>Cadastre um novo filme no sistema.</p>
+          <div class="admin-catalog-shell">
+            <header class="admin-catalog-header">
+              <div>
+                <h2>Filmes</h2>
+              </div>
             </header>
 
-            <form class="movie-create-form" id="adminMovieForm">
-              <section class="movie-form-card">
+            <div class="admin-catalog-table-wrap">
+              <table class="admin-catalog-table">
+                <thead>
+                  <tr data-title="Interestelar" data-genre="4" data-genre-label="Ficção Científica" data-director="Christopher Nolan" data-duration="169 min" data-year="2014" data-rating="12">
+                    <th>Nome do filme</th>
+                    <th>Gênero</th>
+                    <th>Diretor</th>
+                    <th>Duração</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?auto=format&fit=crop&w=80&q=80" alt="Poster Interestelar" />
+                      <strong>Interestelar</strong>
+                    </td>
+                    <td><span class="genre-pill sci-fi">Ficção Científica</span></td>
+                    <td>Christopher Nolan</td>
+                    <td>169 min</td>
+                    <td>
+                      <button class="catalog-action edit" type="button" aria-label="Editar Interestelar">✎</button>
+                      <button class="catalog-action delete" type="button" aria-label="Excluir Interestelar">⌫</button>
+                    </td>
+                  </tr>
+                  <tr data-title="A Origem" data-genre="4" data-genre-label="Ficção Científica" data-director="Christopher Nolan" data-duration="148 min" data-year="2010" data-rating="12">
+                    <td>
+                      <img src="https://images.unsplash.com/photo-1505686994434-e3cc5abf1330?auto=format&fit=crop&w=80&q=80" alt="Poster A Origem" />
+                      <strong>A Origem</strong>
+                    </td>
+                    <td><span class="genre-pill sci-fi">Ficção Científica</span></td>
+                    <td>Christopher Nolan</td>
+                    <td>148 min</td>
+                    <td>
+                      <button class="catalog-action edit" type="button" aria-label="Editar A Origem">✎</button>
+                      <button class="catalog-action delete" type="button" aria-label="Excluir A Origem">⌫</button>
+                    </td>
+                  </tr>
+                  <tr data-title="Oppenheimer" data-genre="3" data-genre-label="Drama" data-director="Christopher Nolan" data-duration="180 min" data-year="2023" data-rating="16">
+                    <td>
+                      <img src="https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?auto=format&fit=crop&w=80&q=80" alt="Poster Oppenheimer" />
+                      <strong>Oppenheimer</strong>
+                    </td>
+                    <td><span class="genre-pill drama">Drama</span></td>
+                    <td>Christopher Nolan</td>
+                    <td>180 min</td>
+                    <td>
+                      <button class="catalog-action edit" type="button" aria-label="Editar Oppenheimer">✎</button>
+                      <button class="catalog-action delete" type="button" aria-label="Excluir Oppenheimer">⌫</button>
+                    </td>
+                  </tr>
+                  <tr data-title="Batman: O Cavaleiro das Trevas" data-genre="1" data-genre-label="Ação" data-director="Christopher Nolan" data-duration="152 min" data-year="2008" data-rating="12">
+                    <td>
+                      <img src="https://images.unsplash.com/photo-1478720568477-152d9b164e26?auto=format&fit=crop&w=80&q=80" alt="Poster Batman" />
+                      <strong>Batman: O Cavaleiro das Trevas</strong>
+                    </td>
+                    <td><span class="genre-pill action">Ação</span></td>
+                    <td>Christopher Nolan</td>
+                    <td>152 min</td>
+                    <td>
+                      <button class="catalog-action edit" type="button" aria-label="Editar Batman">✎</button>
+                      <button class="catalog-action delete" type="button" aria-label="Excluir Batman">⌫</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <footer class="admin-catalog-footer">
+              <span>Mostrando 1 a 4 de 4 filmes</span>
+              <div>
+                <button type="button">‹</button>
+                <button class="active" type="button">1</button>
+                <button type="button">›</button>
+              </div>
+            </footer>
+          </div>
+
+          <div class="movie-create-shell">
+            <header class="movie-create-page-header">
+              <h2>Cadastrar Filme</h2>
+              <div class="movie-create-breadcrumb">
+                <button id="adminBackToCatalog" type="button">Filmes</button>
+                <span>›</span>
+                <strong>Cadastrar Filme</strong>
+              </div>
+            </header>
+
+            <div class="movie-create-layout">
+              <form class="movie-create-form movie-create-card" id="adminMovieForm">
                 <div class="movie-form-title">
-                  <strong>Novo Filme</strong>
-                  <span>Preencha os dados do filme</span>
+                  <strong>Informações do Filme</strong>
+                  <span>Preencha os dados para adicionar um novo filme ao catálogo.</span>
                 </div>
 
-                <nav class="movie-form-tabs" aria-label="Etapas do cadastro">
-                  <button class="active" type="button">Informacoes</button>
-                  <button type="button">Midia</button>
-                  <button type="button">Elenco</button>
-                  <button type="button">Extras</button>
-                </nav>
-
                 <div class="movie-form-grid">
-                  <label>Titulo
-                    <input id="adminMovieTitle" type="text" value="Interestelar" required />
+                  <input id="adminMovieOriginalTitle" type="hidden" value="Interstellar" />
+                  <input id="adminMovieSecondGenre" type="hidden" value="" />
+                  <input id="adminMovieCountry" type="hidden" value="Estados Unidos" />
+
+                  <label class="movie-field-full">Nome do filme <em>*</em>
+                    <input id="adminMovieTitle" type="text" placeholder="Ex: Interestelar" value="Interestelar" required />
                   </label>
-                  <label>Titulo Original
-                    <input id="adminMovieOriginalTitle" type="text" value="Interstellar" />
-                  </label>
-                  <label>Ano
-                    <input id="adminMovieYear" type="number" value="2014" />
-                  </label>
-                  <label>Duracao
-                    <input id="adminMovieDuration" type="text" value="169 min" />
-                  </label>
-                  <label>Classificacao
-                    <select id="adminMovieRating">
-                      <option value="12">12</option>
-                      <option value="10">10</option>
-                      <option value="14">14</option>
-                      <option value="16">16</option>
-                      <option value="18">18</option>
-                    </select>
-                  </label>
-                  <label>Genero
-                    <select id="adminMovieGenre">
-                      <option value="4">Ficcao Cientifica</option>
-                      <option value="1">Acao</option>
+                  <label class="movie-main-row movie-genre-field">Gênero <em>*</em>
+                    <select id="adminMovieGenre" required>
+                      <option value="">Selecione o gênero</option>
+                      <option value="4" selected>Ficção Científica</option>
+                      <option value="1">Ação</option>
                       <option value="3">Drama</option>
                       <option value="5">Suspense</option>
                     </select>
                   </label>
-                  <label>Genero 2
-                    <select id="adminMovieSecondGenre">
-                      <option value=""></option>
-                      <option value="1">Acao</option>
-                      <option value="3">Drama</option>
+                  <label class="movie-main-row movie-director-field">Diretor <em>*</em>
+                    <input id="adminMovieDirector" type="text" placeholder="Ex: Christopher Nolan" value="Christopher Nolan" required />
+                  </label>
+                  <label class="movie-duration-field movie-meta-row">Duração <em>*</em>
+                    <span>
+                      <input id="adminMovieDuration" type="text" placeholder="Ex: 169" value="169 min" required />
+                      <i>minutos</i>
+                    </span>
+                  </label>
+                  <label class="movie-meta-row">Ano de lançamento <em>*</em>
+                    <input id="adminMovieYear" type="number" placeholder="Ex: 2014" value="2014" required />
+                  </label>
+                  <label class="movie-meta-row">Classificação indicativa <em>*</em>
+                    <select id="adminMovieRating" required>
+                      <option value="L">Livre</option>
+                      <option value="10">10 anos</option>
+                      <option value="12" selected>12 anos</option>
+                      <option value="14">14 anos</option>
+                      <option value="16">16 anos</option>
+                      <option value="18">18 anos</option>
                     </select>
                   </label>
-                  <label>Diretor
-                    <input id="adminMovieDirector" type="text" value="Christopher Nolan" />
-                  </label>
-                  <label>Pais
-                    <input id="adminMovieCountry" type="text" value="Estados Unidos" />
-                  </label>
-                  <label class="movie-synopsis">Sinopse
-                    <textarea id="adminMovieDescription" maxlength="1200">Um grupo de exploradores viaja atraves de um buraco de minhoca no espaco em uma tentativa de garantir a sobrevivencia da humanidade.</textarea>
-                    <small>117/1200</small>
+                  <div class="movie-upload-field">
+                    <strong>Imagem de capa <em>*</em></strong>
+                    <p>Envie uma imagem de capa para o filme. Recomendado: 16:9.</p>
+                    <label>
+                      <input type="file" accept="image/png,image/jpeg,image/webp" />
+                      <b>⇧</b>
+                      <span>Clique para selecionar uma imagem ou arraste e solte aqui</span>
+                      <small>PNG, JPG ou WEBP (máx. 5MB)</small>
+                    </label>
+                  </div>
+                  <div class="movie-upload-tips">
+                    <span>Dicas:</span>
+                    <p>Use imagens em alta resolução</p>
+                    <p>Formato recomendado: 16:9</p>
+                    <p>Tamanho máximo: 5MB</p>
+                  </div>
+                  <label class="movie-synopsis">Sinopse <em>*</em>
+                    <span>Escreva uma breve descrição sobre o filme.</span>
+                    <textarea id="adminMovieDescription" maxlength="500" placeholder="Ex: Um grupo de exploradores viaja através de um buraco de minhoca no espaço em uma tentativa de garantir a sobrevivência da humanidade.">Um grupo de exploradores viaja através de um buraco de minhoca no espaço em uma tentativa de garantir a sobrevivência da humanidade.</textarea>
+                    <small>0/500</small>
                   </label>
                 </div>
 
                 <div class="movie-form-actions">
-                  <button class="draft" type="submit" data-movie-status="rascunho">Salvar Rascunho</button>
-                  <button class="publish" type="submit" data-movie-status="publicado">Publicar Filme</button>
+                  <button class="draft" type="button" id="adminCancelMovieForm">Cancelar</button>
+                  <button class="publish" type="submit" data-movie-status="publicado">Salvar Filme</button>
                 </div>
                 <p class="movie-form-status" id="adminMovieStatus" aria-live="polite"></p>
-              </section>
+              </form>
 
-              <aside class="movie-media-panel">
+              <aside class="movie-preview-card">
+                <div class="movie-form-title">
+                  <strong>Pré-visualização</strong>
+                  <span>Veja como seu filme aparecerá no catálogo.</span>
+                </div>
                 <article>
-                  <span>Poster</span>
-                  <img src="https://images.unsplash.com/photo-1614726365952-510103b1bbb4?auto=format&fit=crop&w=320&q=80" alt="Previa do poster do filme" />
-                  <button type="button">Alterar Poster</button>
-                </article>
-                <article>
-                  <span>Banner</span>
-                  <img src="https://images.unsplash.com/photo-1462332420958-a05d1e002413?auto=format&fit=crop&w=520&q=80" alt="Previa do banner do filme" />
-                  <button type="button">Alterar Banner</button>
+                  <img src="https://images.unsplash.com/photo-1614726365952-510103b1bbb4?auto=format&fit=crop&w=780&q=80" alt="Pré-visualização do filme Interestelar" />
+                  <div>
+                    <h3>Interestelar</h3>
+                    <p><span>Ficção Científica</span><span>Christopher Nolan</span></p>
+                    <small class="movie-preview-meta"><b>◷</b>169 min <b>•</b> 2014 <mark>12</mark> 12 anos</small>
+                    <hr />
+                    <p>Um grupo de exploradores viaja através de um buraco de minhoca no espaço em uma tentativa de garantir a sobrevivência da humanidade.</p>
+                  </div>
                 </article>
               </aside>
-            </form>
+            </div>
+          </div>
+        </section>
+
+        <section class="admin-config-view" id="adminConfigView">
+          <div class="admin-config-shell">
+            <header class="admin-config-header">
+              <div>
+                <span>Configurações</span>
+                <p>Preferências do sistema e acompanhamento operacional.</p>
+              </div>
+            </header>
+
+            <div class="admin-config-path" aria-live="polite">
+              <span>Configurações</span>
+              <i aria-hidden="true"></i>
+              <strong id="adminConfigCurrentPage">Gráfico</strong>
+            </div>
+
+            <nav class="admin-config-tabs" aria-label="Subpáginas de configurações">
+              <button class="active" type="button" data-admin-config-tab="chart">Gráfico</button>
+              <button type="button" data-admin-config-tab="logs">Log</button>
+            </nav>
+
+            <section class="admin-config-panel active" id="adminConfigChart">
+              <div class="admin-settings-grid">
+                <article>
+                  <span>Ambiente</span>
+                  <strong>Produção</strong>
+                  <p>Render conectado ao Railway MySQL e MongoDB Atlas.</p>
+                </article>
+                <article>
+                  <span>Banco relacional</span>
+                  <strong>MySQL</strong>
+                  <p>Usuários, administradores, filmes, clientes e locações.</p>
+                </article>
+                <article>
+                  <span>Logs</span>
+                  <strong>MongoDB Atlas</strong>
+                  <p>Eventos de acesso, autenticação e operações do sistema.</p>
+                </article>
+              </div>
+            </section>
+
+            <section class="admin-config-panel" id="adminConfigLogs">
+              <div class="admin-logs-toolbar">
+                <div>
+                  <strong>Logs do Sistema</strong>
+                  <p>Últimos eventos registrados pela API.</p>
+                </div>
+                <button id="adminRefreshLogs" type="button">Atualizar</button>
+              </div>
+
+              <div class="admin-logs-table-wrap">
+                <table class="admin-logs-table">
+                  <thead>
+                    <tr>
+                      <th>Data</th>
+                      <th>Usuário</th>
+                      <th>Ação</th>
+                      <th>Endpoint</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="adminLogsBody">
+                    <tr>
+                      <td colspan="5">Clique em Atualizar para carregar os logs.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
           </div>
         </section>
       </main>

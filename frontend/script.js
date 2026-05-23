@@ -307,11 +307,54 @@ document.querySelectorAll('#logoutBtn').forEach((button) => {
 
 document.getElementById('adminLogoutBtn').addEventListener('click', logoutAndReload);
 
-document.querySelectorAll('.admin-sidebar a[data-admin-view]').forEach((link) => {
+document.querySelector('.admin-menu-button').addEventListener('click', () => {
+  document.querySelector('.admin-sidebar').classList.toggle('menu-open');
+});
+
+document.querySelector('.admin-config-trigger').addEventListener('click', () => {
+  const menu = document.querySelector('.admin-config-menu');
+  const isOpen = menu.classList.toggle('open');
+  document.querySelector('.admin-config-trigger').setAttribute('aria-expanded', String(isOpen));
+});
+
+document.querySelectorAll('[data-admin-view]').forEach((link) => {
   link.addEventListener('click', (event) => {
     event.preventDefault();
+
     showAdminView(link.dataset.adminView);
+    if (link.dataset.adminConfigShortcut) {
+      showAdminConfigTab(link.dataset.adminConfigShortcut);
+    }
+    document.querySelector('.admin-config-menu')?.classList.remove('open');
+    document.querySelector('.admin-config-trigger')?.setAttribute('aria-expanded', 'false');
+    document.querySelector('.admin-sidebar').classList.remove('menu-open');
   });
+});
+
+document.querySelectorAll('[data-admin-config-tab]').forEach((button) => {
+  button.addEventListener('click', () => showAdminConfigTab(button.dataset.adminConfigTab));
+});
+
+document.getElementById('adminRefreshLogs').addEventListener('click', loadAdminLogs);
+
+document.getElementById('adminOpenMovieForm').addEventListener('click', () => {
+  openAdminMovieForm();
+});
+
+document.querySelectorAll('.catalog-action.edit').forEach((button) => {
+  button.addEventListener('click', () => {
+    openAdminMovieForm(button.closest('tr').dataset);
+  });
+});
+
+document.getElementById('adminBackToCatalog').addEventListener('click', () => {
+  document.getElementById('adminMoviesView').classList.remove('creating');
+  document.querySelector('.admin-main').classList.remove('creating-movie');
+});
+
+document.getElementById('adminCancelMovieForm').addEventListener('click', () => {
+  document.getElementById('adminMoviesView').classList.remove('creating');
+  document.querySelector('.admin-main').classList.remove('creating-movie');
 });
 
 document.getElementById('adminMovieForm').addEventListener('submit', async (event) => {
@@ -335,15 +378,107 @@ document.getElementById('adminMovieForm').addEventListener('submit', async (even
   }
 });
 
+function openAdminMovieForm(movie = null) {
+  const isEditing = Boolean(movie);
+  document.getElementById('adminMoviesView').classList.add('creating');
+  document.querySelector('.admin-main').classList.add('creating-movie');
+
+  const title = isEditing ? movie.title : 'Interestelar';
+  const genre = isEditing ? movie.genre : '4';
+  const genreLabel = isEditing ? movie.genreLabel : 'Ficção Científica';
+  const director = isEditing ? movie.director : 'Christopher Nolan';
+  const duration = isEditing ? movie.duration : '169 min';
+  const year = isEditing ? movie.year : '2014';
+  const rating = isEditing ? movie.rating : '12';
+
+  document.querySelector('.movie-create-page-header h2').textContent = isEditing ? 'Editar Filme' : 'Cadastrar Filme';
+  document.querySelector('.movie-create-breadcrumb strong').textContent = isEditing ? 'Editar Filme' : 'Cadastrar Filme';
+  document.querySelector('.movie-form-actions .publish').textContent = isEditing ? 'Salvar Alterações' : 'Salvar Filme';
+
+  document.getElementById('adminMovieTitle').value = title;
+  document.getElementById('adminMovieOriginalTitle').value = title;
+  document.getElementById('adminMovieGenre').value = genre;
+  document.getElementById('adminMovieDirector').value = director;
+  document.getElementById('adminMovieDuration').value = duration;
+  document.getElementById('adminMovieYear').value = year;
+  document.getElementById('adminMovieRating').value = rating;
+  document.getElementById('adminMovieStatus').textContent = '';
+
+  document.querySelector('.movie-preview-card h3').textContent = title;
+  document.querySelector('.movie-preview-card p span:first-child').textContent = genreLabel;
+  document.querySelector('.movie-preview-card p span:last-child').textContent = director;
+  document.querySelector('.movie-preview-meta').innerHTML = `<b>◷</b>${duration} <b>•</b> ${year} <mark>${rating}</mark> ${rating} anos`;
+}
+
 function showAdminView(view) {
-  document.querySelectorAll('.admin-sidebar a').forEach((link) => {
-    link.classList.toggle('active', link.dataset.adminView === view);
+  document.querySelectorAll('[data-admin-view]').forEach((link) => {
+    link.classList.toggle('active', link.dataset.adminView === view && !link.dataset.adminConfigShortcut);
   });
 
   const isMoviesView = view === 'movies';
+  const isConfigView = view === 'config';
   document.querySelector('.admin-main').classList.toggle('show-movies', isMoviesView);
-  document.querySelector('.admin-topbar h1').textContent = isMoviesView ? 'Filmes' : 'Painel Administrativo';
-  document.querySelector('.admin-topbar p').textContent = isMoviesView ? 'Cadastro e gestao do catalogo' : 'Visao geral do sistema';
+  document.querySelector('.admin-main').classList.toggle('show-config', isConfigView);
+  document.querySelector('.admin-config-trigger')?.classList.toggle('active', isConfigView);
+  if (isMoviesView) {
+    document.getElementById('adminMoviesView').classList.remove('creating');
+    document.querySelector('.admin-main').classList.remove('creating-movie');
+  } else {
+    document.querySelector('.admin-main').classList.remove('creating-movie');
+  }
+
+  const titles = {
+    movies: ['Filmes', 'Cadastro e gestao do catalogo'],
+    config: ['Configurações', 'Sistema, segurança e logs'],
+    dashboard: ['Painel Administrativo', 'Visao geral do sistema']
+  };
+  const [title, subtitle] = titles[view] || titles.dashboard;
+  document.querySelector('.admin-topbar h1').textContent = title;
+  document.querySelector('.admin-topbar p').textContent = subtitle;
+}
+
+function showAdminConfigTab(tab) {
+  document.querySelectorAll('[data-admin-config-tab]').forEach((button) => {
+    button.classList.toggle('active', button.dataset.adminConfigTab === tab);
+  });
+  document.querySelectorAll('[data-admin-config-shortcut]').forEach((link) => {
+    link.classList.toggle('active', link.dataset.adminConfigShortcut === tab);
+  });
+
+  document.getElementById('adminConfigChart').classList.toggle('active', tab === 'chart');
+  document.getElementById('adminConfigLogs').classList.toggle('active', tab === 'logs');
+  document.getElementById('adminConfigCurrentPage').textContent = tab === 'logs' ? 'Log' : 'Gráfico';
+
+  if (tab === 'logs') {
+    loadAdminLogs();
+  }
+}
+
+async function loadAdminLogs() {
+  const logsBody = document.getElementById('adminLogsBody');
+  logsBody.innerHTML = '<tr><td colspan="5">Carregando logs...</td></tr>';
+
+  try {
+    const logs = await api('/logs');
+    logsBody.innerHTML = logs.length
+      ? logs.slice(0, 20).map(renderAdminLogRow).join('')
+      : '<tr><td colspan="5">Nenhum log encontrado.</td></tr>';
+  } catch (error) {
+    logsBody.innerHTML = `<tr><td colspan="5">${error.message}</td></tr>`;
+  }
+}
+
+function renderAdminLogRow(log) {
+  const date = log.timestamp ? new Date(log.timestamp).toLocaleString('pt-BR') : '-';
+  return `
+    <tr>
+      <td>${date}</td>
+      <td>${log.usuario || 'anonimo'}</td>
+      <td>${log.acao || log.tipoEvento || '-'}</td>
+      <td>${log.endpoint || '-'}</td>
+      <td>${log.statusCode || '-'}</td>
+    </tr>
+  `;
 }
 
 function buildAdminMoviePayload(status) {
