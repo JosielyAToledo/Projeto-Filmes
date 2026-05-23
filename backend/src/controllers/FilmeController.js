@@ -1,6 +1,7 @@
 const IController = require('../interfaces/IController');
 const FilmeService = require('../services/FilmeService');
 const LogService = require('../services/LogService');
+const CloudinaryService = require('../services/CloudinaryService');
 const fs = require('fs/promises');
 
 class FilmeController extends IController {
@@ -30,7 +31,8 @@ class FilmeController extends IController {
 
   store = async (req, res, next) => {
     try {
-      const capaUrl = req.file ? `/uploads/${req.file.filename}` : null;
+      const cloudinaryUrl = await CloudinaryService.uploadImage(req.file);
+      const capaUrl = cloudinaryUrl || (req.file ? `/uploads/${req.file.filename}` : null);
       const filme = await this.filmeService.criar({
         ...req.body,
         capa_url: capaUrl || req.body.capa_url || null,
@@ -118,7 +120,8 @@ class FilmeController extends IController {
   update = async (req, res, next) => {
     try {
       const filmeAtual = await this.filmeService.buscarPorId(req.params.id);
-      const capaUrl = req.file ? `/uploads/${req.file.filename}` : filmeAtual.capa_url;
+      const cloudinaryUrl = await CloudinaryService.uploadImage(req.file);
+      const capaUrl = cloudinaryUrl || (req.file ? `/uploads/${req.file.filename}` : filmeAtual.capa_url);
       const filme = await this.filmeService.atualizar(req.params.id, {
         ...req.body,
         capa_url: capaUrl || req.body.capa_url || filmeAtual.capa_url

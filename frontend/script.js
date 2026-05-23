@@ -455,12 +455,17 @@ document.getElementById('adminMovieForm').addEventListener('submit', async (even
   const statusElement = document.getElementById('adminMovieStatus');
   statusElement.textContent = 'Salvando filme...';
   const isEditing = Boolean(editingMovieId);
+  const moviePayload = buildAdminMoviePayload(status);
+  const coverFile = document.getElementById('adminMovieCover').files[0];
+  const hasCoverFile = Boolean(coverFile);
+  const body = hasCoverFile ? buildAdminMovieFormData(moviePayload, coverFile) : JSON.stringify(moviePayload);
+  const headers = hasCoverFile ? {} : { 'Content-Type': 'application/json' };
 
   try {
     const filme = await api(isEditing ? `/filmes/${editingMovieId}` : '/filmes', {
       method: isEditing ? 'PUT' : 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(buildAdminMoviePayload(status))
+      headers,
+      body
     });
 
     statusElement.textContent = `Filme "${filme.titulo}" salvo no MySQL.`;
@@ -503,6 +508,19 @@ function openAdminMovieForm(movie = null) {
   document.querySelector('.movie-preview-card p span:first-child').textContent = genreLabel;
   document.querySelector('.movie-preview-card p span:last-child').textContent = director || 'Diretor';
   document.querySelector('.movie-preview-meta').innerHTML = `<b>◷</b>${duration || '0 min'} <b>•</b> ${year || 'Ano'} <mark>${rating}</mark> ${rating} anos`;
+}
+
+function buildAdminMovieFormData(payload, coverFile) {
+  const formData = new FormData();
+
+  Object.entries(payload).forEach(([key, value]) => {
+    if (value !== null && value !== undefined) {
+      formData.append(key, value);
+    }
+  });
+
+  formData.append('capa', coverFile);
+  return formData;
 }
 
 function openEditConfirmModal(movie) {
