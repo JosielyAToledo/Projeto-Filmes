@@ -3,7 +3,7 @@ services:
     name: projeto-filmes
     env: node
     plan: free
-    buildCommand: npm install && npm run db:migrate
+    buildCommand: npm install && npm run db:migrate && npm run db:seed
     startCommand: npm start
     envVars:
       - key: NODE_ENV

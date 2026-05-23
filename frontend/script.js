@@ -8,6 +8,7 @@ let movieRatings = JSON.parse(localStorage.getItem('movieRatings') || '{}');
 let adminSession = localStorage.getItem('adminSession') === '1';
 let pendingEditMovie = null;
 let pendingDeleteMovie = null;
+let editingMovieId = null;
 let pendingInactiveUser = null;
 let pendingDeleteUser = null;
 
@@ -337,10 +338,20 @@ document.getElementById('adminOpenMovieForm').addEventListener('click', () => {
   openAdminMovieForm();
 });
 
-document.querySelectorAll('.catalog-action.edit').forEach((button) => {
-  button.addEventListener('click', () => {
-    openEditConfirmModal(button.closest('tr').dataset);
-  });
+document.getElementById('adminMoviesTableBody').addEventListener('click', (event) => {
+  const editButton = event.target.closest('.catalog-action.edit');
+  const deleteButton = event.target.closest('.catalog-action.delete');
+  const row = event.target.closest('tr');
+
+  if (!row) return;
+
+  if (editButton) {
+    openEditConfirmModal(row.dataset);
+  }
+
+  if (deleteButton) {
+    openDeleteConfirmModal(row.dataset);
+  }
 });
 
 document.getElementById('adminCancelEditConfirm').addEventListener('click', closeEditConfirmModal);
@@ -358,12 +369,6 @@ document.getElementById('adminConfirmEditMovie').addEventListener('click', () =>
   closeEditConfirmModal();
 });
 
-document.querySelectorAll('.catalog-action.delete').forEach((button) => {
-  button.addEventListener('click', () => {
-    openDeleteConfirmModal(button.closest('tr').dataset);
-  });
-});
-
 document.getElementById('adminCancelDeleteConfirm').addEventListener('click', closeDeleteConfirmModal);
 
 document.getElementById('adminDeleteConfirmModal').addEventListener('click', (event) => {
@@ -373,7 +378,7 @@ document.getElementById('adminDeleteConfirmModal').addEventListener('click', (ev
 });
 
 document.getElementById('adminConfirmDeleteMovie').addEventListener('click', () => {
-  closeDeleteConfirmModal();
+  deleteAdminMovie();
 });
 
 document.querySelectorAll('.user-action.lock').forEach((button) => {
@@ -433,11 +438,13 @@ document.getElementById('adminUserDetailsModal').addEventListener('click', (even
 document.getElementById('adminBackToCatalog').addEventListener('click', () => {
   document.getElementById('adminMoviesView').classList.remove('creating');
   document.querySelector('.admin-main').classList.remove('creating-movie');
+  editingMovieId = null;
 });
 
 document.getElementById('adminCancelMovieForm').addEventListener('click', () => {
   document.getElementById('adminMoviesView').classList.remove('creating');
   document.querySelector('.admin-main').classList.remove('creating-movie');
+  editingMovieId = null;
 });
 
 document.getElementById('adminMovieForm').addEventListener('submit', async (event) => {
@@ -447,15 +454,17 @@ document.getElementById('adminMovieForm').addEventListener('submit', async (even
   const status = submitter ? submitter.dataset.movieStatus : 'publicado';
   const statusElement = document.getElementById('adminMovieStatus');
   statusElement.textContent = 'Salvando filme...';
+  const isEditing = Boolean(editingMovieId);
 
   try {
-    const filme = await api('/filmes', {
-      method: 'POST',
+    const filme = await api(isEditing ? `/filmes/${editingMovieId}` : '/filmes', {
+      method: isEditing ? 'PUT' : 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(buildAdminMoviePayload(status))
     });
 
     statusElement.textContent = `Filme "${filme.titulo}" salvo no MySQL.`;
+    await loadAdminMovies();
   } catch (error) {
     statusElement.textContent = error.message;
   }
@@ -463,16 +472,18 @@ document.getElementById('adminMovieForm').addEventListener('submit', async (even
 
 function openAdminMovieForm(movie = null) {
   const isEditing = Boolean(movie);
+  editingMovieId = isEditing ? movie.id : null;
   document.getElementById('adminMoviesView').classList.add('creating');
   document.querySelector('.admin-main').classList.add('creating-movie');
 
-  const title = isEditing ? movie.title : 'Interestelar';
-  const genre = isEditing ? movie.genre : '4';
-  const genreLabel = isEditing ? movie.genreLabel : 'Ficção Científica';
-  const director = isEditing ? movie.director : 'Christopher Nolan';
-  const duration = isEditing ? movie.duration : '169 min';
-  const year = isEditing ? movie.year : '2014';
+  const title = isEditing ? movie.title : '';
+  const genre = isEditing ? movie.genre : '';
+  const genreLabel = isEditing ? movie.genreLabel : 'Gênero';
+  const director = isEditing ? movie.director : '';
+  const duration = isEditing ? movie.duration : '';
+  const year = isEditing ? movie.year : '';
   const rating = isEditing ? movie.rating : '12';
+  const description = isEditing ? movie.description : '';
 
   document.querySelector('.movie-create-page-header h2').textContent = isEditing ? 'Editar Filme' : 'Cadastrar Filme';
   document.querySelector('.movie-create-breadcrumb strong').textContent = isEditing ? 'Editar Filme' : 'Cadastrar Filme';
@@ -485,12 +496,13 @@ function openAdminMovieForm(movie = null) {
   document.getElementById('adminMovieDuration').value = duration;
   document.getElementById('adminMovieYear').value = year;
   document.getElementById('adminMovieRating').value = rating;
+  document.getElementById('adminMovieDescription').value = description;
   document.getElementById('adminMovieStatus').textContent = '';
 
-  document.querySelector('.movie-preview-card h3').textContent = title;
+  document.querySelector('.movie-preview-card h3').textContent = title || 'Novo filme';
   document.querySelector('.movie-preview-card p span:first-child').textContent = genreLabel;
-  document.querySelector('.movie-preview-card p span:last-child').textContent = director;
-  document.querySelector('.movie-preview-meta').innerHTML = `<b>◷</b>${duration} <b>•</b> ${year} <mark>${rating}</mark> ${rating} anos`;
+  document.querySelector('.movie-preview-card p span:last-child').textContent = director || 'Diretor';
+  document.querySelector('.movie-preview-meta').innerHTML = `<b>◷</b>${duration || '0 min'} <b>•</b> ${year || 'Ano'} <mark>${rating}</mark> ${rating} anos`;
 }
 
 function openEditConfirmModal(movie) {
@@ -517,6 +529,106 @@ function closeDeleteConfirmModal() {
   pendingDeleteMovie = null;
   document.getElementById('adminDeleteConfirmModal').classList.remove('visible');
   document.getElementById('adminDeleteConfirmModal').setAttribute('aria-hidden', 'true');
+}
+
+async function loadAdminMovies() {
+  const tableBody = document.getElementById('adminMoviesTableBody');
+  const tableCount = document.getElementById('adminMoviesTableCount');
+  tableBody.innerHTML = '<tr><td colspan="7">Carregando filmes...</td></tr>';
+  tableCount.textContent = 'Carregando filmes...';
+
+  try {
+    const filmes = await api('/filmes');
+    tableBody.innerHTML = filmes.length
+      ? filmes.map(renderAdminMovieRow).join('')
+      : '<tr><td colspan="7">Nenhum filme cadastrado.</td></tr>';
+    tableCount.textContent = filmes.length
+      ? `Mostrando 1 a ${filmes.length} de ${filmes.length} filmes`
+      : 'Nenhum filme cadastrado';
+  } catch (error) {
+    tableBody.innerHTML = `<tr><td colspan="7">${escapeHtml(error.message)}</td></tr>`;
+    tableCount.textContent = 'Erro ao carregar filmes';
+  }
+}
+
+function renderAdminMovieRow(movie) {
+  const title = movie.titulo || 'Sem título';
+  const genre = movie.genero_nome || generoNameById(movie.genero_id) || 'Sem gênero';
+  const genreClass = getGenrePillClass(genre);
+  const director = movie.diretor || '-';
+  const year = movie.ano_lancamento || '-';
+  const rating = movie.classificacao || '-';
+  const duration = movie.duracao || '-';
+  const poster = movie.capa_url || 'https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?auto=format&fit=crop&w=80&q=80';
+
+  return `
+    <tr
+      data-id="${movie.id}"
+      data-title="${escapeHtml(title)}"
+      data-genre="${movie.genero_id || ''}"
+      data-genre-label="${escapeHtml(genre)}"
+      data-director="${escapeHtml(director)}"
+      data-duration="${escapeHtml(duration)}"
+      data-year="${escapeHtml(String(year))}"
+      data-rating="${escapeHtml(String(rating))}"
+      data-description="${escapeHtml(movie.descricao || '')}"
+    >
+      <td>
+        <img src="${escapeHtml(poster)}" alt="Poster ${escapeHtml(title)}" />
+        <strong>${escapeHtml(title)}</strong>
+      </td>
+      <td><span class="genre-pill ${genreClass}">${escapeHtml(genre)}</span></td>
+      <td>${escapeHtml(director)}</td>
+      <td>${escapeHtml(String(year))}</td>
+      <td><span class="rating-pill">${escapeHtml(String(rating))}</span></td>
+      <td>${escapeHtml(duration)}</td>
+      <td>
+        <button class="catalog-action edit" type="button" aria-label="Editar ${escapeHtml(title)}">✎</button>
+        <button class="catalog-action delete" type="button" aria-label="Excluir ${escapeHtml(title)}">🗑</button>
+      </td>
+    </tr>
+  `;
+}
+
+async function deleteAdminMovie() {
+  if (!pendingDeleteMovie?.id) {
+    closeDeleteConfirmModal();
+    return;
+  }
+
+  try {
+    await api(`/filmes/${pendingDeleteMovie.id}`, { method: 'DELETE' });
+    closeDeleteConfirmModal();
+    await loadAdminMovies();
+  } catch (error) {
+    document.getElementById('adminDeleteConfirmMovie').textContent = error.message;
+  }
+}
+
+function generoNameById(id) {
+  const genres = {
+    1: 'Ação',
+    3: 'Drama',
+    4: 'Ficção Científica',
+    5: 'Suspense'
+  };
+  return genres[Number(id)] || '';
+}
+
+function getGenrePillClass(genre = '') {
+  const normalized = genre.toLowerCase();
+  if (normalized.includes('drama')) return 'drama';
+  if (normalized.includes('ação') || normalized.includes('acao')) return 'action';
+  return 'sci-fi';
+}
+
+function escapeHtml(value = '') {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
 function openInactivateUserModal(userName) {
@@ -595,6 +707,8 @@ function showAdminView(view) {
   if (isMoviesView) {
     document.getElementById('adminMoviesView').classList.remove('creating');
     document.querySelector('.admin-main').classList.remove('creating-movie');
+    editingMovieId = null;
+    loadAdminMovies();
   } else {
     document.querySelector('.admin-main').classList.remove('creating-movie');
   }

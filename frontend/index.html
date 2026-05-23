@@ -198,7 +198,7 @@
             <div class="admin-catalog-table-wrap">
               <table class="admin-catalog-table">
                 <thead>
-                  <tr data-title="Interestelar" data-genre="4" data-genre-label="Ficção Científica" data-director="Christopher Nolan" data-duration="169 min" data-year="2014" data-rating="12">
+                  <tr>
                     <th>Nome do filme</th>
                     <th>Gênero</th>
                     <th>Diretor</th>
@@ -208,7 +208,7 @@
                     <th>Ações</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody id="adminMoviesTableBody">
                   <tr>
                     <td>
                       <img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?auto=format&fit=crop&w=80&q=80" alt="Poster Interestelar" />
@@ -274,7 +274,7 @@
             </div>
 
             <footer class="admin-catalog-footer">
-              <span>Mostrando 1 a 4 de 4 filmes</span>
+              <span id="adminMoviesTableCount">Carregando filmes...</span>
               <div>
                 <button type="button">‹</button>
                 <button class="active" type="button">1</button>
