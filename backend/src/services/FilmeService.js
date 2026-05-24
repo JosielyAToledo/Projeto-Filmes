@@ -1,8 +1,14 @@
 const IService = require('../interfaces/IService');
 const FilmeDAO = require('../dao/FilmeDAO');
 const { isLocalMode } = require('../config/local_mode');
+const fs = require('fs');
+const path = require('path');
 
-const localMovies = [
+const LOCAL_MOVIES_FILE = path.resolve(
+  process.env.LOCAL_FILMES_FILE || 'backend/data/local-filmes.json'
+);
+
+const defaultLocalMovies = [
   {
     id: 1,
     titulo: 'Interestelar',
@@ -97,6 +103,32 @@ const localMovies = [
   }
 ];
 
+function ensureLocalMoviesDir() {
+  fs.mkdirSync(path.dirname(LOCAL_MOVIES_FILE), { recursive: true });
+}
+
+function loadLocalMovies() {
+  try {
+    if (!fs.existsSync(LOCAL_MOVIES_FILE)) {
+      return [...defaultLocalMovies];
+    }
+
+    const content = fs.readFileSync(LOCAL_MOVIES_FILE, 'utf8');
+    const movies = JSON.parse(content);
+    return Array.isArray(movies) ? movies : [...defaultLocalMovies];
+  } catch (error) {
+    console.warn('Nao foi possivel carregar filmes locais. Usando lista padrao.', error.message);
+    return [...defaultLocalMovies];
+  }
+}
+
+function saveLocalMovies() {
+  ensureLocalMoviesDir();
+  fs.writeFileSync(LOCAL_MOVIES_FILE, JSON.stringify(localMovies, null, 2));
+}
+
+const localMovies = loadLocalMovies();
+
 function nextLocalMovieId() {
   return localMovies.length ? Math.max(...localMovies.map((movie) => movie.id)) + 1 : 1;
 }
@@ -106,7 +138,8 @@ function genreNameById(id) {
     1: 'Ação',
     3: 'Drama',
     4: 'Ficção Científica',
-    5: 'Suspense'
+    5: 'Suspense',
+    6: 'Romance'
   };
   return genres[Number(id)] || null;
 }
@@ -184,6 +217,7 @@ class FilmeService extends IService {
       };
 
       localMovies.push(filme);
+      saveLocalMovies();
       return filme;
     }
 
@@ -215,6 +249,7 @@ class FilmeService extends IService {
         destaque: Boolean(dados.destaque)
       });
 
+      saveLocalMovies();
       return filmeAtual;
     }
 
@@ -227,6 +262,7 @@ class FilmeService extends IService {
       await this.buscarPorId(id);
       const index = localMovies.findIndex((filme) => Number(filme.id) === Number(id));
       localMovies.splice(index, 1);
+      saveLocalMovies();
       return true;
     }
 

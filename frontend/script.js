@@ -10,6 +10,11 @@ let pendingEditMovie = null;
 let pendingDeleteMovie = null;
 let editingMovieId = null;
 let pendingMovieSaveStatus = 'publicado';
+let adminMoviesCache = [];
+let adminMoviesFiltered = [];
+let adminMoviesPage = 1;
+let adminCurrentView = 'dashboard';
+const ADMIN_MOVIES_PER_PAGE = 4;
 let pendingInactiveUser = null;
 let pendingDeleteUser = null;
 
@@ -199,6 +204,9 @@ async function api(path, options = {}) {
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: 'Erro inesperado.' }));
+    if (response.status === 401 && error.message === 'Token invalido ou expirado.') {
+      clearSessionAndReload(false);
+    }
     throw new Error(formatApiError(error.message, response.status));
   }
 
@@ -213,7 +221,8 @@ function formatApiError(message, status) {
   const knownMessages = {
     'Credenciais invalidas.': 'E-mail ou senha incorretos.',
     'E-mail ja cadastrado.': 'Este e-mail já está cadastrado.',
-    'Campos obrigatorios ausentes.': 'Preencha todos os campos obrigatórios.'
+    'Campos obrigatorios ausentes.': 'Preencha todos os campos obrigatórios.',
+    'Token invalido ou expirado.': 'Sessão expirada. Saia e entre novamente como admin.'
   };
 
   if (knownMessages[message]) {
@@ -333,6 +342,9 @@ document.querySelectorAll('[data-admin-config-tab]').forEach((button) => {
   button.addEventListener('click', () => showAdminConfigTab(button.dataset.adminConfigTab));
 });
 
+document.getElementById('adminTopSearch').addEventListener('input', applyAdminTopFilters);
+document.getElementById('adminTopFilter').addEventListener('change', applyAdminTopFilters);
+
 document.getElementById('adminRefreshLogs').addEventListener('click', loadAdminLogs);
 
 document.getElementById('adminOpenMovieForm').addEventListener('click', () => {
@@ -345,14 +357,35 @@ document.getElementById('adminMoviesTableBody').addEventListener('click', (event
   const row = event.target.closest('tr');
 
   if (!row) return;
+  if (!row.dataset.id && !row.dataset.title) return;
 
   if (editButton) {
     openEditConfirmModal(row.dataset);
+    return;
   }
 
   if (deleteButton) {
     openDeleteConfirmModal(row.dataset);
+    return;
   }
+
+  openAdminMovieDetailsModal(row.dataset);
+});
+
+document.getElementById('adminCloseMovieDetails').addEventListener('click', closeAdminMovieDetailsModal);
+
+document.getElementById('adminMovieDetailsModal').addEventListener('click', (event) => {
+  if (event.target.id === 'adminMovieDetailsModal') {
+    closeAdminMovieDetailsModal();
+  }
+});
+
+document.getElementById('adminMoviesPagination').addEventListener('click', (event) => {
+  const button = event.target.closest('button[data-admin-movie-page]');
+  if (!button) return;
+
+  adminMoviesPage = Number(button.dataset.adminMoviePage);
+  renderAdminMoviesPage();
 });
 
 document.getElementById('adminCancelEditConfirm').addEventListener('click', closeEditConfirmModal);
@@ -471,6 +504,12 @@ document.getElementById('adminMovieCover').addEventListener('change', (event) =>
   document.getElementById(fieldId).addEventListener('change', updateAdminMoviePreview);
 });
 
+['adminMovieDuration', 'adminMovieYear'].forEach((fieldId) => {
+  document.getElementById(fieldId).addEventListener('input', (event) => {
+    event.target.value = event.target.value.replace(/\D/g, '');
+  });
+});
+
 document.getElementById('adminMovieForm').addEventListener('submit', async (event) => {
   event.preventDefault();
 
@@ -501,18 +540,27 @@ async function saveAdminMovie() {
   const hasCoverFile = Boolean(coverFile);
   const body = hasCoverFile ? buildAdminMovieFormData(moviePayload, coverFile) : JSON.stringify(moviePayload);
   const headers = hasCoverFile ? {} : { 'Content-Type': 'application/json' };
+  const wasEditing = Boolean(editingMovieId);
+  const movieId = editingMovieId;
+
+  document.getElementById('adminMoviesView').classList.remove('creating');
+  document.querySelector('.admin-main').classList.remove('creating-movie');
+  editingMovieId = null;
+  document.getElementById('adminMoviesTableBody').innerHTML = '<tr><td colspan="7">Salvando filme...</td></tr>';
+  document.getElementById('adminMoviesTableCount').textContent = 'Salvando filme...';
 
   try {
-    const filme = await api(isEditing ? `/filmes/${editingMovieId}` : '/filmes', {
-      method: isEditing ? 'PUT' : 'POST',
+    await api(wasEditing ? `/filmes/${movieId}` : '/filmes', {
+      method: wasEditing ? 'PUT' : 'POST',
       headers,
       body
     });
 
-    statusElement.textContent = `Filme "${filme.titulo}" salvo no MySQL.`;
+    adminMoviesPage = 1;
     await loadAdminMovies();
   } catch (error) {
-    statusElement.textContent = error.message;
+    document.getElementById('adminMoviesTableBody').innerHTML = `<tr><td colspan="7">${escapeHtml(error.message)}</td></tr>`;
+    document.getElementById('adminMoviesTableCount').textContent = 'Erro ao salvar filme';
   }
 }
 
@@ -526,7 +574,7 @@ function openAdminMovieForm(movie = null) {
   const genre = isEditing ? movie.genre : '';
   const genreLabel = isEditing ? movie.genreLabel : 'Gênero';
   const director = isEditing ? movie.director : '';
-  const duration = isEditing ? movie.duration : '';
+  const duration = isEditing ? String(movie.duration || '').replace(/\D/g, '') : '';
   const year = isEditing ? movie.year : '';
   const rating = isEditing ? movie.rating : '12';
   const description = isEditing ? movie.description : '';
@@ -591,17 +639,27 @@ function updateAdminMoviePreview() {
   const genreSelect = document.getElementById('adminMovieGenre');
   const genreLabel = genreSelect.options[genreSelect.selectedIndex]?.text || 'Gênero';
   const director = document.getElementById('adminMovieDirector').value.trim() || 'Diretor';
-  const duration = document.getElementById('adminMovieDuration').value.trim() || '0 min';
-  const year = document.getElementById('adminMovieYear').value.trim() || 'Ano';
+  const durationValue = document.getElementById('adminMovieDuration').value.trim();
+  const duration = durationValue ? `${durationValue} min` : '0 min';
+  const yearValue = document.getElementById('adminMovieYear').value.trim();
+  const year = yearValue ? `${yearValue} ano` : 'Ano';
   const rating = document.getElementById('adminMovieRating').value || '12';
+  const ratingLabel = rating === 'L' ? 'Livre' : `${rating}+`;
   const description = document.getElementById('adminMovieDescription').value.trim()
     || 'A sinopse do filme aparecerá aqui.';
 
   document.querySelector('.movie-preview-card h3').textContent = title;
   document.querySelector('.movie-preview-card p span:first-child').textContent = genreLabel;
   document.querySelector('.movie-preview-card p span:last-child').textContent = director;
-  document.querySelector('.movie-preview-meta').innerHTML = `<b>◷</b>${duration} <b>•</b> ${year} <mark>${rating}</mark> ${rating} anos`;
+  document.querySelector('.movie-preview-meta').innerHTML = `<b>◷</b>${duration} <b>•</b> ${year} <mark>${ratingLabel}</mark>`;
   document.querySelector('.movie-preview-card article > div > p:last-child').textContent = description;
+  updateAdminSynopsisCount();
+}
+
+function updateAdminSynopsisCount() {
+  const synopsis = document.getElementById('adminMovieDescription');
+  const counter = document.querySelector('.movie-synopsis small');
+  counter.textContent = `${synopsis.value.length}/${synopsis.maxLength || 500}`;
 }
 
 function openEditConfirmModal(movie) {
@@ -630,6 +688,65 @@ function closeDeleteConfirmModal() {
   document.getElementById('adminDeleteConfirmModal').setAttribute('aria-hidden', 'true');
 }
 
+function fixPortugueseText(value) {
+  const replacements = {
+    '\u00c3\u0192\u00c2\u00a7': '\u00e7',
+    '\u00c3\u0192\u00c2\u00a3': '\u00e3',
+    '\u00c3\u0192\u00c2\u00aa': '\u00ea',
+    '\u00c3\u0192\u00c2\u00a1': '\u00e1',
+    '\u00c3\u0192\u00c2\u00a9': '\u00e9',
+    '\u00c3\u0192\u00c2\u00ad': '\u00ed',
+    '\u00c3\u0192\u00c2\u00b3': '\u00f3',
+    '\u00c3\u0192\u00c2\u00ba': '\u00fa',
+    '\u00c3\u00a7': '\u00e7',
+    '\u00c3\u00a3': '\u00e3',
+    '\u00c3\u00aa': '\u00ea',
+    '\u00c3\u00a1': '\u00e1',
+    '\u00c3\u00a9': '\u00e9',
+    '\u00c3\u00ad': '\u00ed',
+    '\u00c3\u00b3': '\u00f3',
+    '\u00c3\u00ba': '\u00fa'
+  };
+
+  return Object.entries(replacements).reduce((text, [from, to]) => (
+    text.split(from).join(to)
+  ), String(value || ''));
+}
+
+function openAdminMovieDetailsModal(movie) {
+  const rating = movie.rating === 'L'
+    ? 'Livre'
+    : movie.rating && movie.rating !== '-' ? `${movie.rating}+` : 'Classificação';
+  const description = fixPortugueseText(movie.description || 'Sem sinopse cadastrada.');
+  const genre = fixPortugueseText(movie.genreLabel || 'G\u00eanero');
+  const director = fixPortugueseText(movie.director || 'Diretor');
+  const year = movie.year && movie.year !== '-' ? movie.year : 'Ano';
+  const duration = fixPortugueseText(movie.duration || 'Dura\u00e7\u00e3o');
+
+  document.getElementById('adminMovieDetailsImage').src = movie.cover || 'https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?auto=format&fit=crop&w=960&q=80';
+  document.getElementById('adminMovieDetailsImage').alt = `Capa do filme ${fixPortugueseText(movie.title || '')}`.trim();
+  document.getElementById('adminMovieDetailsTitle').textContent = fixPortugueseText(movie.title || 'Filme');
+  document.getElementById('adminMovieDetailsGenre').textContent = genre;
+  document.getElementById('adminMovieDetailsDirector').textContent = director;
+  document.getElementById('adminMovieDetailsYear').textContent = year;
+  document.getElementById('adminMovieDetailsRating').textContent = rating;
+  document.getElementById('adminMovieDetailsDuration').textContent = duration;
+  document.getElementById('adminMovieDetailsInfoDirector').textContent = director;
+  document.getElementById('adminMovieDetailsInfoDuration').textContent = duration.replace('min', 'minutos');
+  document.getElementById('adminMovieDetailsInfoYear').textContent = year;
+  document.getElementById('adminMovieDetailsInfoGenre').textContent = genre;
+  document.getElementById('adminMovieDetailsInfoRating').textContent = rating;
+  document.getElementById('adminMovieDetailsDescription').textContent = description;
+
+  document.getElementById('adminMovieDetailsModal').classList.add('visible');
+  document.getElementById('adminMovieDetailsModal').setAttribute('aria-hidden', 'false');
+}
+
+function closeAdminMovieDetailsModal() {
+  document.getElementById('adminMovieDetailsModal').classList.remove('visible');
+  document.getElementById('adminMovieDetailsModal').setAttribute('aria-hidden', 'true');
+}
+
 async function loadAdminMovies() {
   const tableBody = document.getElementById('adminMoviesTableBody');
   const tableCount = document.getElementById('adminMoviesTableCount');
@@ -637,17 +754,59 @@ async function loadAdminMovies() {
   tableCount.textContent = 'Carregando filmes...';
 
   try {
-    const filmes = await api('/filmes');
-    tableBody.innerHTML = filmes.length
-      ? filmes.map(renderAdminMovieRow).join('')
-      : '<tr><td colspan="7">Nenhum filme cadastrado.</td></tr>';
-    tableCount.textContent = filmes.length
-      ? `Mostrando 1 a ${filmes.length} de ${filmes.length} filmes`
-      : 'Nenhum filme cadastrado';
+    adminMoviesCache = await api('/filmes');
+    adminMoviesFiltered = adminMoviesCache;
+    applyAdminTopFilters();
   } catch (error) {
     tableBody.innerHTML = `<tr><td colspan="7">${escapeHtml(error.message)}</td></tr>`;
     tableCount.textContent = 'Erro ao carregar filmes';
+    document.getElementById('adminMoviesPagination').innerHTML = '';
   }
+}
+
+function renderAdminMoviesPage() {
+  const tableBody = document.getElementById('adminMoviesTableBody');
+  const tableCount = document.getElementById('adminMoviesTableCount');
+  const total = adminMoviesFiltered.length;
+
+  if (!total) {
+    tableBody.innerHTML = '<tr><td colspan="7">Nenhum filme cadastrado.</td></tr>';
+    tableCount.textContent = 'Nenhum filme cadastrado';
+    renderAdminMoviesPagination();
+    return;
+  }
+
+  const start = (adminMoviesPage - 1) * ADMIN_MOVIES_PER_PAGE;
+  const pageItems = adminMoviesFiltered.slice(start, start + ADMIN_MOVIES_PER_PAGE);
+  tableBody.innerHTML = pageItems.map(renderAdminMovieRow).join('');
+  tableCount.textContent = `Mostrando ${start + 1} a ${start + pageItems.length} de ${total} filmes`;
+  renderAdminMoviesPagination();
+}
+
+function renderAdminMoviesPagination() {
+  const pagination = document.getElementById('adminMoviesPagination');
+  const totalPages = Math.max(1, Math.ceil(adminMoviesFiltered.length / ADMIN_MOVIES_PER_PAGE));
+
+  if (totalPages <= 1) {
+    pagination.innerHTML = `
+      <button type="button" disabled>‹</button>
+      <button class="active" type="button" data-admin-movie-page="1">1</button>
+      <button type="button" disabled>›</button>
+    `;
+    return;
+  }
+
+  const pages = Array.from({ length: totalPages }, (_, index) => index + 1)
+    .map((page) => (
+      `<button class="${page === adminMoviesPage ? 'active' : ''}" type="button" data-admin-movie-page="${page}">${page}</button>`
+    ))
+    .join('');
+
+  pagination.innerHTML = `
+    <button type="button" data-admin-movie-page="${Math.max(1, adminMoviesPage - 1)}" ${adminMoviesPage === 1 ? 'disabled' : ''}>‹</button>
+    ${pages}
+    <button type="button" data-admin-movie-page="${Math.min(totalPages, adminMoviesPage + 1)}" ${adminMoviesPage === totalPages ? 'disabled' : ''}>›</button>
+  `;
 }
 
 function renderAdminMovieRow(movie) {
@@ -710,7 +869,8 @@ function generoNameById(id) {
     1: 'Ação',
     3: 'Drama',
     4: 'Ficção Científica',
-    5: 'Suspense'
+    5: 'Suspense',
+    6: 'Romance'
   };
   return genres[Number(id)] || '';
 }
@@ -794,6 +954,7 @@ function closeUserDetailsModal() {
 }
 
 function showAdminView(view) {
+  adminCurrentView = view;
   document.querySelectorAll('[data-admin-view]').forEach((link) => {
     link.classList.toggle('active', link.dataset.adminView === view && !link.dataset.adminConfigShortcut);
   });
@@ -823,6 +984,7 @@ function showAdminView(view) {
   document.querySelector('.admin-topbar h1').textContent = title;
   document.querySelector('.admin-topbar p').textContent = subtitle;
   updateAdminTopFilter(view);
+  applyAdminTopFilters();
 }
 
 function updateAdminTopFilter(view) {
@@ -831,7 +993,10 @@ function updateAdminTopFilter(view) {
   if (!filter) return;
 
   if (view === 'users') {
-    if (search) search.placeholder = 'Buscar usuários...';
+    if (search) {
+      search.value = '';
+      search.placeholder = 'Buscar usuários...';
+    }
     filter.setAttribute('aria-label', 'Filtrar por status');
     filter.innerHTML = `
       <option>Todos os status</option>
@@ -842,6 +1007,7 @@ function updateAdminTopFilter(view) {
   }
 
   if (search) {
+    search.value = '';
     search.placeholder = view === 'movies' ? 'Buscar filmes...' : 'Buscar filmes, usuários, etc...';
   }
   filter.setAttribute('aria-label', 'Filtrar por gênero');
@@ -850,8 +1016,80 @@ function updateAdminTopFilter(view) {
     <option>Ação</option>
     <option>Drama</option>
     <option>Ficção Científica</option>
+    <option>Romance</option>
     <option>Suspense</option>
   `;
+}
+
+function applyAdminTopFilters() {
+  if (adminCurrentView === 'movies') {
+    filterAdminMovies();
+    return;
+  }
+
+  if (adminCurrentView === 'users') {
+    filterAdminUsers();
+  }
+}
+
+function filterAdminMovies() {
+  const query = normalizeText(document.getElementById('adminTopSearch').value);
+  const selectedGenre = normalizeText(document.getElementById('adminTopFilter').value);
+  const shouldFilterGenre = selectedGenre && selectedGenre !== normalizeText('Todos os gêneros');
+
+  adminMoviesFiltered = adminMoviesCache.filter((movie) => {
+    const genre = movie.genero_nome || generoNameById(movie.genero_id) || '';
+    const searchable = normalizeText([
+      movie.titulo,
+      movie.titulo_original,
+      movie.diretor,
+      movie.ano_lancamento,
+      movie.classificacao,
+      movie.duracao,
+      genre
+    ].filter(Boolean).join(' '));
+    const matchesQuery = !query || searchable.includes(query);
+    const matchesGenre = !shouldFilterGenre || normalizeText(genre) === selectedGenre;
+
+    return matchesQuery && matchesGenre;
+  });
+
+  adminMoviesPage = 1;
+  renderAdminMoviesPage();
+}
+
+function filterAdminUsers() {
+  const query = normalizeText(document.getElementById('adminTopSearch').value);
+  const selectedStatus = normalizeText(document.getElementById('adminTopFilter').value);
+  const shouldFilterStatus = selectedStatus && selectedStatus !== normalizeText('Todos os status');
+  const rows = document.querySelectorAll('.admin-users-table tbody tr');
+  let visibleCount = 0;
+
+  rows.forEach((row) => {
+    const status = normalizeText(row.querySelector('.user-status-pill')?.textContent || '');
+    const searchable = normalizeText(row.textContent);
+    const matchesQuery = !query || searchable.includes(query);
+    const matchesStatus = !shouldFilterStatus || status === selectedStatus;
+    const shouldShow = matchesQuery && matchesStatus;
+
+    row.style.display = shouldShow ? '' : 'none';
+    if (shouldShow) visibleCount += 1;
+  });
+
+  const userCount = document.querySelector('.admin-users-view .admin-catalog-footer span');
+  if (userCount) {
+    userCount.textContent = visibleCount
+      ? `Mostrando 1 a ${visibleCount} de ${visibleCount} usuários`
+      : 'Nenhum usuário encontrado';
+  }
+}
+
+function normalizeText(value = '') {
+  return String(value)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
 }
 
 function showAdminConfigTab(tab) {
@@ -909,7 +1147,7 @@ function buildAdminMoviePayload(status) {
     genero_id: Number(document.getElementById('adminMovieGenre').value) || null,
     genero_secundario_id: secondGenre ? Number(secondGenre) : null,
     diretor: document.getElementById('adminMovieDirector').value.trim(),
-    duracao: document.getElementById('adminMovieDuration').value.trim(),
+    duracao: `${document.getElementById('adminMovieDuration').value.trim()} min`,
     classificacao: document.getElementById('adminMovieRating').value,
     pais: document.getElementById('adminMovieCountry').value.trim(),
     preco_locacao: 9.9,
@@ -928,7 +1166,7 @@ async function logoutAndReload() {
   clearSessionAndReload();
 }
 
-function clearSessionAndReload() {
+function clearSessionAndReload(shouldReload = true) {
   token = '';
   currentUser = null;
   adminSession = false;
@@ -936,7 +1174,11 @@ function clearSessionAndReload() {
   localStorage.removeItem('usuario');
   localStorage.removeItem('adminSession');
   showLogin();
-  window.location.href = window.location.pathname;
+  if (shouldReload) {
+    window.location.href = window.location.pathname;
+  } else {
+    syncView();
+  }
 }
 
 document.querySelectorAll('.nav-link').forEach((link) => {

@@ -130,6 +130,7 @@
               <option>Ação</option>
               <option>Drama</option>
               <option>Ficção Científica</option>
+              <option>Romance</option>
               <option>Suspense</option>
             </select>
             <button class="admin-export-btn" type="button">⇩ Exportar</button>
@@ -275,11 +276,7 @@
 
             <footer class="admin-catalog-footer">
               <span id="adminMoviesTableCount">Carregando filmes...</span>
-              <div>
-                <button type="button">‹</button>
-                <button class="active" type="button">1</button>
-                <button type="button">›</button>
-              </div>
+              <div id="adminMoviesPagination"></div>
             </footer>
           </div>
 
@@ -314,6 +311,7 @@
                       <option value="4" selected>Ficção Científica</option>
                       <option value="1">Ação</option>
                       <option value="3">Drama</option>
+                      <option value="6">Romance</option>
                       <option value="5">Suspense</option>
                     </select>
                   </label>
@@ -321,13 +319,10 @@
                     <input id="adminMovieDirector" type="text" placeholder="Ex: Christopher Nolan" value="Christopher Nolan" required />
                   </label>
                   <label class="movie-duration-field movie-meta-row">Duração <em>*</em>
-                    <span>
-                      <input id="adminMovieDuration" type="text" placeholder="Ex: 169" value="169 min" required />
-                      <i>minutos</i>
-                    </span>
+                    <input id="adminMovieDuration" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="Ex: 169" value="169" required />
                   </label>
                   <label class="movie-meta-row">Ano de lançamento <em>*</em>
-                    <input id="adminMovieYear" type="number" placeholder="Ex: 2014" value="2014" required />
+                    <input id="adminMovieYear" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="Ex: 2014" value="2014" required />
                   </label>
                   <label class="movie-meta-row">Classificação indicativa <em>*</em>
                     <select id="adminMovieRating" required>
@@ -348,12 +343,6 @@
                       <span>Clique para selecionar uma imagem ou arraste e solte aqui</span>
                       <small>PNG, JPG ou WEBP (máx. 5MB)</small>
                     </label>
-                  </div>
-                  <div class="movie-upload-tips">
-                    <span>Dicas:</span>
-                    <p>Use imagens em alta resolução</p>
-                    <p>Formato recomendado: 16:9</p>
-                    <p>Tamanho máximo: 5MB</p>
                   </div>
                   <label class="movie-synopsis">Sinopse <em>*</em>
                     <span>Escreva uma breve descrição sobre o filme.</span>
@@ -623,6 +612,34 @@
         <div>
           <button id="adminCancelDeleteConfirm" type="button">Cancelar</button>
           <button id="adminConfirmDeleteMovie" type="button">Excluir filme</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-confirm-modal" id="adminMovieDetailsModal" aria-hidden="true">
+      <div class="admin-confirm-card admin-movie-details-card" role="dialog" aria-modal="true" aria-labelledby="adminMovieDetailsTitle">
+        <button class="admin-details-close" id="adminCloseMovieDetails" type="button" aria-label="Fechar">×</button>
+        <img id="adminMovieDetailsImage" src="" alt="Capa do filme" />
+        <h2 id="adminMovieDetailsTitle">Filme</h2>
+        <div class="admin-movie-details-meta">
+          <span id="adminMovieDetailsGenre">Gênero</span>
+          <span id="adminMovieDetailsDirector">Diretor</span>
+          <span id="adminMovieDetailsYear">Ano</span>
+          <span id="adminMovieDetailsRating">Classificação</span>
+          <span id="adminMovieDetailsDuration">Duração</span>
+        </div>
+        <div class="admin-movie-details-body">
+          <div class="admin-movie-details-info">
+            <p><span>Diretor</span><strong id="adminMovieDetailsInfoDirector">Diretor</strong></p>
+            <p><span>Duração</span><strong id="adminMovieDetailsInfoDuration">Duração</strong></p>
+            <p><span>Ano de lançamento</span><strong id="adminMovieDetailsInfoYear">Ano</strong></p>
+            <p><span>Gênero</span><strong id="adminMovieDetailsInfoGenre">Gênero</strong></p>
+            <p><span>Classificação indicativa</span><strong id="adminMovieDetailsInfoRating">Classificação</strong></p>
+          </div>
+          <div class="admin-movie-details-synopsis">
+            <span>Sinopse</span>
+            <p id="adminMovieDetailsDescription"></p>
+          </div>
         </div>
       </div>
     </div>
