@@ -116,7 +116,10 @@
         <header class="admin-topbar">
           <div>
             <button id="adminOpenMovieForm" class="admin-catalog-add admin-topbar-add" type="button">+ Cadastrar Filme</button>
-            <h2 class="admin-user-topbar-title">Usuários</h2>
+            <div class="admin-title-row">
+              <button class="admin-user-topbar-title admin-log-tab active" type="button" data-admin-log-panel="logs">Usuários</button>
+              <button class="admin-export-title admin-log-tab" type="button" data-admin-log-panel="export">Exportar</button>
+            </div>
             <h1>Painel Administrativo</h1>
             <p>Visão geral do sistema</p>
           </div>
@@ -551,31 +554,178 @@
             </section>
 
             <section class="admin-config-panel" id="adminConfigLogs">
-              <div class="admin-logs-toolbar">
-                <div>
-                  <strong>Logs do Sistema</strong>
-                  <p>Últimos eventos registrados pela API.</p>
-                </div>
-                <button id="adminRefreshLogs" type="button">Atualizar</button>
-              </div>
+              <div class="admin-catalog-shell admin-logs-shell">
+                <section class="admin-log-panel active" id="adminLogTablePanel">
+                  <div class="admin-catalog-table-wrap">
+                    <table class="admin-catalog-table admin-users-table admin-logs-table">
+                      <thead>
+                        <tr>
+                          <th>Data e Hora</th>
+                          <th>Usuário</th>
+                          <th>Ação</th>
+                          <th>Descrição</th>
+                          <th>Endpoint</th>
+                          <th>Método</th>
+                          <th>Status</th>
+                          <th>IP</th>
+                          <th>Detalhes</th>
+                        </tr>
+                      </thead>
+                      <tbody id="adminLogsBody">
+                        <tr>
+                          <td colspan="9">Carregando logs...</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <footer class="admin-catalog-footer">
+                    <span id="adminLogsTableCount">Carregando logs...</span>
+                    <div>
+                      <button type="button">&lsaquo;</button>
+                      <button class="active" type="button">1</button>
+                      <button type="button">&rsaquo;</button>
+                    </div>
+                  </footer>
+                </section>
 
-              <div class="admin-logs-table-wrap">
-                <table class="admin-logs-table">
-                  <thead>
-                    <tr>
-                      <th>Data</th>
-                      <th>Usuário</th>
-                      <th>Ação</th>
-                      <th>Endpoint</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody id="adminLogsBody">
-                    <tr>
-                      <td colspan="5">Clique em Atualizar para carregar os logs.</td>
-                    </tr>
-                  </tbody>
-                </table>
+                <section class="admin-log-panel" id="adminLogExportPanel">
+                  <div class="admin-log-export-box">
+                    <div class="admin-log-export-top">
+                      <div class="admin-log-export-main">
+                        <div class="admin-log-export-actions">
+                          <div class="admin-log-export-item">
+                            <span>IMPORTAR JSON</span>
+                            <button type="button" class="admin-log-export-option import">
+                              <svg class="log-export-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M12 16V4"></path>
+                                <path d="m7 9 5-5 5 5"></path>
+                                <path d="M4 16v4h16v-4"></path>
+                              </svg>
+                              Importar JSON
+                            </button>
+                          </div>
+                          <div class="admin-log-export-item">
+                            <span>EXPORTAR JSON</span>
+                            <button type="button" class="admin-log-export-option json">
+                              <svg class="log-export-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M12 4v12"></path>
+                                <path d="m7 11 5 5 5-5"></path>
+                                <path d="M4 20h16"></path>
+                              </svg>
+                              Exportar JSON
+                            </button>
+                          </div>
+                          <div class="admin-log-export-item">
+                            <span>EXPORTAR XML</span>
+                            <button id="adminOpenXmlExport" type="button" class="admin-log-export-option xml">
+                              <svg class="log-export-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M12 4v12"></path>
+                                <path d="m7 11 5 5 5-5"></path>
+                                <path d="M4 20h16"></path>
+                              </svg>
+                              Exportar XML
+                            </button>
+                          </div>
+                          <div class="admin-log-export-item">
+                            <span>GERAR PDF</span>
+                            <button type="button" class="admin-log-export-option pdf">
+                              <svg class="log-export-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <path d="M14 2v6h6"></path>
+                                <path d="M8 13h8"></path>
+                                <path d="M8 17h5"></path>
+                              </svg>
+                              Gerar PDF
+                            </button>
+                          </div>
+                        </div>
+
+                        <section class="admin-xml-export-card" id="adminXmlExportPanel" aria-labelledby="adminXmlExportTitle">
+                          <header>
+                            <h2 id="adminXmlExportTitle">Exportar Logs (XML)</h2>
+                            <p>Exporte os logs do sistema em formato XML.</p>
+                          </header>
+
+                          <section class="admin-xml-preview" aria-label="Pré-visualização XML">
+                            <div>
+                              <strong>Pré-visualização</strong>
+                              <button id="adminCopyXmlPreview" type="button" aria-label="Copiar XML">□</button>
+                            </div>
+                            <pre id="adminXmlPreview"></pre>
+                          </section>
+
+                          <footer>
+                            <button id="adminDownloadXmlPreview" type="button">
+                              <svg class="log-export-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M12 4v12"></path>
+                                <path d="m7 11 5 5 5-5"></path>
+                                <path d="M4 20h16"></path>
+                              </svg>
+                              Exportar XML
+                            </button>
+                          </footer>
+                        </section>
+                      </div>
+
+                      <aside class="admin-xml-filters" aria-label="Filtros rápidos">
+                        <header>
+                          <strong>Filtros rápidos</strong>
+                          <p>Filtre os logs antes de exportar os dados.</p>
+                        </header>
+                        <div class="admin-xml-filter-grid">
+                          <label>Período
+                            <select id="adminXmlPeriod">
+                              <option>Últimos 6 meses</option>
+                              <option>Últimos 12 meses</option>
+                              <option>Este ano</option>
+                            </select>
+                          </label>
+                          <label>Data inicial
+                            <input id="adminXmlStartDate" type="text" value="01/12/2023" />
+                          </label>
+                          <label>Data final
+                            <input id="adminXmlEndDate" type="text" value="31/05/2024" />
+                          </label>
+                          <label>Usuário
+                            <select id="adminXmlUser">
+                              <option>Todos</option>
+                              <option>Admin</option>
+                              <option>João Silva</option>
+                              <option>Maria Santos</option>
+                              <option>Pedro Oliveira</option>
+                            </select>
+                          </label>
+                          <label>Status
+                            <select id="adminXmlStatus">
+                              <option>Todos os status</option>
+                              <option>200</option>
+                              <option>204</option>
+                              <option>401</option>
+                              <option>404</option>
+                            </select>
+                          </label>
+                          <label>Ação
+                            <select id="adminXmlType">
+                              <option>Todas as ações</option>
+                              <option>CREATE</option>
+                              <option>UPDATE</option>
+                              <option>DELETE</option>
+                              <option>LOGIN</option>
+                              <option>EXPORT_XML</option>
+                            </select>
+                          </label>
+                        </div>
+                        <label class="admin-xml-search">Busca
+                          <input id="adminXmlSearch" type="search" placeholder="Buscar por IP, usuário, ação, etc..." />
+                        </label>
+                        <div class="admin-xml-filter-actions">
+                          <button id="adminClearXmlFilters" type="button">Limpar filtros</button>
+                          <button id="adminApplyXmlFilters" type="button">Aplicar filtros</button>
+                        </div>
+                      </aside>
+                    </div>
+                  </div>
+                </section>
               </div>
             </section>
           </div>

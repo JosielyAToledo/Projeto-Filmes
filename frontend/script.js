@@ -14,9 +14,113 @@ let adminMoviesCache = [];
 let adminMoviesFiltered = [];
 let adminMoviesPage = 1;
 let adminCurrentView = 'dashboard';
+let adminLogsCache = [];
 const ADMIN_MOVIES_PER_PAGE = 4;
 let pendingInactiveUser = null;
 let pendingDeleteUser = null;
+
+const sampleAdminLogs = [
+  {
+    timestamp: '2024-05-31T17:32:15.000Z',
+    usuario: 'Admin',
+    acao: 'CREATE',
+    descricao: 'Criação de filme',
+    endpoint: '/api/filmes',
+    metodo: 'POST',
+    statusCode: 200,
+    ip: '192.168.1.10'
+  },
+  {
+    timestamp: '2024-05-31T17:28:47.000Z',
+    usuario: 'João Silva',
+    acao: 'UPDATE',
+    descricao: 'Atualização de usuário',
+    endpoint: '/api/usuarios/123',
+    metodo: 'PUT',
+    statusCode: 200,
+    ip: '192.168.1.12'
+  },
+  {
+    timestamp: '2024-05-31T17:25:03.000Z',
+    usuario: 'Maria Santos',
+    acao: 'DELETE',
+    descricao: 'Exclusão de filme',
+    endpoint: '/api/filmes/456',
+    metodo: 'DELETE',
+    statusCode: 204,
+    ip: '192.168.1.15'
+  },
+  {
+    timestamp: '2024-05-31T17:20:11.000Z',
+    usuario: 'Admin',
+    acao: 'GET',
+    descricao: 'Listagem de usuários',
+    endpoint: '/api/usuarios',
+    metodo: 'GET',
+    statusCode: 200,
+    ip: '192.168.1.10'
+  },
+  {
+    timestamp: '2024-05-31T17:15:22.000Z',
+    usuario: 'Pedro Oliveira',
+    acao: 'GET',
+    descricao: 'Detalhes do filme',
+    endpoint: '/api/filmes/789',
+    metodo: 'GET',
+    statusCode: 404,
+    ip: '192.168.1.18'
+  },
+  {
+    timestamp: '2024-05-31T17:10:05.000Z',
+    usuario: 'Admin',
+    acao: 'EXPORT_XML',
+    descricao: 'Exportação de logs em XML',
+    endpoint: '/api/logs/export/xml',
+    metodo: 'GET',
+    statusCode: 200,
+    ip: '192.168.1.12'
+  },
+  {
+    timestamp: '2024-05-31T17:05:33.000Z',
+    usuario: 'João Silva',
+    acao: 'EXPORT_PDF',
+    descricao: 'Geração de relatório PDF',
+    endpoint: '/api/logs/export/pdf',
+    metodo: 'GET',
+    statusCode: 200,
+    ip: '192.168.1.12'
+  },
+  {
+    timestamp: '2024-05-31T17:01:19.000Z',
+    usuario: 'Maria Santos',
+    acao: 'LOGIN',
+    descricao: 'Usuário realizou login',
+    endpoint: '/api/auth/login',
+    metodo: 'POST',
+    statusCode: 200,
+    ip: '192.168.1.15'
+  },
+  {
+    timestamp: '2024-05-31T16:58:42.000Z',
+    usuario: 'Pedro Oliveira',
+    acao: 'UPLOAD',
+    descricao: 'Upload de imagem do filme',
+    endpoint: '/api/filmes/789/imagem',
+    metodo: 'POST',
+    statusCode: 200,
+    ip: '192.168.1.18'
+  },
+  {
+    timestamp: '2024-05-31T16:55:10.000Z',
+    usuario: 'Admin',
+    acao: 'LOGIN_ERROR',
+    descricao: 'Falha ao realizar login',
+    endpoint: '/api/auth/login',
+    metodo: 'POST',
+    statusCode: 401,
+    ip: '192.168.1.10'
+  }
+];
 
 const authStatus = document.getElementById('authStatus');
 const sampleMovies = [
@@ -333,6 +437,8 @@ document.querySelectorAll('[data-admin-view]').forEach((link) => {
     showAdminView(link.dataset.adminView);
     if (link.dataset.adminConfigShortcut) {
       showAdminConfigTab(link.dataset.adminConfigShortcut);
+    } else if (link.dataset.adminView === 'config') {
+      showAdminConfigTab('chart');
     }
     document.querySelector('.admin-sidebar').classList.remove('menu-open');
   });
@@ -342,10 +448,29 @@ document.querySelectorAll('[data-admin-config-tab]').forEach((button) => {
   button.addEventListener('click', () => showAdminConfigTab(button.dataset.adminConfigTab));
 });
 
+document.querySelectorAll('[data-admin-log-panel]').forEach((button) => {
+  button.addEventListener('click', () => showAdminLogPanel(button.dataset.adminLogPanel));
+});
+
+document.getElementById('adminOpenXmlExport')?.addEventListener('click', openAdminXmlExportPanel);
+document.getElementById('adminDownloadXmlPreview')?.addEventListener('click', () => {
+  downloadBlob(buildAdminLogsXML(getFilteredAdminXmlLogs()), 'logs-catalogo7.xml', 'application/xml');
+});
+document.getElementById('adminCopyXmlPreview')?.addEventListener('click', async () => {
+  const preview = document.getElementById('adminXmlPreview')?.textContent || '';
+  await navigator.clipboard?.writeText(preview).catch(() => null);
+});
+['adminXmlPeriod', 'adminXmlUser', 'adminXmlType', 'adminXmlStatus', 'adminXmlSearch'].forEach((id) => {
+  document.getElementById(id)?.addEventListener('change', updateAdminXmlPreview);
+  document.getElementById(id)?.addEventListener('input', updateAdminXmlPreview);
+});
+document.getElementById('adminApplyXmlFilters')?.addEventListener('click', updateAdminXmlPreview);
+document.getElementById('adminClearXmlFilters')?.addEventListener('click', clearAdminXmlFilters);
+
 document.getElementById('adminTopSearch').addEventListener('input', applyAdminTopFilters);
 document.getElementById('adminTopFilter').addEventListener('change', applyAdminTopFilters);
 
-document.getElementById('adminRefreshLogs').addEventListener('click', loadAdminLogs);
+document.getElementById('adminRefreshLogs')?.addEventListener('click', loadAdminLogs);
 
 document.getElementById('adminOpenMovieForm').addEventListener('click', () => {
   openAdminMovieForm();
@@ -965,6 +1090,7 @@ function showAdminView(view) {
   document.querySelector('.admin-main').classList.toggle('show-movies', isMoviesView);
   document.querySelector('.admin-main').classList.toggle('show-config', isConfigView);
   document.querySelector('.admin-main').classList.toggle('show-users', isUsersView);
+  document.querySelector('.admin-main').classList.remove('show-logs');
   if (isMoviesView) {
     document.getElementById('adminMoviesView').classList.remove('creating');
     document.querySelector('.admin-main').classList.remove('creating-movie');
@@ -981,6 +1107,7 @@ function showAdminView(view) {
     dashboard: ['Painel Administrativo', 'Visao geral do sistema']
   };
   const [title, subtitle] = titles[view] || titles.dashboard;
+  document.querySelector('.admin-user-topbar-title').textContent = isUsersView ? 'Usuários' : 'Log';
   document.querySelector('.admin-topbar h1').textContent = title;
   document.querySelector('.admin-topbar p').textContent = subtitle;
   updateAdminTopFilter(view);
@@ -991,6 +1118,23 @@ function updateAdminTopFilter(view) {
   const filter = document.getElementById('adminTopFilter');
   const search = document.getElementById('adminTopSearch');
   if (!filter) return;
+
+  if (view === 'logs') {
+    if (search) {
+      search.value = '';
+      search.placeholder = 'Buscar logs...';
+    }
+    filter.setAttribute('aria-label', 'Filtrar por status');
+    filter.innerHTML = `
+      <option>Todos os status</option>
+      <option>200</option>
+      <option>201</option>
+      <option>400</option>
+      <option>401</option>
+      <option>500</option>
+    `;
+    return;
+  }
 
   if (view === 'users') {
     if (search) {
@@ -1029,6 +1173,11 @@ function applyAdminTopFilters() {
 
   if (adminCurrentView === 'users') {
     filterAdminUsers();
+    return;
+  }
+
+  if (adminCurrentView === 'logs') {
+    filterAdminLogs();
   }
 }
 
@@ -1093,6 +1242,21 @@ function normalizeText(value = '') {
 }
 
 function showAdminConfigTab(tab) {
+  const isLogsTab = tab === 'logs';
+  const adminMain = document.querySelector('.admin-main');
+  adminMain.classList.toggle('show-logs', isLogsTab);
+  if (isLogsTab) {
+    adminCurrentView = 'logs';
+    document.querySelector('.admin-user-topbar-title').textContent = 'Log';
+    document.querySelector('.admin-topbar h1').textContent = 'Log';
+    document.querySelector('.admin-topbar p').textContent = 'Eventos registrados pela API';
+    updateAdminTopFilter('logs');
+    showAdminLogPanel('logs');
+  } else if (adminCurrentView === 'logs') {
+    adminCurrentView = 'config';
+    updateAdminTopFilter('config');
+  }
+
   document.querySelectorAll('[data-admin-config-tab]').forEach((button) => {
     button.classList.toggle('active', button.dataset.adminConfigTab === tab);
   });
@@ -1104,36 +1268,235 @@ function showAdminConfigTab(tab) {
   document.getElementById('adminConfigLogs').classList.toggle('active', tab === 'logs');
   document.getElementById('adminConfigCurrentPage').textContent = tab === 'logs' ? 'Log' : 'Gráfico';
 
-  if (tab === 'logs') {
+  if (isLogsTab) {
     loadAdminLogs();
   }
 }
 
+function showAdminLogPanel(panel) {
+  const isExportPanel = panel === 'export';
+  document.querySelectorAll('[data-admin-log-panel]').forEach((button) => {
+    button.classList.toggle('active', button.dataset.adminLogPanel === panel);
+  });
+  document.getElementById('adminLogTablePanel')?.classList.toggle('active', !isExportPanel);
+  document.getElementById('adminLogExportPanel')?.classList.toggle('active', isExportPanel);
+}
+
+function openAdminXmlExportPanel() {
+  if (!adminLogsCache.length) {
+    adminLogsCache = sampleAdminLogs;
+  }
+  updateAdminXmlPreview();
+  document.getElementById('adminXmlExportPanel').classList.add('visible');
+}
+
+function getFilteredAdminXmlLogs() {
+  const selectedUser = normalizeText(document.getElementById('adminXmlUser')?.value || 'Todos');
+  const selectedType = normalizeText(document.getElementById('adminXmlType')?.value || 'Todas as ações');
+  const selectedStatus = normalizeText(document.getElementById('adminXmlStatus')?.value || 'Todos os status');
+  const query = normalizeText(document.getElementById('adminXmlSearch')?.value || '');
+  const logs = adminLogsCache.length ? adminLogsCache : sampleAdminLogs;
+
+  return logs.filter((log) => {
+    const user = normalizeText(formatLogUser(log.usuario || 'anonimo'));
+    const action = normalizeText(formatLogAction(log.acao || log.tipoEvento || ''));
+    const status = normalizeText(log.statusCode || '');
+    const searchable = normalizeText([
+      formatLogUser(log.usuario || 'anonimo'),
+      formatLogAction(log.acao || log.tipoEvento || ''),
+      log.descricao || log.description || '',
+      log.endpoint || '',
+      log.ip || log.ipOrigem || log.ip_origem || '',
+      log.statusCode || ''
+    ].join(' '));
+    const matchesUser = selectedUser === normalizeText('Todos') || user === selectedUser;
+    const matchesType = selectedType === normalizeText('Todas as ações') || action === selectedType;
+    const matchesStatus = selectedStatus === normalizeText('Todos os status') || status === selectedStatus;
+    const matchesQuery = !query || searchable.includes(query);
+    return matchesUser && matchesType && matchesStatus && matchesQuery;
+  });
+}
+
+function clearAdminXmlFilters() {
+  const defaults = {
+    adminXmlPeriod: 'Últimos 6 meses',
+    adminXmlUser: 'Todos',
+    adminXmlStatus: 'Todos os status',
+    adminXmlType: 'Todas as ações',
+    adminXmlSearch: ''
+  };
+
+  Object.entries(defaults).forEach(([id, value]) => {
+    const field = document.getElementById(id);
+    if (field) field.value = value;
+  });
+  updateAdminXmlPreview();
+}
+
+function updateAdminXmlPreview() {
+  const preview = document.getElementById('adminXmlPreview');
+  if (!preview) return;
+
+  const filteredLogs = getFilteredAdminXmlLogs();
+  const previewLogs = filteredLogs.slice(0, 2);
+  const xml = buildAdminLogsXML(previewLogs, filteredLogs.length > previewLogs.length);
+  preview.textContent = xml;
+}
+
+function buildAdminLogsXML(logs, hasMore = false) {
+  const items = logs.map((log, index) => {
+    const action = log.acao || log.tipoEvento || '-';
+    return `  <evento id="${index + 1}">
+    <usuario>${escapeXml(formatLogUser(log.usuario || 'anonimo'))}</usuario>
+    <acao>${escapeXml(formatLogAction(action))}</acao>
+    <descricao>${escapeXml(log.descricao || log.description || describeLogAction(action, log.endpoint || ''))}</descricao>
+    <data_hora>${escapeXml(log.timestamp ? new Date(log.timestamp).toISOString() : '')}</data_hora>
+    <ip>${escapeXml(log.ip || log.ipOrigem || log.ip_origem || '')}</ip>
+    <endpoint>${escapeXml(log.endpoint || '')}</endpoint>
+  </evento>`;
+  }).join('\n');
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<logs>
+${items}${hasMore ? '\n  ...' : ''}
+</logs>`;
+}
+
+function escapeXml(value = '') {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
 async function loadAdminLogs() {
   const logsBody = document.getElementById('adminLogsBody');
-  logsBody.innerHTML = '<tr><td colspan="5">Carregando logs...</td></tr>';
+  const logsCount = document.getElementById('adminLogsTableCount');
+  logsBody.innerHTML = '<tr><td colspan="9">Carregando logs...</td></tr>';
+  if (logsCount) logsCount.textContent = 'Carregando logs...';
 
   try {
     const logs = await api('/logs');
-    logsBody.innerHTML = logs.length
-      ? logs.slice(0, 20).map(renderAdminLogRow).join('')
-      : '<tr><td colspan="5">Nenhum log encontrado.</td></tr>';
+    adminLogsCache = logs.length ? logs.slice(0, 20) : sampleAdminLogs;
+    filterAdminLogs();
   } catch (error) {
-    logsBody.innerHTML = `<tr><td colspan="5">${error.message}</td></tr>`;
+    adminLogsCache = sampleAdminLogs;
+    filterAdminLogs();
   }
 }
 
 function renderAdminLogRow(log) {
   const date = log.timestamp ? new Date(log.timestamp).toLocaleString('pt-BR') : '-';
+  const user = log.usuario || 'anonimo';
+  const action = log.acao || log.tipoEvento || '-';
+  const method = log.metodo || log.method || '-';
+  const statusCode = log.statusCode || '-';
+  const endpoint = log.endpoint || '-';
+  const description = log.descricao || log.description || describeLogAction(action, endpoint);
+  const ip = log.ip || log.ipOrigem || log.ip_origem || '-';
   return `
     <tr>
-      <td>${date}</td>
-      <td>${log.usuario || 'anonimo'}</td>
-      <td>${log.acao || log.tipoEvento || '-'}</td>
-      <td>${log.endpoint || '-'}</td>
-      <td>${log.statusCode || '-'}</td>
+      <td>${escapeHtml(date)}</td>
+      <td>
+        <span class="log-user-cell">
+          <strong>${escapeHtml(formatLogUser(user))}</strong>
+        </span>
+      </td>
+      <td><span class="log-action-pill ${logActionClass(action)}">${escapeHtml(formatLogAction(action))}</span></td>
+      <td>${escapeHtml(description)}</td>
+      <td><span class="log-endpoint"><span class="log-method-pill ${logMethodClass(method)}">${escapeHtml(method)}</span>${escapeHtml(endpoint)}</span></td>
+      <td>${escapeHtml(method)}</td>
+      <td><span class="log-status-pill ${logStatusClass(statusCode)}">${escapeHtml(statusCode)}</span></td>
+      <td>${escapeHtml(ip)}</td>
+      <td>
+        <span class="log-detail-actions">
+          <button class="log-detail-button" type="button" aria-label="Ver detalhes">&#128065;</button>
+          <button class="log-more-button" type="button" aria-label="Mais opções">&vellip;</button>
+        </span>
+      </td>
     </tr>
   `;
+}
+
+function formatLogUser(user) {
+  const cleanUser = String(user || 'anonimo').split('@')[0].replace(/[._-]+/g, ' ').trim();
+  return cleanUser || 'anonimo';
+}
+
+function formatLogAction(action) {
+  return String(action || '-').replace(/\s+/g, '_').toUpperCase();
+}
+
+function logActionClass(action) {
+  const normalized = normalizeText(action);
+  if (normalized.includes('delete') || normalized.includes('exclu')) return 'delete';
+  if (normalized.includes('update') || normalized.includes('alter') || normalized.includes('atual')) return 'update';
+  if (normalized.includes('export')) return normalized.includes('pdf') ? 'export-pdf' : 'export-xml';
+  if (normalized.includes('login_error') || normalized.includes('erro')) return 'login-error';
+  if (normalized.includes('login')) return 'login';
+  if (normalized.includes('upload')) return 'upload';
+  if (normalized.includes('create') || normalized.includes('cria') || normalized.includes('cadastro')) return 'create';
+  return 'get';
+}
+
+function logMethodClass(method) {
+  return normalizeText(method || 'get');
+}
+
+function logStatusClass(statusCode) {
+  const status = Number(statusCode);
+  if (status >= 400) return 'error';
+  if (status === 204) return 'empty';
+  return 'success';
+}
+
+function describeLogAction(action, endpoint) {
+  const normalized = normalizeText(action);
+  if (normalized.includes('delete') || normalized.includes('exclu')) return 'Exclusão de registro';
+  if (normalized.includes('update') || normalized.includes('alter') || normalized.includes('atual')) return 'Atualização de registro';
+  if (normalized.includes('create') || normalized.includes('cria') || normalized.includes('cadastro')) return 'Criação de registro';
+  if (normalized.includes('login_error')) return 'Falha ao realizar login';
+  if (normalized.includes('login')) return 'Usuário realizou login';
+  if (normalized.includes('export')) return 'Exportação de dados';
+  if (normalizeText(endpoint).includes('upload')) return 'Upload de imagem do filme';
+  return 'Evento registrado pela API';
+}
+
+function filterAdminLogs() {
+  const logsBody = document.getElementById('adminLogsBody');
+  const logsCount = document.getElementById('adminLogsTableCount');
+  if (!logsBody) return;
+
+  const query = normalizeText(document.getElementById('adminTopSearch').value);
+  const selectedStatus = normalizeText(document.getElementById('adminTopFilter').value);
+  const shouldFilterStatus = selectedStatus && selectedStatus !== normalizeText('Todos os status');
+  const filteredLogs = adminLogsCache.filter((log) => {
+    const status = normalizeText(log.statusCode || '');
+    const searchable = normalizeText([
+      log.timestamp ? new Date(log.timestamp).toLocaleString('pt-BR') : '',
+      log.usuario || 'anonimo',
+      log.acao || log.tipoEvento || '',
+      log.descricao || log.description || '',
+      log.endpoint || '',
+      log.metodo || log.method || '',
+      log.statusCode || '',
+      log.ip || log.ipOrigem || log.ip_origem || ''
+    ].join(' '));
+
+    return (!query || searchable.includes(query)) && (!shouldFilterStatus || status === selectedStatus);
+  });
+
+  logsBody.innerHTML = filteredLogs.length
+    ? filteredLogs.map(renderAdminLogRow).join('')
+    : '<tr><td colspan="9">Nenhum log encontrado.</td></tr>';
+
+  if (logsCount) {
+    logsCount.textContent = filteredLogs.length
+      ? `Mostrando 1 a ${filteredLogs.length} de ${filteredLogs.length} logs`
+      : 'Nenhum log encontrado.';
+  }
 }
 
 function buildAdminMoviePayload(status) {
