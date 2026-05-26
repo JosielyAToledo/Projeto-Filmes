@@ -102,7 +102,6 @@
           <a href="#adminFilmes" data-admin-view="movies">Catálogo</a>
           <a href="#adminUsuarios" data-admin-view="users">Usuários</a>
           <a href="#adminConfigLog" data-admin-view="config" data-admin-config-shortcut="logs">Logs</a>
-          <a href="#adminConfigGrafico" data-admin-view="config" data-admin-config-shortcut="chart">Gráficos</a>
           <a href="#adminConfig" data-admin-view="config">Configurações</a>
         </div>
         <div class="admin-user admin-user-menu"><span></span><strong>Admin</strong></div>
@@ -518,38 +517,177 @@
             <header class="admin-config-header">
               <div>
                 <span>Configurações</span>
-                <p>Preferências do sistema e acompanhamento operacional.</p>
               </div>
             </header>
 
             <div class="admin-config-path" aria-live="polite">
               <span>Configurações</span>
               <i aria-hidden="true"></i>
-              <strong id="adminConfigCurrentPage">Gráfico</strong>
+              <strong id="adminConfigCurrentPage">Geral</strong>
             </div>
 
             <nav class="admin-config-tabs" aria-label="Subpáginas de configurações">
-              <button class="active" type="button" data-admin-config-tab="chart">Gráfico</button>
+              <button class="active" type="button" data-admin-config-tab="chart">Geral</button>
               <button type="button" data-admin-config-tab="logs">Log</button>
             </nav>
 
             <section class="admin-config-panel active" id="adminConfigChart">
-              <div class="admin-settings-grid">
-                <article>
-                  <span>Ambiente</span>
-                  <strong>Produção</strong>
-                  <p>Render conectado ao Railway MySQL e MongoDB Atlas.</p>
-                </article>
-                <article>
-                  <span>Banco relacional</span>
-                  <strong>MySQL</strong>
-                  <p>Usuários, administradores, filmes, clientes e locações.</p>
-                </article>
-                <article>
-                  <span>Logs</span>
-                  <strong>MongoDB Atlas</strong>
-                  <p>Eventos de acesso, autenticação e operações do sistema.</p>
-                </article>
+              <div class="admin-settings-page">
+                <section class="admin-settings-card admin-profile-settings">
+                  <header>
+                    <div>
+                      <strong>Perfil do Administrador</strong>
+                      <p>Gerencie suas informações pessoais e de acesso.</p>
+                    </div>
+                    <button type="button">Editar Perfil</button>
+                  </header>
+
+                  <div class="admin-profile-grid">
+                    <div class="admin-profile-avatar">A</div>
+                    <label>Nome
+                      <input type="text" value="Administrador" />
+                    </label>
+                    <label>E-mail
+                      <input type="email" value="admin@catalogo7.com" />
+                    </label>
+                    <label>Cargo
+                      <input type="text" value="Administrador do Sistema" />
+                    </label>
+                    <label>Tipo de acesso
+                      <select>
+                        <option>Administrador</option>
+                      </select>
+                    </label>
+                    <label>Status
+                      <select>
+                        <option>Ativo</option>
+                        <option>Inativo</option>
+                      </select>
+                    </label>
+                    <label>Último acesso
+                      <input type="text" value="31/05/2024 14:32" />
+                    </label>
+                  </div>
+                </section>
+
+                <section class="admin-settings-card">
+                  <header>
+                    <div>
+                      <strong>Alterar Senha</strong>
+                      <p>Altere sua senha de acesso ao sistema.</p>
+                    </div>
+                    <button type="button">Atualizar Senha</button>
+                  </header>
+                  <div class="admin-password-grid">
+                    <label>Senha atual
+                      <input type="password" placeholder="Digite sua senha atual" />
+                    </label>
+                    <label>Nova senha
+                      <input type="password" placeholder="Digite sua nova senha" />
+                    </label>
+                    <label>Confirmar nova senha
+                      <input type="password" placeholder="Confirme sua nova senha" />
+                    </label>
+                  </div>
+                </section>
+
+                <section class="admin-settings-card">
+                  <header>
+                    <div>
+                      <strong>Administradores do Sistema</strong>
+                      <p>Gerencie os administradores que possuem acesso ao sistema.</p>
+                    </div>
+                    <button type="button">Adicionar Administrador</button>
+                  </header>
+                  <div class="admin-settings-table-wrap">
+                    <table class="admin-settings-table">
+                      <thead>
+                        <tr>
+                          <th>Usuário</th>
+                          <th>E-mail</th>
+                          <th>Tipo de acesso</th>
+                          <th>Nível de acesso</th>
+                          <th>Status</th>
+                          <th>Último acesso</th>
+                          <th>Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td><span class="settings-avatar red">A</span>Administrador</td>
+                          <td>admin@catalogo7.com</td>
+                          <td><span class="settings-pill gold">Administrador</span></td>
+                          <td><span class="settings-pill blue">Master</span></td>
+                          <td><span class="settings-pill green">Ativo</span></td>
+                          <td>31/05/2024 14:32</td>
+                          <td><button type="button">Editar</button></td>
+                        </tr>
+                        <tr>
+                          <td><span class="settings-avatar blue">J</span>João Silva</td>
+                          <td>joao@catalogo7.com</td>
+                          <td><span class="settings-pill gold">Administrador</span></td>
+                          <td><span class="settings-pill blue">Moderador</span></td>
+                          <td><span class="settings-pill green">Ativo</span></td>
+                          <td>31/05/2024 14:28</td>
+                          <td><button type="button">Editar</button></td>
+                        </tr>
+                        <tr>
+                          <td><span class="settings-avatar purple">M</span>Maria Santos</td>
+                          <td>maria@catalogo7.com</td>
+                          <td><span class="settings-pill gold">Administrador</span></td>
+                          <td><span class="settings-pill blue">Moderador</span></td>
+                          <td><span class="settings-pill green">Ativo</span></td>
+                          <td>31/05/2024 14:25</td>
+                          <td><button type="button">Editar</button></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+
+                <section class="admin-settings-card admin-appearance-settings">
+                  <header>
+                    <div>
+                      <strong>Aparência do Sistema</strong>
+                      <p>Personalize a aparência do painel administrativo.</p>
+                    </div>
+                  </header>
+                  <div class="admin-appearance-grid">
+                    <div class="admin-theme-form">
+                      <label>Tema
+                        <select>
+                          <option>Escuro</option>
+                          <option>Claro</option>
+                        </select>
+                      </label>
+                      <span>Cor principal</span>
+                      <div class="settings-swatches">
+                        <button class="active" style="background:#ead9c4" type="button"></button>
+                        <button style="background:#f59e0b" type="button"></button>
+                        <button style="background:#22c55e" type="button"></button>
+                        <button style="background:#ef4444" type="button"></button>
+                        <button style="background:#38bdf8" type="button"></button>
+                      </div>
+                      <button class="settings-preview-button" type="button">Visualizar</button>
+                      <button class="settings-save-button" type="button">Salvar Preferências</button>
+                    </div>
+                    <div class="settings-preview-panel">
+                      <strong>CATÁLOGO <span>7</span></strong>
+                      <div class="settings-preview-stats">
+                        <p><span>Total de logs</span><b>1.248</b></p>
+                        <p><span>Usuários ativos</span><b>24</b></p>
+                        <p><span>Exportações</span><b>320</b></p>
+                      </div>
+                      <table>
+                        <tbody>
+                          <tr><td>31/05/2024 14:32</td><td>Admin</td><td>Login realizado</td><td>200</td></tr>
+                          <tr><td>31/05/2024 14:28</td><td>João Silva</td><td>Exportação XML</td><td>200</td></tr>
+                          <tr><td>31/05/2024 14:25</td><td>Maria</td><td>Atualização</td><td>204</td></tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </section>
               </div>
             </section>
 
@@ -595,7 +733,7 @@
                         <div class="admin-log-export-actions">
                           <div class="admin-log-export-item">
                             <span>IMPORTAR JSON</span>
-                            <button type="button" class="admin-log-export-option import">
+                            <button id="adminOpenJsonImport" type="button" class="admin-log-export-option import">
                               <svg class="log-export-icon" viewBox="0 0 24 24" aria-hidden="true">
                                 <path d="M12 16V4"></path>
                                 <path d="m7 9 5-5 5 5"></path>
@@ -606,7 +744,7 @@
                           </div>
                           <div class="admin-log-export-item">
                             <span>EXPORTAR JSON</span>
-                            <button type="button" class="admin-log-export-option json">
+                            <button id="adminOpenJsonExport" type="button" class="admin-log-export-option json">
                               <svg class="log-export-icon" viewBox="0 0 24 24" aria-hidden="true">
                                 <path d="M12 4v12"></path>
                                 <path d="m7 11 5 5 5-5"></path>
@@ -628,7 +766,7 @@
                           </div>
                           <div class="admin-log-export-item">
                             <span>GERAR PDF</span>
-                            <button type="button" class="admin-log-export-option pdf">
+                            <button id="adminOpenPdfExport" type="button" class="admin-log-export-option pdf">
                               <svg class="log-export-icon" viewBox="0 0 24 24" aria-hidden="true">
                                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                                 <path d="M14 2v6h6"></path>
@@ -662,6 +800,102 @@
                                 <path d="M4 20h16"></path>
                               </svg>
                               Exportar XML
+                            </button>
+                          </footer>
+                        </section>
+
+                        <section class="admin-json-import-card" id="adminJsonImportPanel" aria-labelledby="adminJsonImportTitle">
+                          <header>
+                            <h2 id="adminJsonImportTitle">Importar Dados (JSON)</h2>
+                            <p>Faça upload do arquivo JSON para importar os dados.</p>
+                          </header>
+
+                          <label class="admin-json-file-label">Selecionar Arquivo
+                            <input id="adminJsonFile" type="file" accept="application/json,.json" />
+                            <span class="admin-json-dropzone">
+                              <svg class="log-export-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M12 16V4"></path>
+                                <path d="m7 9 5-5 5 5"></path>
+                                <path d="M4 16v4h16v-4"></path>
+                              </svg>
+                              <strong>Arraste e solte o arquivo JSON aqui</strong>
+                              <em>ou</em>
+                              <b>Selecionar Arquivo</b>
+                            </span>
+                          </label>
+
+                          <label class="admin-json-table-label">Tabela a Importar
+                            <select id="adminJsonTable">
+                              <option>Selecione uma tabela</option>
+                              <option>Logs</option>
+                              <option>Usuários</option>
+                              <option>Filmes</option>
+                              <option>Clientes</option>
+                            </select>
+                          </label>
+
+                          <footer>
+                            <button id="adminCancelJsonImport" type="button">Cancelar</button>
+                            <button id="adminConfirmJsonImport" type="button">
+                              <svg class="log-export-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M12 16V4"></path>
+                                <path d="m7 9 5-5 5 5"></path>
+                                <path d="M4 16v4h16v-4"></path>
+                              </svg>
+                              Importar
+                            </button>
+                          </footer>
+                        </section>
+
+                        <section class="admin-json-export-card" id="adminJsonExportPanel" aria-labelledby="adminJsonExportTitle">
+                          <header>
+                            <h2 id="adminJsonExportTitle">Exportar Logs (JSON)</h2>
+                            <p>Exporte os logs do sistema em formato JSON.</p>
+                          </header>
+
+                          <section class="admin-json-preview" aria-label="Pré-visualização JSON">
+                            <div>
+                              <strong>Pré-visualização</strong>
+                              <button id="adminCopyJsonPreview" type="button" aria-label="Copiar JSON">□</button>
+                            </div>
+                            <pre id="adminJsonPreview"></pre>
+                          </section>
+
+                          <footer>
+                            <button id="adminDownloadJsonPreview" type="button">
+                              <svg class="log-export-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M12 4v12"></path>
+                                <path d="m7 11 5 5 5-5"></path>
+                                <path d="M4 20h16"></path>
+                              </svg>
+                              Exportar JSON
+                            </button>
+                          </footer>
+                        </section>
+
+                        <section class="admin-pdf-export-card" id="adminPdfExportPanel" aria-labelledby="adminPdfExportTitle">
+                          <header>
+                            <h2 id="adminPdfExportTitle">Relatório de Logs (PDF)</h2>
+                            <p>Pré-visualize o relatório conforme os filtros selecionados.</p>
+                          </header>
+
+                          <section class="admin-pdf-preview" aria-label="Pré-visualização PDF">
+                            <div>
+                              <strong>Pré-visualização</strong>
+                              <span id="adminPdfPreviewCount">0 logs</span>
+                            </div>
+                            <div class="admin-pdf-sheet" id="adminPdfPreview"></div>
+                          </section>
+
+                          <footer>
+                            <button id="adminDownloadPdfPreview" type="button">
+                              <svg class="log-export-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <path d="M14 2v6h6"></path>
+                                <path d="M8 13h8"></path>
+                                <path d="M8 17h5"></path>
+                              </svg>
+                              Gerar PDF
                             </button>
                           </footer>
                         </section>
@@ -822,6 +1056,17 @@
         <div class="admin-user-details-list" id="adminUserDetailsList"></div>
         <div>
           <button id="adminCloseUserDetails" type="button">Fechar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-confirm-modal" id="adminDeleteLogModal" aria-hidden="true">
+      <div class="admin-confirm-card" role="dialog" aria-modal="true" aria-labelledby="adminDeleteLogTitle">
+        <h2 id="adminDeleteLogTitle">Excluir log?</h2>
+        <p>Deseja excluir <strong id="adminDeleteLogName">este log</strong> da tabela?</p>
+        <div>
+          <button id="adminCancelDeleteLog" type="button">Cancelar</button>
+          <button id="adminConfirmDeleteLog" type="button">Excluir log</button>
         </div>
       </div>
     </div>

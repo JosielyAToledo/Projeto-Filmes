@@ -15,6 +15,7 @@ let adminMoviesFiltered = [];
 let adminMoviesPage = 1;
 let adminCurrentView = 'dashboard';
 let adminLogsCache = [];
+let pendingDeleteLogIndex = null;
 const ADMIN_MOVIES_PER_PAGE = 4;
 let pendingInactiveUser = null;
 let pendingDeleteUser = null;
@@ -453,11 +454,25 @@ document.querySelectorAll('[data-admin-log-panel]').forEach((button) => {
 });
 
 document.getElementById('adminOpenXmlExport')?.addEventListener('click', openAdminXmlExportPanel);
+document.getElementById('adminOpenJsonImport')?.addEventListener('click', openAdminJsonImportPanel);
+document.getElementById('adminOpenJsonExport')?.addEventListener('click', openAdminJsonExportPanel);
+document.getElementById('adminOpenPdfExport')?.addEventListener('click', openAdminPdfExportPanel);
+document.getElementById('adminCancelJsonImport')?.addEventListener('click', closeAdminJsonImportPanel);
 document.getElementById('adminDownloadXmlPreview')?.addEventListener('click', () => {
   downloadBlob(buildAdminLogsXML(getFilteredAdminXmlLogs()), 'logs-catalogo7.xml', 'application/xml');
 });
+document.getElementById('adminDownloadJsonPreview')?.addEventListener('click', () => {
+  downloadBlob(buildAdminLogsJSON(getFilteredAdminXmlLogs()), 'logs-catalogo7.json', 'application/json');
+});
+document.getElementById('adminDownloadPdfPreview')?.addEventListener('click', () => {
+  downloadBlob(makeSimplePDF(buildAdminPdfLines(getFilteredAdminXmlLogs())), 'logs-catalogo7.pdf', 'application/pdf');
+});
 document.getElementById('adminCopyXmlPreview')?.addEventListener('click', async () => {
   const preview = document.getElementById('adminXmlPreview')?.textContent || '';
+  await navigator.clipboard?.writeText(preview).catch(() => null);
+});
+document.getElementById('adminCopyJsonPreview')?.addEventListener('click', async () => {
+  const preview = document.getElementById('adminJsonPreview')?.textContent || '';
   await navigator.clipboard?.writeText(preview).catch(() => null);
 });
 ['adminXmlPeriod', 'adminXmlUser', 'adminXmlType', 'adminXmlStatus', 'adminXmlSearch'].forEach((id) => {
@@ -471,6 +486,9 @@ document.getElementById('adminTopSearch').addEventListener('input', applyAdminTo
 document.getElementById('adminTopFilter').addEventListener('change', applyAdminTopFilters);
 
 document.getElementById('adminRefreshLogs')?.addEventListener('click', loadAdminLogs);
+document.getElementById('adminLogsBody')?.addEventListener('click', handleAdminLogsClick);
+document.getElementById('adminCancelDeleteLog')?.addEventListener('click', closeDeleteLogModal);
+document.getElementById('adminConfirmDeleteLog')?.addEventListener('click', confirmDeleteLog);
 
 document.getElementById('adminOpenMovieForm').addEventListener('click', () => {
   openAdminMovieForm();
@@ -1263,10 +1281,13 @@ function showAdminConfigTab(tab) {
   document.querySelectorAll('[data-admin-config-shortcut]').forEach((link) => {
     link.classList.toggle('active', link.dataset.adminConfigShortcut === tab);
   });
+  document.querySelectorAll('[data-admin-view="config"]:not([data-admin-config-shortcut])').forEach((link) => {
+    link.classList.toggle('active', !isLogsTab);
+  });
 
   document.getElementById('adminConfigChart').classList.toggle('active', tab === 'chart');
   document.getElementById('adminConfigLogs').classList.toggle('active', tab === 'logs');
-  document.getElementById('adminConfigCurrentPage').textContent = tab === 'logs' ? 'Log' : 'Gráfico';
+  document.getElementById('adminConfigCurrentPage').textContent = tab === 'logs' ? 'Log' : 'Geral';
 
   if (isLogsTab) {
     loadAdminLogs();
@@ -1286,8 +1307,44 @@ function openAdminXmlExportPanel() {
   if (!adminLogsCache.length) {
     adminLogsCache = sampleAdminLogs;
   }
+  document.getElementById('adminJsonImportPanel')?.classList.remove('visible');
+  document.getElementById('adminJsonExportPanel')?.classList.remove('visible');
+  document.getElementById('adminPdfExportPanel')?.classList.remove('visible');
   updateAdminXmlPreview();
   document.getElementById('adminXmlExportPanel').classList.add('visible');
+}
+
+function openAdminJsonImportPanel() {
+  document.getElementById('adminXmlExportPanel')?.classList.remove('visible');
+  document.getElementById('adminJsonExportPanel')?.classList.remove('visible');
+  document.getElementById('adminPdfExportPanel')?.classList.remove('visible');
+  document.getElementById('adminJsonImportPanel')?.classList.add('visible');
+}
+
+function closeAdminJsonImportPanel() {
+  document.getElementById('adminJsonImportPanel')?.classList.remove('visible');
+}
+
+function openAdminJsonExportPanel() {
+  if (!adminLogsCache.length) {
+    adminLogsCache = sampleAdminLogs;
+  }
+  document.getElementById('adminXmlExportPanel')?.classList.remove('visible');
+  document.getElementById('adminJsonImportPanel')?.classList.remove('visible');
+  document.getElementById('adminPdfExportPanel')?.classList.remove('visible');
+  updateAdminJsonPreview();
+  document.getElementById('adminJsonExportPanel')?.classList.add('visible');
+}
+
+function openAdminPdfExportPanel() {
+  if (!adminLogsCache.length) {
+    adminLogsCache = sampleAdminLogs;
+  }
+  document.getElementById('adminXmlExportPanel')?.classList.remove('visible');
+  document.getElementById('adminJsonImportPanel')?.classList.remove('visible');
+  document.getElementById('adminJsonExportPanel')?.classList.remove('visible');
+  updateAdminPdfPreview();
+  document.getElementById('adminPdfExportPanel')?.classList.add('visible');
 }
 
 function getFilteredAdminXmlLogs() {
@@ -1341,6 +1398,62 @@ function updateAdminXmlPreview() {
   const previewLogs = filteredLogs.slice(0, 2);
   const xml = buildAdminLogsXML(previewLogs, filteredLogs.length > previewLogs.length);
   preview.textContent = xml;
+  updateAdminJsonPreview();
+  updateAdminPdfPreview();
+}
+
+function updateAdminJsonPreview() {
+  const preview = document.getElementById('adminJsonPreview');
+  if (!preview) return;
+
+  preview.textContent = buildAdminLogsJSON(getFilteredAdminXmlLogs().slice(0, 4));
+}
+
+function updateAdminPdfPreview() {
+  const preview = document.getElementById('adminPdfPreview');
+  if (!preview) return;
+
+  const logs = getFilteredAdminXmlLogs();
+  const rows = logs.slice(0, 8).map((log) => {
+    const action = log.acao || log.tipoEvento || '-';
+    return `
+      <tr>
+        <td>${escapeHtml(log.timestamp ? new Date(log.timestamp).toLocaleDateString('pt-BR') : '-')}</td>
+        <td>${escapeHtml(formatLogUser(log.usuario || 'anonimo'))}</td>
+        <td>${escapeHtml(formatLogAction(action))}</td>
+        <td>${escapeHtml(log.statusCode || '-')}</td>
+      </tr>
+    `;
+  }).join('');
+
+  document.getElementById('adminPdfPreviewCount').textContent = `${logs.length} logs`;
+  preview.innerHTML = `
+    <div class="admin-pdf-page">
+      <h3>Catálogo7</h3>
+      <h4>Relatório de Logs</h4>
+      <p>Período: ${escapeHtml(document.getElementById('adminXmlPeriod')?.value || 'Últimos 6 meses')}</p>
+      <table>
+        <thead>
+          <tr><th>Data</th><th>Usuário</th><th>Ação</th><th>Status</th></tr>
+        </thead>
+        <tbody>${rows || '<tr><td colspan="4">Nenhum log encontrado.</td></tr>'}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+function buildAdminPdfLines(logs) {
+  return [
+    'Relatorio de Logs - Catalogo7',
+    `Periodo: ${document.getElementById('adminXmlPeriod')?.value || 'Ultimos 6 meses'}`,
+    `Total de logs: ${logs.length}`,
+    '',
+    ...logs.slice(0, 24).map((log) => {
+      const date = log.timestamp ? new Date(log.timestamp).toLocaleString('pt-BR') : '-';
+      const action = formatLogAction(log.acao || log.tipoEvento || '-');
+      return `${date} | ${formatLogUser(log.usuario || 'anonimo')} | ${action} | ${log.statusCode || '-'}`;
+    })
+  ];
 }
 
 function buildAdminLogsXML(logs, hasMore = false) {
@@ -1360,6 +1473,33 @@ function buildAdminLogsXML(logs, hasMore = false) {
 <logs>
 ${items}${hasMore ? '\n  ...' : ''}
 </logs>`;
+}
+
+function buildAdminLogsJSON(logs) {
+  const payload = {
+    exportacao: {
+      formato: 'JSON',
+      periodo: document.getElementById('adminXmlPeriod')?.value || 'Últimos 6 meses',
+      gerado_em: new Date().toISOString(),
+      total: logs.length,
+      logs: logs.map((log, index) => {
+        const action = log.acao || log.tipoEvento || '-';
+        return {
+          id: index + 1,
+          usuario: formatLogUser(log.usuario || 'anonimo'),
+          acao: formatLogAction(action),
+          descricao: log.descricao || log.description || describeLogAction(action, log.endpoint || ''),
+          data_hora: log.timestamp ? new Date(log.timestamp).toISOString() : '',
+          ip: log.ip || log.ipOrigem || log.ip_origem || '',
+          endpoint: log.endpoint || '',
+          metodo: log.metodo || log.method || '',
+          status: log.statusCode || ''
+        };
+      })
+    }
+  };
+
+  return JSON.stringify(payload, null, 2);
 }
 
 function escapeXml(value = '') {
@@ -1387,7 +1527,7 @@ async function loadAdminLogs() {
   }
 }
 
-function renderAdminLogRow(log) {
+function renderAdminLogRow(log, index = 0) {
   const date = log.timestamp ? new Date(log.timestamp).toLocaleString('pt-BR') : '-';
   const user = log.usuario || 'anonimo';
   const action = log.acao || log.tipoEvento || '-';
@@ -1397,7 +1537,7 @@ function renderAdminLogRow(log) {
   const description = log.descricao || log.description || describeLogAction(action, endpoint);
   const ip = log.ip || log.ipOrigem || log.ip_origem || '-';
   return `
-    <tr>
+    <tr data-log-index="${index}">
       <td>${escapeHtml(date)}</td>
       <td>
         <span class="log-user-cell">
@@ -1412,12 +1552,57 @@ function renderAdminLogRow(log) {
       <td>${escapeHtml(ip)}</td>
       <td>
         <span class="log-detail-actions">
-          <button class="log-detail-button" type="button" aria-label="Ver detalhes">&#128065;</button>
-          <button class="log-more-button" type="button" aria-label="Mais opções">&vellip;</button>
+          <button class="log-more-button" type="button" aria-label="Opções do log" data-log-menu>&vellip;</button>
+          <span class="log-row-menu" aria-hidden="true">
+            <button type="button" data-log-delete>Excluir</button>
+          </span>
         </span>
       </td>
     </tr>
   `;
+}
+
+function handleAdminLogsClick(event) {
+  const menuButton = event.target.closest('[data-log-menu]');
+  const deleteButton = event.target.closest('[data-log-delete]');
+
+  if (menuButton) {
+    const actions = menuButton.closest('.log-detail-actions');
+    document.querySelectorAll('.log-detail-actions.open').forEach((item) => {
+      if (item !== actions) item.classList.remove('open');
+    });
+    actions.classList.toggle('open');
+    return;
+  }
+
+  if (deleteButton) {
+    const row = deleteButton.closest('tr');
+    openDeleteLogModal(Number(row?.dataset.logIndex || 0));
+  }
+}
+
+function openDeleteLogModal(index) {
+  pendingDeleteLogIndex = index;
+  const log = adminLogsCache[index];
+  const action = log ? formatLogAction(log.acao || log.tipoEvento || '-') : 'este log';
+  document.getElementById('adminDeleteLogName').textContent = action;
+  document.getElementById('adminDeleteLogModal').classList.add('visible');
+  document.getElementById('adminDeleteLogModal').setAttribute('aria-hidden', 'false');
+}
+
+function closeDeleteLogModal() {
+  pendingDeleteLogIndex = null;
+  document.getElementById('adminDeleteLogModal').classList.remove('visible');
+  document.getElementById('adminDeleteLogModal').setAttribute('aria-hidden', 'true');
+}
+
+function confirmDeleteLog() {
+  if (pendingDeleteLogIndex !== null) {
+    adminLogsCache.splice(pendingDeleteLogIndex, 1);
+    filterAdminLogs();
+    updateAdminXmlPreview();
+  }
+  closeDeleteLogModal();
 }
 
 function formatLogUser(user) {
@@ -1489,7 +1674,7 @@ function filterAdminLogs() {
   });
 
   logsBody.innerHTML = filteredLogs.length
-    ? filteredLogs.map(renderAdminLogRow).join('')
+    ? filteredLogs.map((log) => renderAdminLogRow(log, adminLogsCache.indexOf(log))).join('')
     : '<tr><td colspan="9">Nenhum log encontrado.</td></tr>';
 
   if (logsCount) {
