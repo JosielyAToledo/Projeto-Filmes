@@ -439,7 +439,7 @@ document.querySelectorAll('[data-admin-view]').forEach((link) => {
     if (link.dataset.adminConfigShortcut) {
       showAdminConfigTab(link.dataset.adminConfigShortcut);
     } else if (link.dataset.adminView === 'config') {
-      showAdminConfigTab('chart');
+      showAdminConfigTab('settings');
     }
     document.querySelector('.admin-sidebar').classList.remove('menu-open');
   });
@@ -484,6 +484,14 @@ document.getElementById('adminClearXmlFilters')?.addEventListener('click', clear
 
 document.getElementById('adminTopSearch').addEventListener('input', applyAdminTopFilters);
 document.getElementById('adminTopFilter').addEventListener('change', applyAdminTopFilters);
+document.getElementById('adminChartFilterButton')?.addEventListener('click', openAdminChartFilterModal);
+document.getElementById('adminCancelChartFilter')?.addEventListener('click', closeAdminChartFilterModal);
+document.getElementById('adminApplyChartFilter')?.addEventListener('click', applyAdminChartFilterModal);
+document.getElementById('adminChartFilterModal')?.addEventListener('click', (event) => {
+  if (event.target.id === 'adminChartFilterModal') {
+    closeAdminChartFilterModal();
+  }
+});
 
 document.getElementById('adminRefreshLogs')?.addEventListener('click', loadAdminLogs);
 document.getElementById('adminLogsBody')?.addEventListener('click', handleAdminLogsClick);
@@ -1109,6 +1117,8 @@ function showAdminView(view) {
   document.querySelector('.admin-main').classList.toggle('show-config', isConfigView);
   document.querySelector('.admin-main').classList.toggle('show-users', isUsersView);
   document.querySelector('.admin-main').classList.remove('show-logs');
+  document.querySelector('.admin-main').classList.remove('show-settings');
+  document.querySelector('.admin-main').classList.remove('show-chart');
   if (isMoviesView) {
     document.getElementById('adminMoviesView').classList.remove('creating');
     document.querySelector('.admin-main').classList.remove('creating-movie');
@@ -1168,6 +1178,20 @@ function updateAdminTopFilter(view) {
     return;
   }
 
+  if (view === 'config') {
+    if (search) {
+      search.value = '';
+      search.placeholder = 'Buscar gráficos...';
+    }
+    filter.setAttribute('aria-label', 'Filtrar por status');
+    filter.innerHTML = `
+      <option>Todos os status</option>
+      <option>Ativo</option>
+      <option>Inativo</option>
+    `;
+    return;
+  }
+
   if (search) {
     search.value = '';
     search.placeholder = view === 'movies' ? 'Buscar filmes...' : 'Buscar filmes, usuários, etc...';
@@ -1196,7 +1220,57 @@ function applyAdminTopFilters() {
 
   if (adminCurrentView === 'logs') {
     filterAdminLogs();
+    return;
   }
+
+  if (adminCurrentView === 'config') {
+    filterAdminCharts();
+  }
+}
+
+function filterAdminCharts() {
+  const chartShell = document.querySelector('.admin-chart-shell');
+  if (!chartShell) return;
+
+  const query = normalizeText(document.getElementById('adminTopSearch').value);
+  const selectedStatus = normalizeText(document.getElementById('adminTopFilter').value);
+  const shouldFilterStatus = selectedStatus && selectedStatus !== normalizeText('Todos os status');
+  const selectedKinds = getSelectedChartKinds();
+  const cards = Array.from(chartShell.querySelectorAll('.admin-chart-card'));
+  let visibleCount = 0;
+
+  cards.forEach((card) => {
+    const status = normalizeText(card.dataset.status || 'Ativo');
+    const kind = card.dataset.chartKind || '';
+    const searchable = normalizeText(`${card.dataset.chartSearch || ''} ${card.textContent || ''}`);
+    const isVisible = selectedKinds.includes(kind)
+      && (!query || searchable.includes(query))
+      && (!shouldFilterStatus || status === selectedStatus);
+    card.hidden = !isVisible;
+    if (isVisible) visibleCount += 1;
+  });
+
+  chartShell.classList.toggle('is-empty', visibleCount === 0);
+}
+
+function getSelectedChartKinds() {
+  return Array.from(document.querySelectorAll('#adminChartFilterModal input:checked'))
+    .map((input) => input.value);
+}
+
+function openAdminChartFilterModal() {
+  document.getElementById('adminChartFilterModal')?.classList.add('visible');
+  document.getElementById('adminChartFilterModal')?.setAttribute('aria-hidden', 'false');
+}
+
+function closeAdminChartFilterModal() {
+  document.getElementById('adminChartFilterModal')?.classList.remove('visible');
+  document.getElementById('adminChartFilterModal')?.setAttribute('aria-hidden', 'true');
+}
+
+function applyAdminChartFilterModal() {
+  filterAdminCharts();
+  closeAdminChartFilterModal();
 }
 
 function filterAdminMovies() {
@@ -1261,8 +1335,12 @@ function normalizeText(value = '') {
 
 function showAdminConfigTab(tab) {
   const isLogsTab = tab === 'logs';
+  const isSettingsTab = tab === 'settings';
+  const isChartTab = tab === 'chart';
   const adminMain = document.querySelector('.admin-main');
   adminMain.classList.toggle('show-logs', isLogsTab);
+  adminMain.classList.toggle('show-settings', isSettingsTab);
+  adminMain.classList.toggle('show-chart', isChartTab);
   if (isLogsTab) {
     adminCurrentView = 'logs';
     document.querySelector('.admin-user-topbar-title').textContent = 'Log';
@@ -1270,24 +1348,34 @@ function showAdminConfigTab(tab) {
     document.querySelector('.admin-topbar p').textContent = 'Eventos registrados pela API';
     updateAdminTopFilter('logs');
     showAdminLogPanel('logs');
-  } else if (adminCurrentView === 'logs') {
+  } else if (isSettingsTab) {
     adminCurrentView = 'config';
+    document.querySelector('.admin-user-topbar-title').textContent = 'Configurações';
+    document.querySelector('.admin-topbar h1').textContent = 'Configurações';
+    document.querySelector('.admin-topbar p').textContent = 'Sistema, segurança e logs';
+    updateAdminTopFilter('dashboard');
+  } else if (adminCurrentView === 'logs' || isChartTab) {
+    adminCurrentView = 'config';
+    document.querySelector('.admin-user-topbar-title').textContent = 'Gráfico';
+    document.querySelector('.admin-topbar h1').textContent = 'Gráfico';
+    document.querySelector('.admin-topbar p').textContent = 'Visualização dos gráficos do sistema';
     updateAdminTopFilter('config');
+    filterAdminCharts();
   }
 
   document.querySelectorAll('[data-admin-config-tab]').forEach((button) => {
-    button.classList.toggle('active', button.dataset.adminConfigTab === tab);
+    button.classList.toggle('active', button.dataset.adminConfigTab === tab || (isSettingsTab && button.dataset.adminConfigTab === 'chart'));
   });
   document.querySelectorAll('[data-admin-config-shortcut]').forEach((link) => {
     link.classList.toggle('active', link.dataset.adminConfigShortcut === tab);
   });
   document.querySelectorAll('[data-admin-view="config"]:not([data-admin-config-shortcut])').forEach((link) => {
-    link.classList.toggle('active', !isLogsTab);
+    link.classList.toggle('active', isSettingsTab);
   });
 
-  document.getElementById('adminConfigChart').classList.toggle('active', tab === 'chart');
+  document.getElementById('adminConfigChart').classList.toggle('active', isChartTab || isSettingsTab);
   document.getElementById('adminConfigLogs').classList.toggle('active', tab === 'logs');
-  document.getElementById('adminConfigCurrentPage').textContent = tab === 'logs' ? 'Log' : 'Geral';
+  document.getElementById('adminConfigCurrentPage').textContent = isLogsTab ? 'Log' : (isSettingsTab ? 'Geral' : 'Gráfico');
 
   if (isLogsTab) {
     loadAdminLogs();

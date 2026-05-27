@@ -3209,10 +3209,6 @@ body,
   display: block;
 }
 
-.admin-main.show-config:not(.show-logs) .admin-topbar {
-  display: none;
-}
-
 .admin-main.show-config .admin-movie-create {
   display: none;
 }
@@ -3223,6 +3219,7 @@ body,
 
 .admin-main.show-movies .admin-topbar,
 .admin-main.show-users .admin-topbar,
+.admin-main.show-config.show-chart .admin-topbar,
 .admin-main.show-logs .admin-topbar {
   margin-bottom: 0;
   border-bottom: 0;
@@ -3244,15 +3241,25 @@ body,
 }
 
 .admin-main.show-users,
+.admin-main.show-config,
 .admin-main.show-logs {
   padding: 28px;
 }
 
 .admin-main.show-users .admin-catalog-shell,
+.admin-main.show-config.show-chart .admin-chart-shell,
 .admin-main.show-logs .admin-logs-shell {
   min-height: calc(100vh - 205px);
   border-top: 0;
   border-radius: 0 0 6px 6px;
+}
+
+.admin-main.show-config:not(.show-settings) .admin-config-shell {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .admin-users-toolbar {
@@ -3391,6 +3398,7 @@ body,
 }
 
 .admin-main.show-users .admin-user-topbar-title,
+.admin-main.show-config.show-chart .admin-user-topbar-title,
 .admin-main.show-logs .admin-user-topbar-title {
   display: block;
 }
@@ -3399,6 +3407,8 @@ body,
 .admin-main.show-movies .admin-topbar p,
 .admin-main.show-users .admin-topbar h1,
 .admin-main.show-users .admin-topbar p,
+.admin-main.show-config.show-chart .admin-topbar h1,
+.admin-main.show-config.show-chart .admin-topbar p,
 .admin-main.show-logs .admin-topbar h1,
 .admin-main.show-logs .admin-topbar p {
   display: none;
@@ -3538,6 +3548,34 @@ body,
   outline: 0;
 }
 
+.admin-chart-filter-button {
+  display: none;
+  min-height: 32px;
+  border: 1px solid rgba(232, 226, 214, 0.14);
+  border-radius: 5px;
+  padding: 0 16px;
+  background: rgba(9, 12, 15, 0.92);
+  color: rgba(232, 226, 214, 0.82);
+  font-size: 12px;
+  font-weight: 900;
+  box-shadow: none;
+}
+
+.admin-main.show-config.show-chart .admin-genre-select {
+  display: none;
+}
+
+.admin-main.show-config.show-chart .admin-chart-filter-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 110px;
+  border: 1px solid rgba(232, 226, 214, 0.14);
+  border-radius: 5px;
+  background: rgba(9, 12, 15, 0.92);
+  color: rgba(232, 226, 214, 0.82);
+}
+
 .admin-export-btn {
   display: none;
   min-height: 32px;
@@ -3561,6 +3599,7 @@ body,
 }
 
 .admin-main.show-users .admin-export-btn,
+.admin-main.show-config.show-chart .admin-export-btn,
 .admin-main.show-logs .admin-export-btn {
   display: inline-flex;
   align-items: center;
@@ -4618,6 +4657,37 @@ body,
   font-weight: 900;
 }
 
+.admin-chart-filter-card {
+  width: min(100%, 420px);
+}
+
+.admin-chart-filter-card .admin-chart-filter-options {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.admin-chart-filter-options label {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(232, 226, 214, 0.1);
+  border-radius: 6px;
+  padding: 0 12px;
+  background: rgba(232, 226, 214, 0.04);
+  color: rgba(232, 226, 214, 0.86);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.admin-chart-filter-options input {
+  width: 16px;
+  height: 16px;
+  accent-color: #d99142;
+}
+
 .admin-xml-export-card,
 .admin-json-import-card,
 .admin-json-export-card,
@@ -5418,23 +5488,354 @@ body,
   background: rgba(9, 12, 15, 0.96);
 }
 
-.admin-main.show-logs .admin-config-shell {
-  min-height: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-}
-
+.admin-main.show-config:not(.show-settings) .admin-config-header,
 .admin-main.show-logs .admin-config-header,
+.admin-main.show-config:not(.show-settings) .admin-config-path,
 .admin-main.show-logs .admin-config-path,
+.admin-main.show-config:not(.show-settings) .admin-config-tabs,
 .admin-main.show-logs .admin-config-tabs {
   display: none;
 }
 
-.admin-main.show-config:not(.show-logs) .admin-config-path,
-.admin-main.show-config:not(.show-logs) .admin-config-tabs {
+#adminConfigChart > .admin-settings-page {
   display: none;
+}
+
+.admin-main.show-settings #adminConfigChart > .admin-settings-page {
+  display: grid;
+}
+
+.admin-main.show-settings .admin-chart-shell {
+  display: none;
+}
+
+.admin-chart-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+}
+
+.admin-chart-card {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  border: 1px solid rgba(232, 226, 214, 0.08);
+  border-radius: 7px;
+  padding: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent),
+    rgba(9, 12, 15, 0.84);
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.admin-chart-card[hidden] {
+  display: none;
+}
+
+.admin-chart-shell.is-empty::after {
+  content: "Nenhum gráfico encontrado.";
+  min-height: 120px;
+  display: grid;
+  grid-column: 1 / -1;
+  place-items: center;
+  border: 1px solid rgba(232, 226, 214, 0.08);
+  border-radius: 7px;
+  color: rgba(232, 226, 214, 0.58);
+  font-weight: 900;
+}
+
+.admin-chart-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.admin-chart-card-title {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-chart-icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 34px;
+  border-radius: 6px;
+  background: rgba(235, 149, 50, 0.14);
+  color: #d99142;
+}
+
+.admin-chart-icon.bars {
+  grid-template-columns: repeat(3, 4px);
+  align-items: end;
+  gap: 3px;
+  padding: 8px;
+}
+
+.admin-chart-icon.bars i {
+  width: 4px;
+  border-radius: 2px 2px 0 0;
+  background: currentColor;
+}
+
+.admin-chart-icon.bars i:nth-child(1) { height: 10px; }
+.admin-chart-icon.bars i:nth-child(2) { height: 16px; }
+.admin-chart-icon.bars i:nth-child(3) { height: 22px; }
+
+.admin-chart-icon.pie {
+  background:
+    conic-gradient(#d99142 0 25%, #7b5fb3 25% 50%, #5f8f55 50% 74%, #2d5978 74% 100%);
+  box-shadow: inset 0 0 0 8px rgba(235, 149, 50, 0.14);
+}
+
+.admin-chart-card h2 {
+  margin: 0;
+  color: #f5eadc;
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+.admin-chart-card p {
+  margin: 3px 0 0;
+  color: rgba(232, 226, 214, 0.58);
+  font-size: 11px;
+}
+
+.admin-chart-card select {
+  min-height: 30px;
+  border: 1px solid rgba(232, 226, 214, 0.12);
+  border-radius: 5px;
+  padding: 0 32px 0 10px;
+  background: rgba(9, 12, 15, 0.94);
+  color: rgba(232, 226, 214, 0.86);
+  font-size: 10px;
+  font-weight: 900;
+  outline: 0;
+}
+
+.admin-horizontal-chart {
+  width: min(100%, 620px);
+  display: grid;
+  gap: 9px;
+  align-self: center;
+  padding: 8px 8px 0;
+}
+
+.chart-row {
+  display: grid;
+  grid-template-columns: minmax(110px, 190px) minmax(90px, 1fr) 34px;
+  align-items: center;
+  gap: 10px;
+}
+
+.chart-row span {
+  color: rgba(232, 226, 214, 0.86);
+  font-size: 10px;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chart-row i {
+  width: var(--bar);
+  height: 13px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #c88c52, #e7b46e);
+  box-shadow: 0 0 18px rgba(231, 180, 110, 0.08);
+}
+
+.chart-row b {
+  color: #f5eadc;
+  font-size: 10px;
+}
+
+.chart-axis {
+  display: grid;
+  grid-template-columns: 190px repeat(6, 1fr);
+  gap: 10px;
+  color: rgba(232, 226, 214, 0.62);
+  font-size: 10px;
+}
+
+.chart-axis span:first-child {
+  grid-column: 2;
+}
+
+.admin-donut-chart-layout {
+  width: min(100%, 620px);
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(170px, 220px);
+  align-items: center;
+  align-self: center;
+  gap: 26px;
+  min-height: 330px;
+}
+
+.admin-donut-chart {
+  position: relative;
+  width: min(330px, 100%);
+  aspect-ratio: 1;
+  justify-self: center;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(9, 12, 15, 1) 0 31%, transparent 32%),
+    conic-gradient(
+      #d9811d 0deg 78.75deg,
+      #b37425 78.75deg 151.875deg,
+      #2f5a78 151.875deg 213.75deg,
+      #638d4f 213.75deg 264.375deg,
+      #7653a3 264.375deg 309.375deg,
+      #c65f63 309.375deg 337.5deg,
+      #7e8583 337.5deg 360deg
+    );
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.26);
+}
+
+.donut-center {
+  position: absolute;
+  inset: 34%;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  border-radius: 50%;
+  background: #080c10;
+}
+
+.donut-center strong {
+  color: #f5eadc;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.donut-center span {
+  color: rgba(232, 226, 214, 0.68);
+  font-size: 11px;
+}
+
+.donut-label {
+  position: absolute;
+  color: #f5eadc;
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 1.25;
+  text-align: center;
+}
+
+.donut-label.action { top: 22%; right: 11%; }
+.donut-label.drama { right: 18%; bottom: 28%; }
+.donut-label.scifi { left: 35%; bottom: 13%; }
+.donut-label.adventure { left: 14%; bottom: 28%; }
+.donut-label.suspense { left: 7%; top: 43%; }
+.donut-label.comedy { left: 20%; top: 19%; }
+.donut-label.other { left: 43%; top: 10%; }
+
+.admin-chart-legend {
+  display: grid;
+  gap: 11px;
+}
+
+.admin-chart-legend.small {
+  justify-content: center;
+}
+
+.admin-chart-legend span {
+  display: grid;
+  grid-template-columns: 12px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  color: rgba(232, 226, 214, 0.82);
+  font-size: 11px;
+}
+
+.admin-chart-legend.small span {
+  display: flex;
+}
+
+.admin-chart-legend i {
+  width: 10px;
+  height: 10px;
+  display: inline-block;
+  border-radius: 50%;
+  background: #d99142;
+}
+
+.admin-chart-legend b {
+  color: rgba(232, 226, 214, 0.74);
+  font-weight: 800;
+}
+
+.admin-chart-legend .action { background: #d9811d; }
+.admin-chart-legend .drama { background: #b37425; }
+.admin-chart-legend .scifi { background: #2f5a78; }
+.admin-chart-legend .adventure { background: #638d4f; }
+.admin-chart-legend .suspense { background: #7653a3; }
+.admin-chart-legend .comedy { background: #c65f63; }
+.admin-chart-legend .other { background: #7e8583; }
+
+.admin-chart-note {
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  border: 1px solid rgba(232, 226, 214, 0.08);
+  border-radius: 5px;
+  padding: 0 12px;
+  color: rgba(232, 226, 214, 0.6);
+  font-size: 10px;
+}
+
+.admin-chart-note span {
+  width: 16px;
+  height: 16px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 16px;
+  border: 1px solid rgba(217, 145, 66, 0.72);
+  border-radius: 50%;
+  color: #d99142;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+@media (max-width: 1180px) {
+  .admin-chart-shell,
+  .admin-donut-chart-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-donut-chart {
+    width: min(300px, 100%);
+  }
+}
+
+@media (max-width: 720px) {
+  .admin-chart-card-header {
+    flex-direction: column;
+  }
+
+  .admin-chart-card select {
+    width: 100%;
+  }
+
+  .chart-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .chart-row span {
+    text-align: left;
+  }
+
+  .chart-axis {
+    display: none;
+  }
 }
 
 .admin-config-header {
