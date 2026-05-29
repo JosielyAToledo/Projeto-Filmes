@@ -1269,6 +1269,15 @@ function closeAdminChartFilterModal() {
 }
 
 function applyAdminChartFilterModal() {
+  const period = document.getElementById('adminChartPeriod')?.value;
+  if (period) {
+    document.querySelectorAll('.admin-chart-card select').forEach((select) => {
+      const matchingOption = Array.from(select.options).find((option) => option.textContent === period);
+      if (matchingOption) {
+        select.value = period;
+      }
+    });
+  }
   filterAdminCharts();
   closeAdminChartFilterModal();
 }

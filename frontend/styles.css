@@ -3565,6 +3565,15 @@ body,
   display: none;
 }
 
+.admin-main.show-config.show-settings .admin-search,
+.admin-main.show-config.show-settings .admin-genre-select {
+  display: none;
+}
+
+.admin-main.show-config.show-settings .admin-topbar {
+  display: none;
+}
+
 .admin-main.show-config.show-chart .admin-chart-filter-button {
   display: inline-flex;
   align-items: center;
@@ -3618,10 +3627,16 @@ body,
 }
 
 .admin-user span {
+  display: inline-grid;
+  place-items: center;
   width: 24px;
   height: 24px;
   border-radius: 50%;
   background: linear-gradient(135deg, #c89a72, #5a0f0f);
+  color: #fff7ea;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .admin-stats {
@@ -4668,6 +4683,27 @@ body,
   margin-top: 18px;
 }
 
+.admin-chart-period-field {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+  color: rgba(232, 226, 214, 0.7);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.admin-chart-period-field select {
+  min-height: 38px;
+  border: 1px solid rgba(232, 226, 214, 0.14);
+  border-radius: 5px;
+  padding: 0 12px;
+  background: rgba(9, 12, 15, 0.92);
+  color: rgba(232, 226, 214, 0.86);
+  font-size: 12px;
+  font-weight: 900;
+}
+
 .admin-chart-filter-options label {
   min-height: 44px;
   display: flex;
@@ -5697,6 +5733,28 @@ body,
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.26);
 }
 
+.admin-user-status-chart {
+  width: min(100%, 520px);
+  display: grid;
+  grid-template-columns: minmax(180px, 260px) minmax(160px, 220px);
+  align-items: center;
+  align-self: center;
+  gap: 28px;
+  min-height: 330px;
+}
+
+.admin-status-donut {
+  position: relative;
+  width: min(260px, 100%);
+  aspect-ratio: 1;
+  justify-self: center;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(9, 12, 15, 1) 0 31%, transparent 32%),
+    conic-gradient(#638d4f 0deg 291.6deg, #c65f63 291.6deg 360deg);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.26);
+}
+
 .donut-center {
   position: absolute;
   inset: 34%;
@@ -5806,7 +5864,8 @@ body,
 
 @media (max-width: 1180px) {
   .admin-chart-shell,
-  .admin-donut-chart-layout {
+  .admin-donut-chart-layout,
+  .admin-user-status-chart {
     grid-template-columns: 1fr;
   }
 

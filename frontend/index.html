@@ -105,7 +105,7 @@
           <a href="#adminConfigLog" data-admin-view="config" data-admin-config-shortcut="logs">Logs</a>
           <a href="#adminConfig" data-admin-view="config">Configurações</a>
         </div>
-        <div class="admin-user admin-user-menu"><span></span><strong>Admin</strong></div>
+        <div class="admin-user admin-user-menu"><span>A</span><strong>Admin</strong></div>
         <button class="admin-menu-button" type="button" aria-label="Menu">☰</button>
         <nav>
           <button id="adminLogoutBtn" class="admin-exit" type="button">Sair</button>
@@ -530,7 +530,6 @@
 
             <nav class="admin-config-tabs" aria-label="Subpáginas de configurações">
               <button class="active" type="button" data-admin-config-tab="chart">Geral</button>
-              <button type="button" data-admin-config-tab="logs">Log</button>
             </nav>
 
             <section class="admin-config-panel active" id="adminConfigChart">
@@ -609,6 +608,60 @@
                   </div>
 
                 </section>
+
+                <section class="admin-chart-card" data-status="Ativo" data-chart-kind="users" data-chart-search="usuarios ativos inativos sistema">
+                  <header class="admin-chart-card-header">
+                    <div class="admin-chart-card-title">
+                      <span class="admin-chart-icon pie" aria-hidden="true"></span>
+                      <div>
+                        <h2>Usuários ativos/inativos</h2>
+                        <p>Distribuição de usuários por status</p>
+                      </div>
+                    </div>
+                    <select aria-label="Período dos usuários">
+                      <option>Últimos 30 dias</option>
+                      <option>Últimos 7 dias</option>
+                      <option>Este mês</option>
+                    </select>
+                  </header>
+
+                  <div class="admin-user-status-chart" aria-label="Usuários ativos e inativos">
+                    <div class="admin-status-donut">
+                      <div class="donut-center"><strong>42</strong><span>Usuários</span></div>
+                    </div>
+                    <div class="admin-chart-legend">
+                      <span><i class="adventure"></i>Ativos <b>34 (81%)</b></span>
+                      <span><i class="comedy"></i>Inativos <b>8 (19%)</b></span>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="admin-chart-card" data-status="Ativo" data-chart-kind="comments" data-chart-search="filmes mais comentados comentarios">
+                  <header class="admin-chart-card-header">
+                    <div class="admin-chart-card-title">
+                      <span class="admin-chart-icon bars" aria-hidden="true"><i></i><i></i><i></i></span>
+                      <div>
+                        <h2>Filmes mais comentados</h2>
+                        <p>Ranking por quantidade de comentários</p>
+                      </div>
+                    </div>
+                    <select aria-label="Período dos filmes mais comentados">
+                      <option>Últimos 30 dias</option>
+                      <option>Últimos 7 dias</option>
+                      <option>Este mês</option>
+                    </select>
+                  </header>
+
+                  <div class="admin-horizontal-chart" aria-label="Filmes mais comentados">
+                    <div class="chart-row"><span>Interestelar</span><i style="--bar: 100%"></i><b>86</b></div>
+                    <div class="chart-row"><span>Oppenheimer</span><i style="--bar: 84%"></i><b>72</b></div>
+                    <div class="chart-row"><span>A Origem</span><i style="--bar: 72%"></i><b>62</b></div>
+                    <div class="chart-row"><span>Batman: O Cavaleiro das Trevas</span><i style="--bar: 58%"></i><b>50</b></div>
+                    <div class="chart-row"><span>Duna: Parte Dois</span><i style="--bar: 45%"></i><b>39</b></div>
+                    <div class="chart-row"><span>Matrix</span><i style="--bar: 33%"></i><b>28</b></div>
+                    <div class="chart-axis" aria-hidden="true"><span>0</span><span>20</span><span>40</span><span>60</span><span>80</span><span>100</span></div>
+                  </div>
+                </section>
               </div>
               <div class="admin-settings-page">
                 <section class="admin-settings-card admin-profile-settings">
@@ -628,9 +681,6 @@
                     <label>E-mail
                       <input type="email" value="admin@catalogo7.com" />
                     </label>
-                    <label>Cargo
-                      <input type="text" value="Administrador do Sistema" />
-                    </label>
                     <label>Tipo de acesso
                       <select>
                         <option>Administrador</option>
@@ -641,9 +691,6 @@
                         <option>Ativo</option>
                         <option>Inativo</option>
                       </select>
-                    </label>
-                    <label>Último acesso
-                      <input type="text" value="31/05/2024 14:32" />
                     </label>
                   </div>
                 </section>
@@ -1048,7 +1095,17 @@
     <div class="admin-confirm-modal" id="adminChartFilterModal" aria-hidden="true">
       <div class="admin-confirm-card admin-chart-filter-card" role="dialog" aria-modal="true" aria-labelledby="adminChartFilterTitle">
         <h2 id="adminChartFilterTitle">Filtro</h2>
-        <p>Escolha quais gráficos deseja visualizar.</p>
+        <p>Escolha o período e quais gráficos deseja visualizar.</p>
+        <label class="admin-chart-period-field" for="adminChartPeriod">
+          Período
+          <select id="adminChartPeriod">
+            <option>Últimos 30 dias</option>
+            <option>Últimos 7 dias</option>
+            <option>Hoje</option>
+            <option>Este mês</option>
+            <option>Personalizado</option>
+          </select>
+        </label>
         <div class="admin-chart-filter-options">
           <label>
             <input type="checkbox" value="watched" checked />
@@ -1057,6 +1114,14 @@
           <label>
             <input type="checkbox" value="genres" checked />
             <span>Filmes cadastrados no sistema</span>
+          </label>
+          <label>
+            <input type="checkbox" value="users" />
+            <span>Usuários ativos/inativos</span>
+          </label>
+          <label>
+            <input type="checkbox" value="comments" />
+            <span>Filmes mais comentados</span>
           </label>
         </div>
         <div>
