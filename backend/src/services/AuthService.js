@@ -10,6 +10,7 @@ const LOCAL_ADMIN = {
   tipo_usuario: 'admin'
 };
 const localUsers = [];
+const localAdmins = [];
 
 class AuthService {
   constructor() {
@@ -72,6 +73,13 @@ class AuthService {
     }
 
     const tipoUsuario = usuario.tipo_usuario;
+
+    if (usuario.status === 'inativo') {
+      const error = new Error('Usuario inativo.');
+      error.statusCode = 403;
+      throw error;
+    }
+
     const senhaValida = await bcrypt.compare(senha, usuario.senha_hash);
 
     if (!senhaValida) {
@@ -105,7 +113,7 @@ class AuthService {
       return this.createTokenResponse(LOCAL_ADMIN);
     }
 
-    const usuario = localUsers.find((item) => {
+    const usuario = [...localAdmins, ...localUsers].find((item) => {
       return item.email.toLowerCase() === normalizedLogin
         || item.nome.toLowerCase() === normalizedLogin;
     });
@@ -116,7 +124,120 @@ class AuthService {
       throw error;
     }
 
+    if (usuario.status === 'inativo') {
+      const error = new Error('Usuario inativo.');
+      error.statusCode = 403;
+      throw error;
+    }
+
     return this.createTokenResponse(usuario);
+  }
+
+  async salvarAdministrador(dados, emailAtual = null) {
+    const status = normalizeStatus(dados.status);
+
+    if (isLocalMode()) {
+      const normalizedEmail = String(dados.email || '').trim().toLowerCase();
+      const currentNormalizedEmail = String(emailAtual || dados.email || '').trim().toLowerCase();
+      let admin = localAdmins.find((item) => item.email.toLowerCase() === currentNormalizedEmail);
+
+      if (!admin && !emailAtual) {
+        admin = localAdmins.find((item) => item.email.toLowerCase() === normalizedEmail);
+      }
+
+      if (!admin && !dados.senha) {
+        const error = new Error('Senha obrigatoria para novo administrador.');
+        error.statusCode = 400;
+        throw error;
+      }
+
+      if (admin) {
+        admin.nome = dados.nome;
+        admin.email = dados.email;
+        admin.status = status;
+        if (dados.senha) {
+          admin.senha_hash = await bcrypt.hash(dados.senha, 10);
+        }
+        return sanitizeAdmin(admin);
+      }
+
+      const novoAdmin = {
+        id: Date.now(),
+        nome: dados.nome,
+        email: dados.email,
+        senha_hash: await bcrypt.hash(dados.senha, 10),
+        tipo_usuario: 'admin',
+        status
+      };
+      localAdmins.push(novoAdmin);
+      return sanitizeAdmin(novoAdmin);
+    }
+
+    const emailExistente = await this.usuarioDAO.findByEmail(dados.email);
+    const isSameEmail = emailAtual && emailExistente && emailExistente.email === emailAtual;
+
+    if (emailExistente && !isSameEmail) {
+      const error = new Error('E-mail ja cadastrado.');
+      error.statusCode = 409;
+      throw error;
+    }
+
+    if (emailAtual) {
+      const senhaHash = dados.senha ? await bcrypt.hash(dados.senha, 10) : null;
+      const updated = await this.usuarioDAO.updateAdminByEmail(emailAtual, {
+        nome: dados.nome,
+        email: dados.email,
+        senha: senhaHash,
+        status
+      });
+
+      if (!updated) {
+        const error = new Error('Administrador nao encontrado.');
+        error.statusCode = 404;
+        throw error;
+      }
+
+      return {
+        nome: dados.nome,
+        email: dados.email,
+        tipo_usuario: 'admin',
+        status
+      };
+    }
+
+    if (!dados.senha) {
+      const error = new Error('Senha obrigatoria para novo administrador.');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const senhaHash = await bcrypt.hash(dados.senha, 10);
+    return this.usuarioDAO.createAdmin({
+      nome: dados.nome,
+      email: dados.email,
+      senha: senhaHash,
+      status
+    });
+  }
+
+  async listarAdministradores() {
+    if (isLocalMode()) {
+      return [LOCAL_ADMIN, ...localAdmins].map(sanitizeAdmin);
+    }
+
+    return this.usuarioDAO.listAdmins();
+  }
+
+  async excluirAdministrador(email) {
+    if (isLocalMode()) {
+      const index = localAdmins.findIndex((admin) => admin.email.toLowerCase() === String(email || '').toLowerCase());
+      if (index >= 0) {
+        localAdmins.splice(index, 1);
+      }
+      return;
+    }
+
+    await this.usuarioDAO.deleteAdminByEmail(email);
   }
 
   createTokenResponse(usuario) {
@@ -138,6 +259,20 @@ class AuthService {
       usuario: tokenPayload
     };
   }
+}
+
+function normalizeStatus(status = 'Ativo') {
+  return String(status).trim().toLowerCase() === 'inativo' ? 'inativo' : 'ativo';
+}
+
+function sanitizeAdmin(usuario) {
+  return {
+    id: usuario.id,
+    nome: usuario.nome,
+    email: usuario.email,
+    tipo_usuario: 'admin',
+    status: usuario.status || 'ativo'
+  };
 }
 
 module.exports = AuthService;

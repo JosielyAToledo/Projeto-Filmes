@@ -522,12 +522,6 @@
               </div>
             </header>
 
-            <div class="admin-config-path" aria-live="polite">
-              <span>Configurações</span>
-              <i aria-hidden="true"></i>
-              <strong id="adminConfigCurrentPage">Geral</strong>
-            </div>
-
             <nav class="admin-config-tabs" aria-label="Subpáginas de configurações">
               <button class="active" type="button" data-admin-config-tab="chart">Geral</button>
             </nav>
@@ -664,55 +658,37 @@
                 </section>
               </div>
               <div class="admin-settings-page">
-                <section class="admin-settings-card admin-profile-settings">
+                <section class="admin-settings-card admin-profile-settings" id="adminProfileForm">
                   <header>
                     <div>
                       <strong>Perfil do Administrador</strong>
                       <p>Gerencie suas informações pessoais e de acesso.</p>
                     </div>
-                    <button type="button">Editar Perfil</button>
                   </header>
 
                   <div class="admin-profile-grid">
                     <div class="admin-profile-avatar">A</div>
                     <label>Nome
-                      <input type="text" value="Administrador" />
+                      <input id="adminProfileName" type="text" />
                     </label>
                     <label>E-mail
-                      <input type="email" value="admin@catalogo7.com" />
+                      <input id="adminProfileEmail" type="email" />
                     </label>
-                    <label>Tipo de acesso
-                      <select>
-                        <option>Administrador</option>
-                      </select>
+                  </div>
+                  <div class="admin-password-grid">
+                    <label>Senha
+                      <input id="adminProfilePassword" type="password" placeholder="Digite sua senha" />
+                    </label>
+                    <label>Confirmar senha
+                      <input id="adminProfileConfirmPassword" type="password" placeholder="Confirme sua senha" />
                     </label>
                     <label>Status
-                      <select>
+                      <select id="adminProfileStatus">
                         <option>Ativo</option>
                         <option>Inativo</option>
                       </select>
                     </label>
-                  </div>
-                </section>
-
-                <section class="admin-settings-card">
-                  <header>
-                    <div>
-                      <strong>Alterar Senha</strong>
-                      <p>Altere sua senha de acesso ao sistema.</p>
-                    </div>
-                    <button type="button">Atualizar Senha</button>
-                  </header>
-                  <div class="admin-password-grid">
-                    <label>Senha atual
-                      <input type="password" placeholder="Digite sua senha atual" />
-                    </label>
-                    <label>Nova senha
-                      <input type="password" placeholder="Digite sua nova senha" />
-                    </label>
-                    <label>Confirmar nova senha
-                      <input type="password" placeholder="Confirme sua nova senha" />
-                    </label>
+                    <button class="admin-profile-save" id="adminProfileSave" type="button">Salvar</button>
                   </div>
                 </section>
 
@@ -722,7 +698,7 @@
                       <strong>Administradores do Sistema</strong>
                       <p>Gerencie os administradores que possuem acesso ao sistema.</p>
                     </div>
-                    <button type="button">Adicionar Administrador</button>
+                    <button id="adminAddAdministrator" type="button">Adicionar Administrador</button>
                   </header>
                   <div class="admin-settings-table-wrap">
                     <table class="admin-settings-table">
@@ -730,40 +706,47 @@
                         <tr>
                           <th>Usuário</th>
                           <th>E-mail</th>
-                          <th>Tipo de acesso</th>
-                          <th>Nível de acesso</th>
                           <th>Status</th>
                           <th>Último acesso</th>
                           <th>Ações</th>
                         </tr>
                       </thead>
-                      <tbody>
-                        <tr>
+                      <tbody id="adminAdministratorsBody">
+                        <tr data-admin-name="Administrador" data-admin-email="admin@catalogo7.com" data-admin-status="Ativo">
                           <td><span class="settings-avatar red">A</span>Administrador</td>
                           <td>admin@catalogo7.com</td>
-                          <td><span class="settings-pill gold">Administrador</span></td>
-                          <td><span class="settings-pill blue">Master</span></td>
                           <td><span class="settings-pill green">Ativo</span></td>
                           <td>31/05/2024 14:32</td>
-                          <td><button type="button">Editar</button></td>
+                          <td>
+                            <div class="settings-actions">
+                              <button type="button" data-admin-edit>Editar</button>
+                              <button class="settings-delete" type="button" aria-label="Excluir Administrador" data-admin-delete>🗑</button>
+                            </div>
+                          </td>
                         </tr>
-                        <tr>
-                          <td><span class="settings-avatar blue">J</span>João Silva</td>
+                        <tr data-admin-name="João Silva" data-admin-email="joao@catalogo7.com" data-admin-status="Ativo">
+                          <td><span class="settings-avatar blue">JS</span>João Silva</td>
                           <td>joao@catalogo7.com</td>
-                          <td><span class="settings-pill gold">Administrador</span></td>
-                          <td><span class="settings-pill blue">Moderador</span></td>
                           <td><span class="settings-pill green">Ativo</span></td>
                           <td>31/05/2024 14:28</td>
-                          <td><button type="button">Editar</button></td>
+                          <td>
+                            <div class="settings-actions">
+                              <button type="button" data-admin-edit>Editar</button>
+                              <button class="settings-delete" type="button" aria-label="Excluir João Silva" data-admin-delete>🗑</button>
+                            </div>
+                          </td>
                         </tr>
-                        <tr>
-                          <td><span class="settings-avatar purple">M</span>Maria Santos</td>
+                        <tr data-admin-name="Maria Santos" data-admin-email="maria@catalogo7.com" data-admin-status="Ativo">
+                          <td><span class="settings-avatar purple">MS</span>Maria Santos</td>
                           <td>maria@catalogo7.com</td>
-                          <td><span class="settings-pill gold">Administrador</span></td>
-                          <td><span class="settings-pill blue">Moderador</span></td>
                           <td><span class="settings-pill green">Ativo</span></td>
                           <td>31/05/2024 14:25</td>
-                          <td><button type="button">Editar</button></td>
+                          <td>
+                            <div class="settings-actions">
+                              <button type="button" data-admin-edit>Editar</button>
+                              <button class="settings-delete" type="button" aria-label="Excluir Maria Santos" data-admin-delete>🗑</button>
+                            </div>
+                          </td>
                         </tr>
                       </tbody>
                     </table>
@@ -780,21 +763,20 @@
                   <div class="admin-appearance-grid">
                     <div class="admin-theme-form">
                       <label>Tema
-                        <select>
+                        <select id="adminThemeSelect">
                           <option>Escuro</option>
                           <option>Claro</option>
                         </select>
                       </label>
                       <span>Cor principal</span>
-                      <div class="settings-swatches">
-                        <button class="active" style="background:#ead9c4" type="button"></button>
-                        <button style="background:#f59e0b" type="button"></button>
-                        <button style="background:#22c55e" type="button"></button>
-                        <button style="background:#ef4444" type="button"></button>
-                        <button style="background:#38bdf8" type="button"></button>
+                      <div class="settings-color-picker">
+                        <button id="adminOpenColorPicker" type="button" aria-label="Abrir paleta de cores">🎨</button>
+                        <input id="adminCustomColor" type="color" value="#ead9c4" aria-label="Escolher cor principal" />
                       </div>
-                      <button class="settings-preview-button" type="button">Visualizar</button>
-                      <button class="settings-save-button" type="button">Salvar Preferências</button>
+                      <button class="settings-preview-button" id="adminPreviewAppearance" type="button">Visualizar</button>
+                      <button class="settings-save-button" id="adminSaveAppearance" type="button">Salvar Preferências</button>
+                      <button class="settings-reset-button" id="adminResetAppearance" type="button">Voltar padrão</button>
+                      <p class="settings-appearance-status" id="adminAppearanceStatus" aria-live="polite"></p>
                     </div>
                     <div class="settings-preview-panel">
                       <strong>CATÁLOGO <span>7</span></strong>
@@ -1231,6 +1213,28 @@
         <div>
           <button id="adminCancelDeleteLog" type="button">Cancelar</button>
           <button id="adminConfirmDeleteLog" type="button">Excluir log</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-confirm-modal" id="adminDeleteAdministratorModal" aria-hidden="true">
+      <div class="admin-confirm-card" role="dialog" aria-modal="true" aria-labelledby="adminDeleteAdministratorTitle">
+        <h2 id="adminDeleteAdministratorTitle">Excluir administrador?</h2>
+        <p>Deseja excluir <strong id="adminDeleteAdministratorName">este administrador</strong> da tabela?</p>
+        <div>
+          <button id="adminCancelDeleteAdministrator" type="button">Cancelar</button>
+          <button id="adminConfirmDeleteAdministrator" type="button">Excluir administrador</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-confirm-modal" id="adminEditAdministratorModal" aria-hidden="true">
+      <div class="admin-confirm-card" role="dialog" aria-modal="true" aria-labelledby="adminEditAdministratorTitle">
+        <h2 id="adminEditAdministratorTitle">Editar administrador?</h2>
+        <p>Deseja editar <strong id="adminEditAdministratorName">este administrador</strong>?</p>
+        <div>
+          <button id="adminCancelEditAdministrator" type="button">Cancelar</button>
+          <button id="adminConfirmEditAdministrator" type="button">Editar</button>
         </div>
       </div>
     </div>

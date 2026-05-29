@@ -4,6 +4,8 @@
   font-family: "Inter", Arial, Helvetica, sans-serif;
   color: #eef4fb;
   background: #07101a;
+  --admin-primary: #ead9c4;
+  --admin-primary-text: #07090c;
 }
 
 html {
@@ -5526,8 +5528,6 @@ body,
 
 .admin-main.show-config:not(.show-settings) .admin-config-header,
 .admin-main.show-logs .admin-config-header,
-.admin-main.show-config:not(.show-settings) .admin-config-path,
-.admin-main.show-logs .admin-config-path,
 .admin-main.show-config:not(.show-settings) .admin-config-tabs,
 .admin-main.show-logs .admin-config-tabs {
   display: none;
@@ -5923,28 +5923,6 @@ body,
   font-size: 12px;
 }
 
-.admin-config-path {
-  display: grid;
-  grid-template-columns: auto minmax(40px, 1fr) auto;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-  color: rgba(232, 226, 214, 0.58);
-  font-size: 12px;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-.admin-config-path i {
-  height: 1px;
-  background: rgba(232, 226, 214, 0.16);
-}
-
-.admin-config-path strong {
-  color: #f5eadc;
-  font-size: 12px;
-}
-
 .admin-config-tabs {
   display: flex;
   gap: 10px;
@@ -6040,9 +6018,16 @@ body,
   font-size: 12px;
 }
 
+.admin-password-header {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(232, 226, 214, 0.08);
+}
+
 .admin-settings-card header button,
 .settings-preview-button,
-.settings-save-button {
+.settings-save-button,
+.settings-reset-button {
   min-height: 34px;
   border: 1px solid rgba(232, 226, 214, 0.18);
   border-radius: 5px;
@@ -6055,8 +6040,8 @@ body,
 
 .admin-profile-grid {
   display: grid;
-  grid-template-columns: 72px repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: 72px repeat(2, minmax(0, 1fr));
+  gap: 14px;
   align-items: end;
 }
 
@@ -6085,6 +6070,7 @@ body,
 .admin-profile-grid input,
 .admin-profile-grid select,
 .admin-password-grid input,
+.admin-password-grid select,
 .admin-theme-form select {
   width: 100%;
   min-height: 34px;
@@ -6099,8 +6085,24 @@ body,
 
 .admin-password-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 72px repeat(2, minmax(0, 1fr)) 180px 112px;
   gap: 14px;
+  margin-top: 18px;
+}
+
+.admin-password-grid::before {
+  content: "";
+}
+
+.admin-profile-save {
+  align-self: end;
+  min-height: 34px;
+  border: 0;
+  border-radius: 5px;
+  background: #f1dfc9;
+  color: #07090c;
+  font-size: 13px;
+  font-weight: 900;
 }
 
 .admin-settings-table-wrap {
@@ -6128,6 +6130,28 @@ body,
   text-transform: uppercase;
 }
 
+.admin-settings-table th:nth-child(2),
+.admin-settings-table td:nth-child(2),
+.admin-settings-table th:nth-child(3),
+.admin-settings-table td:nth-child(3),
+.admin-settings-table th:nth-child(4),
+.admin-settings-table td:nth-child(4) {
+  text-align: center;
+}
+
+.admin-settings-table th:last-child,
+.admin-settings-table td:last-child {
+  text-align: right;
+}
+
+.admin-settings-table th:last-child {
+  padding-right: 28px;
+}
+
+.admin-settings-table td:last-child .settings-actions {
+  justify-content: flex-end;
+}
+
 .settings-avatar {
   width: 24px;
   height: 24px;
@@ -6136,7 +6160,7 @@ body,
   margin-right: 8px;
   border-radius: 50%;
   color: #fff;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 900;
 }
 
@@ -6169,6 +6193,11 @@ body,
   color: #86efac;
 }
 
+.settings-pill.red {
+  background: rgba(239, 68, 68, 0.16);
+  color: #fca5a5;
+}
+
 .admin-settings-table td button {
   min-height: 28px;
   border: 1px solid rgba(232, 226, 214, 0.16);
@@ -6177,6 +6206,26 @@ body,
   color: #ead9c4;
   font-size: 10px;
   font-weight: 900;
+}
+
+.settings-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-settings-table td .settings-delete {
+  width: 30px;
+  padding: 0;
+  border-color: rgba(239, 68, 68, 0.42);
+  background: rgba(239, 68, 68, 0.12);
+  color: #ff4d4d;
+}
+
+#adminConfirmDeleteAdministrator {
+  border: 0;
+  background: #d94a3f;
+  color: #fff7f3;
 }
 
 .admin-appearance-grid {
@@ -6197,25 +6246,49 @@ body,
   font-weight: 900;
 }
 
-.settings-swatches {
+.settings-color-picker {
   display: flex;
-  gap: 10px;
+  align-items: center;
 }
 
-.settings-swatches button {
-  width: 28px;
-  height: 28px;
+.settings-color-picker button {
+  width: 46px;
+  height: 42px;
   border: 1px solid rgba(232, 226, 214, 0.18);
   border-radius: 5px;
+  background: transparent;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
 }
 
-.settings-swatches button.active {
-  outline: 2px solid #ead9c4;
+.settings-color-picker input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .settings-save-button {
-  background: #ead9c4;
-  color: #151515;
+  background: var(--admin-primary);
+  color: var(--admin-primary-text);
+}
+
+.settings-reset-button {
+  border-color: rgba(232, 226, 214, 0.18);
+  background: transparent;
+  color: #ead9c4;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.settings-appearance-status {
+  min-height: 16px;
+  margin: -4px 0 0;
+  color: rgba(232, 226, 214, 0.7);
+  font-size: 11px;
+  font-weight: 800;
 }
 
 .settings-preview-panel {
@@ -6273,6 +6346,90 @@ body,
   border-bottom: 1px solid rgba(232, 226, 214, 0.06);
   color: rgba(232, 226, 214, 0.72);
   font-size: 10px;
+}
+
+.settings-preview-panel.preview-light {
+  border-color: rgba(10, 14, 18, 0.12);
+  background: #f7f3ed;
+  color: #101418;
+}
+
+.settings-preview-panel.preview-light > strong,
+.settings-preview-panel.preview-light .settings-preview-stats b {
+  color: #101418;
+}
+
+.settings-preview-panel.preview-light > strong span {
+  color: var(--admin-primary);
+}
+
+.settings-preview-panel.preview-light .settings-preview-stats p {
+  border-color: rgba(10, 14, 18, 0.12);
+  background: #ffffff;
+}
+
+.settings-preview-panel.preview-light .settings-preview-stats span,
+.settings-preview-panel.preview-light td {
+  border-color: rgba(10, 14, 18, 0.08);
+  color: rgba(16, 20, 24, 0.68);
+}
+
+body.admin-theme-light .admin-shell,
+body.admin-theme-light .admin-main,
+body.admin-theme-light .admin-sidebar,
+body.admin-theme-light .admin-topbar,
+body.admin-theme-light .admin-config-shell,
+body.admin-theme-light .admin-settings-card,
+body.admin-theme-light .admin-catalog-shell {
+  background: #f7f3ed;
+  color: #101418;
+}
+
+body.admin-theme-light .admin-sidebar,
+body.admin-theme-light .admin-topbar,
+body.admin-theme-light .admin-settings-card,
+body.admin-theme-light .settings-preview-panel,
+body.admin-theme-light .admin-catalog-shell {
+  border-color: rgba(10, 14, 18, 0.12);
+}
+
+body.admin-theme-light .admin-settings-card header strong,
+body.admin-theme-light .admin-config-header span,
+body.admin-theme-light .admin-settings-table td,
+body.admin-theme-light .settings-preview-panel > strong,
+body.admin-theme-light .settings-preview-stats b {
+  color: #101418;
+}
+
+body.admin-theme-light .admin-settings-card header p,
+body.admin-theme-light .admin-theme-form > span,
+body.admin-theme-light .admin-profile-grid label,
+body.admin-theme-light .admin-password-grid label,
+body.admin-theme-light .admin-settings-table th,
+body.admin-theme-light .settings-preview-stats span,
+body.admin-theme-light .settings-preview-panel td {
+  color: rgba(16, 20, 24, 0.62);
+}
+
+body.admin-theme-light .admin-profile-grid input,
+body.admin-theme-light .admin-password-grid input,
+body.admin-theme-light .admin-password-grid select,
+body.admin-theme-light .admin-theme-form select {
+  border-color: rgba(10, 14, 18, 0.14);
+  background: #ffffff;
+  color: #101418;
+}
+
+body.admin-theme-light .settings-preview-panel,
+body.admin-theme-light .settings-preview-stats p {
+  background: #ffffff;
+}
+
+.admin-catalog-add,
+.admin-profile-save,
+.settings-save-button {
+  background: var(--admin-primary);
+  color: var(--admin-primary-text);
 }
 
 .admin-logs-toolbar {

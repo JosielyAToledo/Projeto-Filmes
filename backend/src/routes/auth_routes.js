@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const AuthController = require('../controllers/AuthController');
 const authMiddleware = require('../middlewares/auth_middleware');
+const adminMiddleware = require('../middlewares/admin_middleware');
 const validationMiddleware = require('../middlewares/validation_middleware');
 
 class AuthRoutes {
@@ -14,6 +15,10 @@ class AuthRoutes {
     this.router.post('/registrar', validationMiddleware(['nome', 'email', 'senha']), this.authController.registrar);
     this.router.post('/login', validationMiddleware(['email', 'senha']), this.authController.login);
     this.router.post('/logout', authMiddleware, this.authController.logout);
+    this.router.get('/admins', authMiddleware, adminMiddleware, this.authController.listarAdministradores);
+    this.router.post('/admins', authMiddleware, adminMiddleware, validationMiddleware(['nome', 'email', 'senha']), this.authController.salvarAdministrador);
+    this.router.put('/admins/:email', authMiddleware, adminMiddleware, validationMiddleware(['nome', 'email']), this.authController.salvarAdministrador);
+    this.router.delete('/admins/:email', authMiddleware, adminMiddleware, this.authController.excluirAdministrador);
   }
 }
 

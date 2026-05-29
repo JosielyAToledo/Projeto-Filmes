@@ -19,6 +19,14 @@ let pendingDeleteLogIndex = null;
 const ADMIN_MOVIES_PER_PAGE = 4;
 let pendingInactiveUser = null;
 let pendingDeleteUser = null;
+let pendingDeleteAdministratorRow = null;
+let pendingEditAdministratorData = null;
+let pendingEditAdministratorRow = null;
+let editingAdministratorRow = null;
+const DEFAULT_ADMIN_APPEARANCE = {
+  theme: 'Escuro',
+  color: '#ead9c4'
+};
 
 const sampleAdminLogs = [
   {
@@ -341,6 +349,70 @@ function formatApiError(message, status) {
   return message || 'Não foi possível concluir a operação.';
 }
 
+function getReadableTextColor(hexColor = DEFAULT_ADMIN_APPEARANCE.color) {
+  const hex = hexColor.replace('#', '');
+  const r = parseInt(hex.slice(0, 2), 16);
+  const g = parseInt(hex.slice(2, 4), 16);
+  const b = parseInt(hex.slice(4, 6), 16);
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  return brightness > 150 ? '#07090c' : '#fff7f3';
+}
+
+function applyAdminAppearance(preferences = DEFAULT_ADMIN_APPEARANCE) {
+  const theme = preferences.theme || DEFAULT_ADMIN_APPEARANCE.theme;
+  const color = preferences.color || DEFAULT_ADMIN_APPEARANCE.color;
+
+  document.body.classList.toggle('admin-theme-light', theme === 'Claro');
+  document.documentElement.style.setProperty('--admin-primary', color);
+  document.documentElement.style.setProperty('--admin-primary-text', getReadableTextColor(color));
+}
+
+function getAppearanceControls() {
+  return {
+    theme: document.getElementById('adminThemeSelect')?.value || DEFAULT_ADMIN_APPEARANCE.theme,
+    color: document.getElementById('adminCustomColor')?.value || DEFAULT_ADMIN_APPEARANCE.color
+  };
+}
+
+function setAppearanceControls(preferences = DEFAULT_ADMIN_APPEARANCE) {
+  const themeSelect = document.getElementById('adminThemeSelect');
+  const color = preferences.color || DEFAULT_ADMIN_APPEARANCE.color;
+
+  if (themeSelect) {
+    themeSelect.value = preferences.theme || DEFAULT_ADMIN_APPEARANCE.theme;
+  }
+
+  const customColorInput = document.getElementById('adminCustomColor');
+  if (customColorInput) {
+    customColorInput.value = color;
+  }
+
+  updateAppearancePreview();
+}
+
+function updateAppearancePreview() {
+  const preferences = getAppearanceControls();
+  const preview = document.querySelector('.settings-preview-panel');
+
+  if (!preview) return;
+
+  preview.classList.toggle('preview-light', preferences.theme === 'Claro');
+  preview.style.setProperty('--admin-primary', preferences.color);
+}
+
+function applySavedAppearance() {
+  const savedAppearance = JSON.parse(localStorage.getItem('adminAppearance') || 'null') || DEFAULT_ADMIN_APPEARANCE;
+  setAppearanceControls(savedAppearance);
+  applyAdminAppearance(savedAppearance);
+}
+
+function setAppearanceStatus(message = '') {
+  const status = document.getElementById('adminAppearanceStatus');
+  if (status) {
+    status.textContent = message;
+  }
+}
+
 document.querySelectorAll('#showRegister').forEach((button) => {
   button.addEventListener('click', showRegister);
 });
@@ -383,7 +455,8 @@ document.getElementById('loginForm').addEventListener('submit', async (event) =>
       localStorage.removeItem('adminSession');
     }
 
-    syncView();
+applySavedAppearance();
+syncView();
     if (!adminSession) {
       await loadMovies();
     }
@@ -453,6 +526,22 @@ document.querySelectorAll('[data-admin-log-panel]').forEach((button) => {
   button.addEventListener('click', () => showAdminLogPanel(button.dataset.adminLogPanel));
 });
 
+document.getElementById('adminAddAdministrator')?.addEventListener('click', openAdminProfileFormForCreate);
+
+document.getElementById('adminProfileSave')?.addEventListener('click', saveAdministratorProfile);
+document.getElementById('adminAdministratorsBody')?.addEventListener('click', (event) => {
+  const editButton = event.target.closest('[data-admin-edit]');
+  const deleteButton = event.target.closest('[data-admin-delete]');
+
+  if (editButton) {
+    openEditAdministratorModal(editButton.closest('tr'));
+  }
+
+  if (deleteButton) {
+    openDeleteAdministratorModal(deleteButton.closest('tr'));
+  }
+});
+
 document.getElementById('adminOpenXmlExport')?.addEventListener('click', openAdminXmlExportPanel);
 document.getElementById('adminOpenJsonImport')?.addEventListener('click', openAdminJsonImportPanel);
 document.getElementById('adminOpenJsonExport')?.addEventListener('click', openAdminJsonExportPanel);
@@ -497,6 +586,49 @@ document.getElementById('adminRefreshLogs')?.addEventListener('click', loadAdmin
 document.getElementById('adminLogsBody')?.addEventListener('click', handleAdminLogsClick);
 document.getElementById('adminCancelDeleteLog')?.addEventListener('click', closeDeleteLogModal);
 document.getElementById('adminConfirmDeleteLog')?.addEventListener('click', confirmDeleteLog);
+document.getElementById('adminCancelEditAdministrator')?.addEventListener('click', closeEditAdministratorModal);
+document.getElementById('adminConfirmEditAdministrator')?.addEventListener('click', confirmEditAdministrator);
+document.getElementById('adminEditAdministratorModal')?.addEventListener('click', (event) => {
+  if (event.target.id === 'adminEditAdministratorModal') {
+    closeEditAdministratorModal();
+  }
+});
+document.getElementById('adminCancelDeleteAdministrator')?.addEventListener('click', closeDeleteAdministratorModal);
+document.getElementById('adminConfirmDeleteAdministrator')?.addEventListener('click', confirmDeleteAdministrator);
+document.getElementById('adminDeleteAdministratorModal')?.addEventListener('click', (event) => {
+  if (event.target.id === 'adminDeleteAdministratorModal') {
+    closeDeleteAdministratorModal();
+  }
+});
+document.getElementById('adminThemeSelect')?.addEventListener('change', updateAppearancePreview);
+document.getElementById('adminOpenColorPicker')?.addEventListener('click', () => {
+  document.getElementById('adminCustomColor')?.click();
+});
+document.getElementById('adminCustomColor')?.addEventListener('input', (event) => {
+  setAppearanceControls({
+    theme: document.getElementById('adminThemeSelect')?.value || 'Escuro',
+    color: event.target.value
+  });
+});
+document.getElementById('adminPreviewAppearance')?.addEventListener('click', () => {
+  const preferences = getAppearanceControls();
+  applyAdminAppearance(preferences);
+  updateAppearancePreview();
+  setAppearanceStatus('Visualização aplicada.');
+});
+document.getElementById('adminSaveAppearance')?.addEventListener('click', () => {
+  const preferences = getAppearanceControls();
+  localStorage.setItem('adminAppearance', JSON.stringify(preferences));
+  applyAdminAppearance(preferences);
+  updateAppearancePreview();
+  setAppearanceStatus('Preferências salvas.');
+});
+document.getElementById('adminResetAppearance')?.addEventListener('click', () => {
+  localStorage.removeItem('adminAppearance');
+  setAppearanceControls(DEFAULT_ADMIN_APPEARANCE);
+  applyAdminAppearance(DEFAULT_ADMIN_APPEARANCE);
+  setAppearanceStatus('Preferências restauradas para o padrão.');
+});
 
 document.getElementById('adminOpenMovieForm').addEventListener('click', () => {
   openAdminMovieForm();
@@ -1228,6 +1360,218 @@ function applyAdminTopFilters() {
   }
 }
 
+function openAdminProfileFormForCreate() {
+  const profileForm = document.getElementById('adminProfileForm');
+  const nameInput = document.getElementById('adminProfileName');
+  const emailInput = document.getElementById('adminProfileEmail');
+  const passwordInput = document.getElementById('adminProfilePassword');
+  const confirmPasswordInput = document.getElementById('adminProfileConfirmPassword');
+  const statusInput = document.getElementById('adminProfileStatus');
+
+  if (nameInput) nameInput.value = '';
+  if (emailInput) emailInput.value = '';
+  if (passwordInput) passwordInput.value = '';
+  if (confirmPasswordInput) confirmPasswordInput.value = '';
+  if (statusInput) statusInput.value = 'Ativo';
+  editingAdministratorRow = null;
+
+  profileForm?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  nameInput?.focus({ preventScroll: true });
+}
+
+function openAdminProfileFormForEdit(adminData) {
+  const profileForm = document.getElementById('adminProfileForm');
+  const nameInput = document.getElementById('adminProfileName');
+  const emailInput = document.getElementById('adminProfileEmail');
+  const passwordInput = document.getElementById('adminProfilePassword');
+  const confirmPasswordInput = document.getElementById('adminProfileConfirmPassword');
+  const statusInput = document.getElementById('adminProfileStatus');
+
+  if (nameInput) nameInput.value = adminData.adminName || '';
+  if (emailInput) emailInput.value = adminData.adminEmail || '';
+  if (passwordInput) passwordInput.value = '';
+  if (confirmPasswordInput) confirmPasswordInput.value = '';
+  if (statusInput) statusInput.value = adminData.adminStatus || 'Ativo';
+
+  profileForm?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  nameInput?.focus({ preventScroll: true });
+}
+
+function openEditAdministratorModal(row) {
+  if (!row) return;
+
+  pendingEditAdministratorRow = row;
+  pendingEditAdministratorData = row.dataset;
+  document.getElementById('adminEditAdministratorName').textContent = row.dataset.adminName || 'este administrador';
+  document.getElementById('adminEditAdministratorModal').classList.add('visible');
+  document.getElementById('adminEditAdministratorModal').setAttribute('aria-hidden', 'false');
+}
+
+function closeEditAdministratorModal() {
+  pendingEditAdministratorData = null;
+  pendingEditAdministratorRow = null;
+  document.getElementById('adminEditAdministratorModal').classList.remove('visible');
+  document.getElementById('adminEditAdministratorModal').setAttribute('aria-hidden', 'true');
+}
+
+function confirmEditAdministrator() {
+  if (pendingEditAdministratorData) {
+    const adminData = pendingEditAdministratorData;
+    editingAdministratorRow = pendingEditAdministratorRow;
+    closeEditAdministratorModal();
+    openAdminProfileFormForEdit(adminData);
+  }
+}
+
+function clearAdministratorProfileForm() {
+  const nameInput = document.getElementById('adminProfileName');
+  const emailInput = document.getElementById('adminProfileEmail');
+  const passwordInput = document.getElementById('adminProfilePassword');
+  const confirmPasswordInput = document.getElementById('adminProfileConfirmPassword');
+  const statusInput = document.getElementById('adminProfileStatus');
+
+  if (nameInput) nameInput.value = '';
+  if (emailInput) emailInput.value = '';
+  if (passwordInput) passwordInput.value = '';
+  if (confirmPasswordInput) confirmPasswordInput.value = '';
+  if (statusInput) statusInput.value = 'Ativo';
+  editingAdministratorRow = null;
+}
+
+function getAdministratorAvatarClass(name = '') {
+  const initials = name.trim().charAt(0).toUpperCase();
+  if (initials === 'A') return 'red';
+  if (initials === 'J') return 'blue';
+  if (initials === 'M') return 'purple';
+  return 'blue';
+}
+
+function buildAdministratorRow(name, email, status, accessDate = null) {
+  const initial = getInitials(name) || 'A';
+  const avatarClass = getAdministratorAvatarClass(name);
+  const statusClass = normalizeText(status) === 'inativo' ? 'red' : 'green';
+  const safeName = escapeHtml(name);
+  const safeEmail = escapeHtml(email);
+  const safeStatus = escapeHtml(status);
+  const date = accessDate ? new Date(accessDate) : new Date();
+  const dateLabel = Number.isNaN(date.getTime())
+    ? '-'
+    : `${date.toLocaleDateString('pt-BR')} ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+
+  return `
+    <tr data-admin-name="${safeName}" data-admin-email="${safeEmail}" data-admin-status="${safeStatus}">
+      <td><span class="settings-avatar ${avatarClass}">${escapeHtml(initial)}</span>${safeName}</td>
+      <td>${safeEmail}</td>
+      <td><span class="settings-pill ${statusClass}">${safeStatus}</span></td>
+      <td>${escapeHtml(dateLabel)}</td>
+      <td>
+        <div class="settings-actions">
+          <button type="button" data-admin-edit>Editar</button>
+          <button class="settings-delete" type="button" aria-label="Excluir ${safeName}" data-admin-delete>🗑</button>
+        </div>
+      </td>
+    </tr>
+  `;
+}
+
+async function loadAdministratorsTable() {
+  const administratorsBody = document.getElementById('adminAdministratorsBody');
+  if (!administratorsBody) return;
+
+  try {
+    const administrators = await api('/auth/admins');
+    administratorsBody.innerHTML = administrators.map((admin) => {
+      const status = admin.status === 'inativo' ? 'Inativo' : 'Ativo';
+      return buildAdministratorRow(admin.nome, admin.email, status, admin.updated_at);
+    }).join('');
+  } catch (error) {
+    setStatus(error.message);
+  }
+}
+
+function updateAdministratorRow(row, name, email, status) {
+  const nextRow = document.createElement('tbody');
+  nextRow.innerHTML = buildAdministratorRow(name, email, status).trim();
+  row.replaceWith(nextRow.firstElementChild);
+}
+
+async function saveAdministratorProfile() {
+  try {
+    const name = document.getElementById('adminProfileName')?.value.trim() || '';
+    const email = document.getElementById('adminProfileEmail')?.value.trim() || '';
+    const password = document.getElementById('adminProfilePassword')?.value || '';
+    const confirmPassword = document.getElementById('adminProfileConfirmPassword')?.value || '';
+    const status = document.getElementById('adminProfileStatus')?.value || 'Ativo';
+    const administratorsBody = document.getElementById('adminAdministratorsBody');
+
+    if (!name || !email || !administratorsBody) return;
+
+    if (password !== confirmPassword) {
+      setStatus('As senhas nÃ£o conferem.');
+      return;
+    }
+
+    const payload = {
+      nome: name,
+      email,
+      status,
+      ...(password ? { senha: password } : {})
+    };
+
+    const path = editingAdministratorRow
+      ? `/auth/admins/${encodeURIComponent(editingAdministratorRow.dataset.adminEmail || email)}`
+      : '/auth/admins';
+
+    const savedAdmin = await api(path, {
+      method: editingAdministratorRow ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const savedStatus = savedAdmin.status === 'inativo' ? 'Inativo' : 'Ativo';
+
+    if (editingAdministratorRow) {
+      updateAdministratorRow(editingAdministratorRow, savedAdmin.nome || name, savedAdmin.email || email, savedStatus);
+    } else {
+      administratorsBody.insertAdjacentHTML('beforeend', buildAdministratorRow(savedAdmin.nome || name, savedAdmin.email || email, savedStatus));
+    }
+
+    clearAdministratorProfileForm();
+    setStatus('Administrador salvo com sucesso.');
+  } catch (error) {
+    setStatus(error.message);
+  }
+}
+
+function openDeleteAdministratorModal(row) {
+  if (!row) return;
+
+  pendingDeleteAdministratorRow = row;
+  document.getElementById('adminDeleteAdministratorName').textContent = row.dataset.adminName || 'este administrador';
+  document.getElementById('adminDeleteAdministratorModal').classList.add('visible');
+  document.getElementById('adminDeleteAdministratorModal').setAttribute('aria-hidden', 'false');
+}
+
+function closeDeleteAdministratorModal() {
+  pendingDeleteAdministratorRow = null;
+  document.getElementById('adminDeleteAdministratorModal').classList.remove('visible');
+  document.getElementById('adminDeleteAdministratorModal').setAttribute('aria-hidden', 'true');
+}
+
+async function confirmDeleteAdministrator() {
+  if (!pendingDeleteAdministratorRow) return;
+
+  try {
+    await api(`/auth/admins/${encodeURIComponent(pendingDeleteAdministratorRow.dataset.adminEmail || '')}`, {
+      method: 'DELETE'
+    });
+    pendingDeleteAdministratorRow.remove();
+    closeDeleteAdministratorModal();
+  } catch (error) {
+    setStatus(error.message);
+  }
+}
+
 function filterAdminCharts() {
   const chartShell = document.querySelector('.admin-chart-shell');
   if (!chartShell) return;
@@ -1363,6 +1707,8 @@ function showAdminConfigTab(tab) {
     document.querySelector('.admin-topbar h1').textContent = 'Configurações';
     document.querySelector('.admin-topbar p').textContent = 'Sistema, segurança e logs';
     updateAdminTopFilter('dashboard');
+    clearAdministratorProfileForm();
+    loadAdministratorsTable();
   } else if (adminCurrentView === 'logs' || isChartTab) {
     adminCurrentView = 'config';
     document.querySelector('.admin-user-topbar-title').textContent = 'Gráfico';
@@ -1384,7 +1730,10 @@ function showAdminConfigTab(tab) {
 
   document.getElementById('adminConfigChart').classList.toggle('active', isChartTab || isSettingsTab);
   document.getElementById('adminConfigLogs').classList.toggle('active', tab === 'logs');
-  document.getElementById('adminConfigCurrentPage').textContent = isLogsTab ? 'Log' : (isSettingsTab ? 'Geral' : 'Gráfico');
+  const adminConfigCurrentPage = document.getElementById('adminConfigCurrentPage');
+  if (adminConfigCurrentPage) {
+    adminConfigCurrentPage.textContent = isLogsTab ? 'Log' : (isSettingsTab ? 'Geral' : 'Gráfico');
+  }
 
   if (isLogsTab) {
     loadAdminLogs();

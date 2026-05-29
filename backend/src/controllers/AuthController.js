@@ -62,6 +62,33 @@ class AuthController {
       return next(error);
     }
   };
+
+  salvarAdministrador = async (req, res, next) => {
+    try {
+      const administrador = await this.authService.salvarAdministrador(req.body, req.params.email);
+      return res.status(req.params.email ? 200 : 201).json(administrador);
+    } catch (error) {
+      return next(error);
+    }
+  };
+
+  listarAdministradores = async (req, res, next) => {
+    try {
+      const administradores = await this.authService.listarAdministradores();
+      return res.json(administradores);
+    } catch (error) {
+      return next(error);
+    }
+  };
+
+  excluirAdministrador = async (req, res, next) => {
+    try {
+      await this.authService.excluirAdministrador(req.params.email);
+      return res.status(204).send();
+    } catch (error) {
+      return next(error);
+    }
+  };
 }
 
 module.exports = AuthController;
