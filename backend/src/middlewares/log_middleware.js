@@ -13,7 +13,7 @@ function logMiddleware(req, res, next) {
       await logService.registrar({
         endpoint: req.originalUrl,
         metodo: req.method,
-        usuario: req.user ? req.user.email || String(req.user.id) : 'anonimo',
+        usuario: req.user ? req.user.email || String(req.user.id) : 'Não autenticado',
         acao: 'ACESSO_ROTA',
         tipoEvento: 'rota',
         descricao: `${req.method} ${req.originalUrl}`,

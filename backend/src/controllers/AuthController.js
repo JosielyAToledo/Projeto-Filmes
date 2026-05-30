@@ -32,7 +32,7 @@ class AuthController {
       return res.json(result);
     } catch (error) {
       await this.logService.registrar({
-        usuario: req.body.email || 'anonimo',
+        usuario: req.body.email || 'Não autenticado',
         acao: 'LOGIN',
         tipoEvento: 'autenticacao',
         descricao: 'Falha na autenticacao',

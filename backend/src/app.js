@@ -11,6 +11,7 @@ const locacoesRoutes = require('./routes/locacoes_routes');
 const relatoriosRoutes = require('./routes/relatorios_routes');
 const logsRoutes = require('./routes/logs_routes');
 const mysqlPool = require('./config/mysql');
+const optionalAuthMiddleware = require('./middlewares/optional_auth_middleware');
 const logMiddleware = require('./middlewares/log_middleware');
 const errorMiddleware = require('./middlewares/error_middleware');
 
@@ -28,6 +29,7 @@ app.use('/uploads', express.static(path.resolve(process.env.UPLOAD_DIR || 'backe
 app.use(express.static(path.resolve(__dirname, '../../frontend')));
 
 // Registra logs de todas as requisicoes no MongoDB.
+app.use(optionalAuthMiddleware);
 app.use(logMiddleware);
 
 app.get('/health', (req, res) => {

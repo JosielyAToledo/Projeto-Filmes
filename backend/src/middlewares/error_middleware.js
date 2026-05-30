@@ -11,7 +11,7 @@ async function errorMiddleware(error, req, res, next) {
     await logService.registrar({
       endpoint: req.originalUrl,
       metodo: req.method,
-      usuario: req.user ? req.user.email || String(req.user.id) : 'anonimo',
+      usuario: req.user ? req.user.email || String(req.user.id) : 'Não autenticado',
       acao: 'ERRO',
       tipoEvento: 'erro',
       descricao: error.message,

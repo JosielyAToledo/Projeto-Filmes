@@ -4,7 +4,7 @@ const LogSchema = new mongoose.Schema(
   {
     endpoint: { type: String },
     metodo: { type: String },
-    usuario: { type: String, default: 'anonimo' },
+    usuario: { type: String, default: 'Não autenticado' },
     acao: { type: String, required: true, default: 'ACESSO_ROTA' },
     tipoEvento: { type: String, default: 'rota' },
     descricao: { type: String },
