@@ -109,3 +109,24 @@ CREATE TABLE IF NOT EXISTS itens_locacao (
     FOREIGN KEY (filme_id) REFERENCES filmes(id)
     ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS avaliacoes_filmes (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  filme_id INT NOT NULL,
+  usuario_id INT NOT NULL,
+  nota TINYINT NOT NULL,
+  comentario TEXT,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uniq_avaliacoes_filmes_usuario (filme_id, usuario_id),
+  INDEX idx_avaliacoes_filmes_filme_id (filme_id),
+  INDEX idx_avaliacoes_filmes_usuario_id (usuario_id),
+  CONSTRAINT fk_avaliacoes_filmes_filmes
+    FOREIGN KEY (filme_id) REFERENCES filmes(id)
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT fk_avaliacoes_filmes_usuarios
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT chk_avaliacoes_filmes_nota
+    CHECK (nota BETWEEN 1 AND 5)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

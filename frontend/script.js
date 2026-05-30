@@ -5,7 +5,10 @@ let token = localStorage.getItem('token') || '';
 let currentUser = JSON.parse(localStorage.getItem('usuario') || 'null');
 let movies = [];
 let movieRatings = JSON.parse(localStorage.getItem('movieRatings') || '{}');
+let favoriteMovies = JSON.parse(localStorage.getItem('favoriteMovies') || '{}');
 let adminSession = localStorage.getItem('adminSession') === '1';
+let userMoviesPage = 1;
+let currentMovieItems = [];
 let pendingEditMovie = null;
 let pendingDeleteMovie = null;
 let editingMovieId = null;
@@ -17,16 +20,29 @@ let adminCurrentView = 'dashboard';
 let adminLogsCache = [];
 let pendingDeleteLogIndex = null;
 const ADMIN_MOVIES_PER_PAGE = 4;
+const USER_MOVIES_PER_PAGE = 5;
 let pendingInactiveUser = null;
 let pendingDeleteUser = null;
 let pendingDeleteAdministratorRow = null;
 let pendingEditAdministratorData = null;
 let pendingEditAdministratorRow = null;
 let editingAdministratorRow = null;
+let heroMovieIndex = 0;
 const DEFAULT_ADMIN_APPEARANCE = {
   theme: 'Escuro',
   color: '#ead9c4'
 };
+
+const curatedMovieImages = [
+  'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=2200&q=85',
+  'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=2200&q=85',
+  'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=2200&q=85',
+  'https://images.unsplash.com/photo-1444723121867-7a241cacace9?auto=format&fit=crop&w=2200&q=85',
+  'https://images.unsplash.com/photo-1493246507139-91e8fad9978e?auto=format&fit=crop&w=2200&q=85',
+  'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=2200&q=85',
+  'https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=2200&q=85',
+  'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=2200&q=85'
+];
 
 const sampleAdminLogs = [
   {
@@ -2283,6 +2299,14 @@ document.getElementById('diarySearch')?.addEventListener('input', (event) => {
 });
 document.getElementById('diaryGenreFilter')?.addEventListener('change', applyDiaryFilters);
 document.getElementById('goMovies').addEventListener('click', showAllMovies);
+document.querySelector('.hero-arrow.prev')?.addEventListener('click', () => {
+  heroMovieIndex -= 1;
+  renderHeroMovie();
+});
+document.querySelector('.hero-arrow.next')?.addEventListener('click', () => {
+  heroMovieIndex += 1;
+  renderHeroMovie();
+});
 document.getElementById('editProfileBtn').addEventListener('click', () => {
   renderProfileForm();
   showPage('editarPerfil');
@@ -2306,6 +2330,7 @@ document.getElementById('globalSearch').addEventListener('keydown', (event) => {
     showPage('filmes');
     setMoviesHeader('Filmes', 'Resultado da busca.');
     document.getElementById('movieSearch').value = event.target.value;
+    userMoviesPage = 1;
     renderMovies(filterMovies(event.target.value));
   }
 });
@@ -2392,6 +2417,7 @@ function showAllMovies() {
     genreFilter.value = '';
   }
   setMoviesHeader('Filmes', 'Explore todos os filmes disponiveis.');
+  userMoviesPage = 1;
   renderMovies(movies);
   showPage('filmes');
 }
@@ -2407,6 +2433,7 @@ function showCategoryMovies(category) {
     genreFilter.value = category;
   }
   setMoviesHeader(`Filmes de ${category}`, `Explore filmes do gênero ${category}.`);
+  userMoviesPage = 1;
   renderMovies(filteredMovies);
   showPage('filmes');
 }
@@ -2428,13 +2455,14 @@ function populateMovieGenreFilter() {
 function applyMovieFilters() {
   const query = document.getElementById('movieSearch')?.value || '';
   const genre = document.getElementById('genreFilter')?.value || '';
+  userMoviesPage = 1;
   renderMovies(filterMovies(query, genre));
 }
 
 function applyDiaryFilters() {
   const query = document.getElementById('diarySearch')?.value || '';
   const genre = document.getElementById('diaryGenreFilter')?.value || '';
-  renderDiaryMovies(filterMovies(query, genre).slice(0, 8));
+  renderDiaryMovies(filterFavoriteMovies(query, genre));
 }
 
 function filterMovies(query = '', genre = '') {
@@ -2452,21 +2480,90 @@ function filterMovies(query = '', genre = '') {
   });
 }
 
+function getFavoriteMovieItems() {
+  return movies.filter((movie) => isFavoriteMovie(movie.id));
+}
+
+function filterFavoriteMovies(query = '', genre = '') {
+  const favoriteIds = new Set(getFavoriteMovieItems().map((movie) => Number(movie.id)));
+  return filterMovies(query, genre).filter((movie) => favoriteIds.has(Number(movie.id)));
+}
+
 function getMovieGenre(movie = {}) {
   return movie.genero_nome || generoNameById(movie.genero_id) || '';
 }
 
 function renderFeatured() {
   const featured = movies.slice(0, 5);
+  renderHeroMovie();
   document.getElementById('featuredGrid').innerHTML = featured.map(renderMovieCard).join('');
   document.getElementById('favoritesGrid').innerHTML = movies.slice(0, 4).map(renderMovieCard).join('');
-  renderDiaryMovies(movies.slice(1, 9));
+  renderDiaryMovies(getFavoriteMovieItems());
+}
+
+function getCuratedMovieImage(index = 0) {
+  return curatedMovieImages[Math.abs(index) % curatedMovieImages.length];
+}
+
+function renderHeroMovie() {
+  const hero = document.querySelector('.user-home-shell .hero');
+  if (!hero || !movies.length) return;
+
+  const index = ((heroMovieIndex % movies.length) + movies.length) % movies.length;
+  const movie = movies[index];
+  const title = movie.titulo || 'Filme sem título';
+  const year = movie.ano_lancamento || 'Ano não informado';
+  const genre = getMovieGenre(movie) || 'Cinema para quem observa.';
+  const director = movie.diretor || 'Diretor não informado';
+  const description = movie.descricao || 'Filme disponível no catálogo.';
+
+  hero.style.setProperty('--hero-image', `url("${getCuratedMovieImage(index)}")`);
+  hero.querySelector('h1').innerHTML = `${escapeHtml(title)} <span>${escapeHtml(String(year))}</span>`;
+  hero.querySelector('.hero-kicker').textContent = genre;
+  hero.querySelector('.hero-director').textContent = `Direção: ${director}`;
+  hero.querySelector('.hero-description').textContent = description;
 }
 
 function renderMovies(items) {
-  document.getElementById('movieGrid').innerHTML = items.length
-    ? renderMovieListPanel(items)
+  currentMovieItems = items;
+  const total = items.length;
+  const totalPages = Math.max(1, Math.ceil(total / USER_MOVIES_PER_PAGE));
+  userMoviesPage = Math.min(Math.max(userMoviesPage, 1), totalPages);
+
+  const start = (userMoviesPage - 1) * USER_MOVIES_PER_PAGE;
+  const pageItems = items.slice(start, start + USER_MOVIES_PER_PAGE);
+
+  document.getElementById('movieGrid').innerHTML = pageItems.length
+    ? renderMovieListPanel(pageItems)
     : '<p class="empty-state">Nenhum filme encontrado para este gênero.</p>';
+  renderUserMoviesPagination(total, pageItems.length, start, totalPages);
+}
+
+function renderUserMoviesPagination(total, pageCount, start, totalPages) {
+  const pagination = document.getElementById('moviesPagination');
+  if (!pagination) return;
+
+  if (!total) {
+    pagination.innerHTML = '';
+    pagination.hidden = true;
+    return;
+  }
+
+  const end = start + pageCount;
+  const pageButtons = Array.from({ length: totalPages }, (_, index) => {
+    const page = index + 1;
+    return `<button class="${page === userMoviesPage ? 'active' : ''}" type="button" onclick="goToUserMoviesPage(${page})">${page}</button>`;
+  }).join('');
+
+  pagination.hidden = false;
+  pagination.innerHTML = `
+    <span>Mostrando ${start + 1} a ${end} de ${total} filmes</span>
+    <div>
+      <button type="button" ${userMoviesPage === 1 ? 'disabled' : ''} onclick="goToUserMoviesPage(${userMoviesPage - 1})">‹</button>
+      ${pageButtons}
+      <button type="button" ${userMoviesPage === totalPages ? 'disabled' : ''} onclick="goToUserMoviesPage(${userMoviesPage + 1})">›</button>
+    </div>
+  `;
 }
 
 function renderMovieListPanel(items) {
@@ -2479,17 +2576,20 @@ function renderMovieListPanel(items) {
   `;
 }
 
-function renderMovieListRow(movie) {
+function renderMovieListRow(movie, index = 0) {
   const title = movie.titulo || 'Filme sem título';
   const genre = movie.genero_nome || generoNameById(movie.genero_id) || 'Sem gênero';
   const year = movie.ano_lancamento || 'N/I';
   const duration = movie.duracao || '2h 00min';
   const status = movie.status === 'rascunho' ? 'Rascunho' : 'Disponível';
 
+  const cover = getCuratedMovieImage(index);
+
   return `
-    <article class="movie-management-card-item" onclick="openMovieModal(${movie.id})">
+    <article class="movie-management-card-item" style="--movie-cover: url('${escapeHtml(cover)}')" onclick="openMovieModal(${movie.id})">
       <div class="movie-management-poster">
         <img src="${escapeHtml(resolveImageUrl(movie.capa_url))}" alt="Capa de ${escapeHtml(title)}" />
+        <span class="movie-status-pill">${escapeHtml(status)}</span>
       </div>
       <div class="movie-management-info">
         <span class="movie-list-genre">${escapeHtml(genre)}</span>
@@ -2501,8 +2601,7 @@ function renderMovieListRow(movie) {
         </div>
       </div>
       <div class="movie-list-actions">
-        <button type="button" aria-label="Ver detalhes de ${escapeHtml(title)}" onclick="event.stopPropagation(); openMovieModal(${movie.id})">◎</button>
-        <button type="button" aria-label="Favoritar ${escapeHtml(title)}" onclick="event.stopPropagation()">♡</button>
+        <button class="movie-card-arrow" type="button" aria-label="Ver detalhes de ${escapeHtml(title)}" onclick="event.stopPropagation(); openMovieModal(${movie.id})">→</button>
       </div>
     </article>
   `;
@@ -2511,8 +2610,13 @@ function renderMovieListRow(movie) {
 function renderDiaryMovies(items) {
   document.getElementById('watchedGrid').innerHTML = items.length
     ? renderMovieListPanel(items)
-    : '<p class="empty-state">Nenhum filme encontrado no diário.</p>';
+    : '<p class="empty-state">Nenhum filme favoritado ainda.</p>';
 }
+
+window.goToUserMoviesPage = (page) => {
+  userMoviesPage = page;
+  renderMovies(currentMovieItems);
+};
 
 function getProfileUser() {
   return currentUser || {
@@ -2711,49 +2815,171 @@ function renderRatingStars(id) {
   `;
 }
 
+function formatReviewDate(value) {
+  if (!value) return '';
+  return new Intl.DateTimeFormat('pt-BR').format(new Date(value));
+}
+
+function renderMovieComments(reviews = []) {
+  if (!reviews.length) {
+    return '<p class="movie-comments-empty">Nenhum comentário ainda.</p>';
+  }
+
+  return reviews.map((review) => {
+    const name = review.usuario_nome || 'Usuário';
+    const rating = Number(review.nota || 0);
+    const stars = [1, 2, 3, 4, 5].map((value) => value <= rating ? '★' : '☆').join('');
+
+    return `
+    <article class="movie-comment">
+      <span class="movie-comment-avatar">${escapeHtml(getInitials(name) || 'U')}</span>
+      <div>
+        <header>
+          <strong>${escapeHtml(name)}</strong>
+          <time>${escapeHtml(formatReviewDate(review.created_at || review.updated_at))}</time>
+        </header>
+        <div class="movie-comment-stars" aria-hidden="true">${stars}</div>
+        <p>${escapeHtml(review.comentario || 'Sem comentário escrito.')}</p>
+      </div>
+    </article>
+  `;
+  }).join('');
+}
+
+function getReviewsAverage(reviews = []) {
+  if (!reviews.length) return 0;
+  const total = reviews.reduce((sum, review) => sum + Number(review.nota || 0), 0);
+  return total / reviews.length;
+}
+
+function isFavoriteMovie(id) {
+  return Boolean(favoriteMovies[id]);
+}
+
+async function hydrateMovieReviews(movieId) {
+  const list = document.getElementById('movieCommentsList');
+  const score = document.getElementById('movieScoreValue');
+  const count = document.getElementById('movieScoreCount');
+
+  if (!list) return;
+
+  try {
+    const reviews = await api(`/filmes/${movieId}/avaliacoes`);
+    const average = getReviewsAverage(reviews);
+    list.innerHTML = renderMovieComments(reviews);
+    if (score) score.textContent = average ? `★ ${average.toFixed(1)}` : '★ 0.0';
+    if (count) count.textContent = `(${reviews.length} avaliação${reviews.length === 1 ? '' : 'ões'})`;
+
+    const myReview = reviews.find((review) => Number(review.usuario_id) === Number(currentUser?.id));
+    if (myReview) {
+      movieRatings[movieId] = Number(myReview.nota);
+      localStorage.setItem('movieRatings', JSON.stringify(movieRatings));
+      const ratingControl = document.querySelector('.rating-control');
+      if (ratingControl) ratingControl.outerHTML = renderRatingStars(movieId);
+      const textarea = document.getElementById('movieReviewComment');
+      if (textarea) textarea.value = myReview.comentario || '';
+    }
+  } catch (error) {
+    list.innerHTML = '<p class="movie-comments-empty">Não foi possível carregar os comentários.</p>';
+  }
+}
+
 window.openMovieModal = (id) => {
   const movie = movies.find((item) => Number(item.id) === Number(id));
   if (!movie) return;
 
   const modal = document.getElementById('movieModal');
+  const title = movie.titulo || 'Filme sem título';
+  const year = movie.ano_lancamento || 'Não informado';
+  const genre = getMovieGenre(movie) || 'Não informado';
+  const duration = movie.duracao || 'Não informado';
+  const director = movie.diretor || 'Não informado';
+  const classification = movie.classificacao || '12';
+  const classificationText = String(classification);
+  const classificationLabel = classificationText === 'L' || normalizeText(classificationText) === 'livre'
+    ? 'Livre'
+    : classificationText.includes('anos') ? classificationText : `${classificationText} anos`;
+  const poster = resolveImageUrl(movie.capa_url);
+  const synopsis = movie.descricao || 'Filme disponível no catálogo Catálogo7.';
+
   document.getElementById('movieModalContent').innerHTML = `
-    <div class="movie-detail">
-      <img src="${resolveImageUrl(movie.capa_url)}" alt="Capa de ${movie.titulo}" />
-      <div class="movie-detail-content">
-        <h2 id="modalMovieTitle">${movie.titulo}</h2>
-        <div class="movie-meta">
-          <span>${movie.ano_lancamento || 'Ano não informado'}</span>
-          <span>★ 8.6</span>
-          <span>${movie.duracao || '2h 00min'}</span>
-          <span>${movie.genero_nome || 'Drama'}</span>
+    <div class="movie-detail-shell">
+      <section class="movie-detail-hero">
+        <nav class="movie-breadcrumb" aria-label="Caminho">
+          <span>Filmes</span>
+          <span>${escapeHtml(genre)}</span>
+          <span>${escapeHtml(title)}</span>
+        </nav>
+        <div class="movie-detail">
+          <img src="${escapeHtml(poster)}" alt="Capa de ${escapeHtml(title)}" />
+          <div class="movie-detail-content">
+            <h2 id="modalMovieTitle">${escapeHtml(title)}</h2>
+            <div class="movie-meta">
+              <span>${escapeHtml(String(year))}</span>
+              <span>${escapeHtml(duration)}</span>
+              <span>${escapeHtml(genre)}</span>
+              <mark>${escapeHtml(classificationLabel)}</mark>
+            </div>
+            <div class="movie-score">
+              <strong id="movieScoreValue">★ 0.0</strong>
+              <span id="movieScoreCount">(0 avaliações)</span>
+              <button type="button" class="secondary-action favorite-button ${isFavoriteMovie(movie.id) ? 'active' : ''}" onclick="toggleFavoriteMovie(${movie.id})">
+                <span class="favorite-icon" aria-hidden="true"></span>
+                Adicionar aos favoritos
+              </button>
+            </div>
+            <h3>Sinopse</h3>
+            <p>${escapeHtml(synopsis)}</p>
+            <dl class="movie-quick-info">
+              <div>
+                <dt>Diretor</dt>
+                <dd>${escapeHtml(director)}</dd>
+              </div>
+              <div>
+                <dt>Gênero</dt>
+                <dd>${escapeHtml(genre)}</dd>
+              </div>
+              <div>
+                <dt>Duração</dt>
+                <dd>${escapeHtml(duration)}</dd>
+              </div>
+              <div>
+                <dt>Lançamento</dt>
+                <dd>${escapeHtml(String(year))}</dd>
+              </div>
+              <div>
+                <dt>Classificação</dt>
+                <dd><mark>${escapeHtml(classificationLabel)}</mark></dd>
+              </div>
+            </dl>
+          </div>
         </div>
-        <p>${movie.descricao || 'Filme disponível no catálogo Catálogo7.'}</p>
-        <div class="detail-actions">
-          ${renderRatingStars(movie.id)}
-          <button type="button" class="secondary-action">Adicionar aos favoritos</button>
+      </section>
+      <section class="movie-review-card">
+        <h3>Minha avaliação</h3>
+        ${renderRatingStars(movie.id)}
+        <label>
+          Comentário opcional
+          <textarea id="movieReviewComment" maxlength="500" placeholder="Escreva o que achou do filme..."></textarea>
+          <span id="movieReviewCounter">0/500</span>
+        </label>
+        <button type="button" onclick="submitMovieReview(${movie.id})">Enviar avaliação</button>
+      </section>
+      <section class="movie-comments-card">
+        <h3>Comentários dos usuários</h3>
+        <div id="movieCommentsList">
+          <p class="movie-comments-empty">Carregando comentários...</p>
         </div>
-      </div>
-    </div>
-    <div class="movie-info">
-      <h3>Informações</h3>
-      <dl>
-        <div>
-          <dt>Diretor</dt>
-          <dd>${movie.diretor || 'Não informado'}</dd>
-        </div>
-        <div>
-          <dt>Elenco</dt>
-          <dd>${movie.elenco || 'Não informado'}</dd>
-        </div>
-        <div>
-          <dt>Lançamento</dt>
-          <dd>${movie.ano_lancamento || 'Não informado'}</dd>
-        </div>
-      </dl>
+      </section>
     </div>
   `;
   modal.classList.add('visible');
   modal.setAttribute('aria-hidden', 'false');
+  document.getElementById('movieReviewComment')?.addEventListener('input', (event) => {
+    const counter = document.getElementById('movieReviewCounter');
+    if (counter) counter.textContent = `${event.target.value.length}/500`;
+  });
+  hydrateMovieReviews(movie.id);
 };
 
 window.setMovieRating = (id, rating) => {
@@ -2763,6 +2989,47 @@ window.setMovieRating = (id, rating) => {
   const ratingControl = document.querySelector('.rating-control');
   if (ratingControl) {
     ratingControl.outerHTML = renderRatingStars(id);
+  }
+};
+
+window.toggleFavoriteMovie = (id) => {
+  favoriteMovies[id] = !favoriteMovies[id];
+
+  if (!favoriteMovies[id]) {
+    delete favoriteMovies[id];
+  }
+
+  localStorage.setItem('favoriteMovies', JSON.stringify(favoriteMovies));
+
+  const favoriteButton = document.querySelector('.favorite-button');
+  if (favoriteButton) {
+    favoriteButton.classList.toggle('active', isFavoriteMovie(id));
+  }
+
+  applyDiaryFilters();
+};
+
+window.submitMovieReview = async (id) => {
+  const rating = getMovieRating(id);
+  const comment = document.getElementById('movieReviewComment')?.value || '';
+
+  if (!rating) {
+    alert('Clique em uma estrela antes de enviar.');
+    return;
+  }
+
+  try {
+    await api(`/filmes/${id}/avaliacoes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        nota: rating,
+        comentario: comment
+      })
+    });
+    await hydrateMovieReviews(id);
+  } catch (error) {
+    alert(error.message);
   }
 };
 

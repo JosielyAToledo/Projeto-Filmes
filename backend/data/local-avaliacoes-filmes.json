@@ -1,0 +1,12 @@
+[
+  {
+    "id": 1780152202063,
+    "filme_id": 5,
+    "usuario_id": 1780103888941,
+    "usuario_nome": "Josiely Toledo",
+    "nota": 3,
+    "comentario": "teste",
+    "created_at": "2026-05-30T14:43:22.063Z",
+    "updated_at": "2026-05-30T14:43:22.063Z"
+  }
+]
