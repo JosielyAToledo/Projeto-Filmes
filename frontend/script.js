@@ -281,12 +281,46 @@ function syncView() {
   renderProfile();
 
   const name = currentUser ? currentUser.nome || currentUser.email || 'usuário' : 'Preview';
-  document.getElementById('currentUserName').textContent = name.split(' ')[0];
-  document.querySelector('.user-box .avatar').textContent = getInitials(name);
+  document.querySelectorAll('#currentUserName').forEach((element) => {
+    element.textContent = name.split(' ')[0];
+  });
+  document.querySelectorAll('.user-box > span').forEach((element) => {
+    element.textContent = name.split(' ')[0];
+  });
+  applyUserAvatar(name);
   if (previewMode && !currentUser) {
-    document.getElementById('currentUserName').textContent = 'Lucas';
-    document.querySelector('.user-box .avatar').textContent = 'LS';
+    document.querySelectorAll('#currentUserName').forEach((element) => {
+      element.textContent = 'Lucas';
+    });
+    document.querySelectorAll('.user-box > span').forEach((element) => {
+      element.textContent = 'Lucas';
+    });
+    applyUserAvatar('Lucas Silva');
   }
+}
+
+function applyUserAvatar(name) {
+  const initials = getInitials(name);
+  const colors = getAvatarColors(name);
+
+  document.querySelectorAll('.user-box .avatar').forEach((avatar) => {
+    avatar.textContent = initials;
+    avatar.style.setProperty('--avatar-color-a', colors[0]);
+    avatar.style.setProperty('--avatar-color-b', colors[1]);
+  });
+}
+
+function getAvatarColors(name = '') {
+  const palettes = [
+    ['#8f4e38', '#5a0f0f'],
+    ['#9a6a3b', '#5a0f0f'],
+    ['#7d1919', '#2a2a2a'],
+    ['#b27654', '#5a0f0f'],
+    ['#6d4734', '#151515'],
+    ['#9f5f45', '#2a2a2a']
+  ];
+  const key = String(name || '').trim().charCodeAt(0) || 0;
+  return palettes[key % palettes.length];
 }
 
 function showRegister() {
@@ -495,8 +529,39 @@ document.getElementById('registerForm').addEventListener('submit', async (event)
 });
 
 document.querySelectorAll('#logoutBtn').forEach((button) => {
+  button.addEventListener('click', (event) => {
+    event.stopPropagation();
+    const userBox = button.closest('.user-box');
+    const isOpen = userBox?.classList.toggle('menu-open');
+    button.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    userBox?.querySelector('.user-menu')?.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+  });
+});
+
+document.querySelectorAll('[data-user-menu-profile]').forEach((button) => {
+  button.addEventListener('click', () => {
+    closeUserMenus();
+    showPage('perfil');
+  });
+});
+
+document.querySelectorAll('[data-user-menu-logout]').forEach((button) => {
   button.addEventListener('click', logoutAndReload);
 });
+
+document.addEventListener('click', (event) => {
+  if (!event.target.closest('.user-box')) {
+    closeUserMenus();
+  }
+});
+
+function closeUserMenus() {
+  document.querySelectorAll('.user-box.menu-open').forEach((userBox) => {
+    userBox.classList.remove('menu-open');
+    userBox.querySelector('#logoutBtn')?.setAttribute('aria-expanded', 'false');
+    userBox.querySelector('.user-menu')?.setAttribute('aria-hidden', 'true');
+  });
+}
 
 document.getElementById('adminLogoutBtn').addEventListener('click', logoutAndReload);
 
@@ -2187,10 +2252,13 @@ document.querySelectorAll('.nav-link').forEach((link) => {
   });
 });
 
+document.querySelector('.user-home-link')?.addEventListener('click', () => {
+  showPage('inicio');
+});
+
 const userNavLabels = {
   filmes: 'FILMES',
-  favoritos: 'LISTAS',
-  perfil: 'MEMBROS',
+  categorias: 'GÊNEROS',
   assistidos: 'DIÁRIO'
 };
 

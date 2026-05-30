@@ -1241,9 +1241,9 @@
 
     <section class="app-shell user-home-shell" id="appShell">
       <aside class="sidebar user-header">
-        <div class="side-brand">
+        <button class="side-brand user-home-link" type="button" aria-label="Voltar para a pagina inicial">
           <strong>catálogo<span>7</span></strong>
-        </div>
+        </button>
 
         <nav>
           <a href="#inicio" class="nav-link active" data-page="inicio">Início</a>
@@ -1267,7 +1267,17 @@
           <div class="user-box">
             <span>Olá, <strong id="currentUserName">usuário</strong></span>
             <div class="avatar">M</div>
-            <button id="logoutBtn" type="button">Sair</button>
+            <button id="logoutBtn" type="button" aria-label="Abrir menu do usuario" aria-expanded="false">Sair</button>
+            <div class="user-menu" aria-hidden="true">
+              <button type="button" data-user-menu-profile>
+                <span aria-hidden="true">♙</span>
+                Meu perfil
+              </button>
+              <button type="button" data-user-menu-logout>
+                <span aria-hidden="true">↪</span>
+                Sair
+              </button>
+            </div>
           </div>
         </div>
       </aside>
@@ -1282,7 +1292,17 @@
           <div class="user-box">
             <span>Olá, <strong id="currentUserName">usuário</strong></span>
             <div class="avatar">M</div>
-            <button id="logoutBtn" type="button">Sair</button>
+            <button id="logoutBtn" type="button" aria-label="Abrir menu do usuario" aria-expanded="false">Sair</button>
+            <div class="user-menu" aria-hidden="true">
+              <button type="button" data-user-menu-profile>
+                <span aria-hidden="true">♙</span>
+                Meu perfil
+              </button>
+              <button type="button" data-user-menu-logout>
+                <span aria-hidden="true">↪</span>
+                Sair
+              </button>
+            </div>
           </div>
         </header>
 
