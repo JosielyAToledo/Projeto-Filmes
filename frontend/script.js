@@ -17,6 +17,7 @@ let pendingMovieSaveStatus = 'publicado';
 let adminMoviesCache = [];
 let adminMoviesFiltered = [];
 let adminMoviesPage = 1;
+let adminUsersCache = [];
 let adminCurrentView = 'dashboard';
 let adminLogsCache = [];
 let pendingDeleteLogIndex = null;
@@ -851,6 +852,29 @@ document.querySelectorAll('.user-action.view').forEach((button) => {
   });
 });
 
+document.querySelector('.admin-users-table tbody')?.addEventListener('click', (event) => {
+  const button = event.target.closest('.user-action');
+  const row = event.target.closest('tr');
+  if (!button || !row) return;
+
+  if (button.classList.contains('view')) {
+    openUserDetailsModal(row);
+    return;
+  }
+
+  if (button.classList.contains('lock')) {
+    const userName = row.querySelector('td strong')?.textContent || 'este usuÃ¡rio';
+    openInactivateUserModal(userName);
+    return;
+  }
+
+  if (button.classList.contains('delete')) {
+    const userName = row.querySelector('td strong')?.textContent || 'este usuÃ¡rio';
+    const isInactive = row.querySelector('.user-status-pill')?.classList.contains('inactive');
+    openDeleteUserModal(userName, isInactive);
+  }
+});
+
 document.getElementById('adminCloseUserDetails').addEventListener('click', closeUserDetailsModal);
 
 document.getElementById('adminUserDetailsModal').addEventListener('click', (event) => {
@@ -1304,6 +1328,87 @@ function formatAdminDate(value) {
   }).format(new Date(value));
 }
 
+async function loadAdminUsers() {
+  const tableBody = document.querySelector('.admin-users-view .admin-users-table tbody');
+  const userCount = document.querySelector('.admin-users-view .admin-catalog-footer span');
+  if (!tableBody) return;
+
+  tableBody.innerHTML = '<tr><td colspan="7">Carregando usuÃ¡rios...</td></tr>';
+  if (userCount) userCount.textContent = 'Carregando usuÃ¡rios...';
+
+  try {
+    adminUsersCache = await api('/auth/usuarios');
+    renderAdminUsersTable(adminUsersCache);
+  } catch (error) {
+    tableBody.innerHTML = `<tr><td colspan="7">${escapeHtml(error.message)}</td></tr>`;
+    if (userCount) userCount.textContent = 'Erro ao carregar usuÃ¡rios';
+  }
+}
+
+function renderAdminUsersTable(users = []) {
+  const tableBody = document.querySelector('.admin-users-view .admin-users-table tbody');
+  if (!tableBody) return;
+
+  if (!users.length) {
+    tableBody.innerHTML = '<tr><td colspan="7">Nenhum usuÃ¡rio cadastrado.</td></tr>';
+    updateAdminUsersCount(0);
+    return;
+  }
+
+  tableBody.innerHTML = users.map(renderAdminUserRow).join('');
+  filterAdminUsers();
+}
+
+function renderAdminUserRow(user, index) {
+  const name = user.nome || 'UsuÃ¡rio sem nome';
+  const email = user.email || '-';
+  const type = formatAdminUserType(user.tipo_usuario);
+  const status = String(user.status || 'ativo').toLowerCase() === 'inativo' ? 'Inativo' : 'Ativo';
+  const statusClass = status === 'Inativo' ? 'inactive' : 'active';
+  const typeClass = type === 'Admin' ? ' admin' : '';
+  const avatarClass = getAdminUserAvatarClass(name, index);
+  const createdAt = formatAdminDate(user.created_at);
+  const lastAccess = formatAdminDate(user.updated_at);
+
+  return `
+    <tr data-user-id="${escapeHtml(user.id || '')}">
+      <td>
+        <span class="user-table-avatar ${avatarClass}">${escapeHtml(getInitials(name) || 'U')}</span>
+        <strong>${escapeHtml(name)}</strong>
+      </td>
+      <td>${escapeHtml(email)}</td>
+      <td><span class="user-type-pill${typeClass}">${escapeHtml(type)}</span></td>
+      <td><span class="user-status-pill ${statusClass}">${escapeHtml(status)}</span></td>
+      <td>${escapeHtml(lastAccess)}</td>
+      <td>${escapeHtml(createdAt)}</td>
+      <td>
+        <button class="user-action view" type="button" aria-label="Ver ${escapeHtml(name)}">👁</button>
+        <button class="user-action lock" type="button" aria-label="Bloquear ${escapeHtml(name)}"><span class="lock-icon" aria-hidden="true"></span></button>
+        <button class="user-action delete" type="button" aria-label="Excluir ${escapeHtml(name)}">🗑</button>
+      </td>
+    </tr>
+  `;
+}
+
+function formatAdminUserType(type) {
+  return String(type || '').toLowerCase() === 'admin' ? 'Admin' : 'UsuÃ¡rio';
+}
+
+function getAdminUserAvatarClass(name = '', index = 0) {
+  const colors = ['purple', 'blue', 'orange', 'teal', 'red', 'yellow'];
+  const initialCode = (name.trim().charCodeAt(0) || index) + index;
+  return colors[Math.abs(initialCode) % colors.length];
+}
+
+function updateAdminUsersCount(count) {
+  const userCount = document.querySelector('.admin-users-view .admin-catalog-footer span');
+  if (!userCount) return;
+
+  userCount.textContent = count
+    ? `Mostrando 1 a ${count} de ${count} usuÃ¡rios`
+    : 'Nenhum usuÃ¡rio encontrado';
+}
+
 async function loadAdminMovies() {
   const tableBody = document.getElementById('adminMoviesTableBody');
   const tableCount = document.getElementById('adminMoviesTableCount');
@@ -1642,6 +1747,10 @@ function showAdminView(view) {
     document.querySelector('.admin-main').classList.remove('creating-movie');
     editingMovieId = null;
     loadAdminMovies();
+  } else if (isUsersView) {
+    loadAdminUsers();
+  } else if (view === 'dashboard') {
+    loadAdminDashboardStats();
   } else {
     document.querySelector('.admin-main').classList.remove('creating-movie');
   }
@@ -1924,6 +2033,7 @@ async function saveAdministratorProfile() {
 
     clearAdministratorProfileForm();
     setStatus('Administrador salvo com sucesso.');
+    loadAdminDashboardStats();
   } catch (error) {
     setStatus(error.message);
   }
@@ -1952,6 +2062,7 @@ async function confirmDeleteAdministrator() {
       method: 'DELETE'
     });
     pendingDeleteAdministratorRow.remove();
+    loadAdminDashboardStats();
     closeDeleteAdministratorModal();
   } catch (error) {
     setStatus(error.message);

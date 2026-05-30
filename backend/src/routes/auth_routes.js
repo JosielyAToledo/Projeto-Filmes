@@ -15,6 +15,7 @@ class AuthRoutes {
     this.router.post('/registrar', validationMiddleware(['nome', 'email', 'senha']), this.authController.registrar);
     this.router.post('/login', validationMiddleware(['email', 'senha']), this.authController.login);
     this.router.post('/logout', authMiddleware, this.authController.logout);
+    this.router.get('/usuarios', authMiddleware, adminMiddleware, this.authController.listarUsuarios);
     this.router.get('/admins', authMiddleware, adminMiddleware, this.authController.listarAdministradores);
     this.router.post('/admins', authMiddleware, adminMiddleware, validationMiddleware(['nome', 'email', 'senha']), this.authController.salvarAdministrador);
     this.router.put('/admins/:email', authMiddleware, adminMiddleware, validationMiddleware(['nome', 'email']), this.authController.salvarAdministrador);

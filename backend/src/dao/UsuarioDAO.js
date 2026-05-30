@@ -81,6 +81,16 @@ class UsuarioDAO {
     return rows;
   }
 
+  async listAll() {
+    const [rows] = await pool.execute(
+      `SELECT id, nome, email, tipo_usuario, status, created_at, updated_at
+       FROM usuarios
+       ORDER BY id ASC`
+    );
+
+    return rows;
+  }
+
   async deleteAdminByEmail(email) {
     const [result] = await pool.execute(
       `DELETE FROM usuarios

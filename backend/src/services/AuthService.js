@@ -228,6 +228,14 @@ class AuthService {
     return this.usuarioDAO.listAdmins();
   }
 
+  async listarUsuarios() {
+    if (isLocalMode()) {
+      return [LOCAL_ADMIN, ...localAdmins, ...localUsers].map(sanitizeUser);
+    }
+
+    return this.usuarioDAO.listAll();
+  }
+
   async excluirAdministrador(email) {
     if (isLocalMode()) {
       const index = localAdmins.findIndex((admin) => admin.email.toLowerCase() === String(email || '').toLowerCase());
@@ -272,6 +280,18 @@ function sanitizeAdmin(usuario) {
     email: usuario.email,
     tipo_usuario: 'admin',
     status: usuario.status || 'ativo'
+  };
+}
+
+function sanitizeUser(usuario) {
+  return {
+    id: usuario.id,
+    nome: usuario.nome,
+    email: usuario.email,
+    tipo_usuario: usuario.tipo_usuario || 'usuario',
+    status: usuario.status || 'ativo',
+    created_at: usuario.created_at || null,
+    updated_at: usuario.updated_at || null
   };
 }
 

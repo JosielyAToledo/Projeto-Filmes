@@ -92,6 +92,15 @@ class AuthController {
     }
   };
 
+  listarUsuarios = async (req, res, next) => {
+    try {
+      const usuarios = await this.authService.listarUsuarios();
+      return res.json(usuarios);
+    } catch (error) {
+      return next(error);
+    }
+  };
+
   excluirAdministrador = async (req, res, next) => {
     try {
       await this.authService.excluirAdministrador(req.params.email);
