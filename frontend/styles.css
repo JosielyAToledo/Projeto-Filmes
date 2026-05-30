@@ -9598,6 +9598,48 @@ canvas {
   }
 }
 
+@media (max-width: 760px) {
+  .admin-sidebar {
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    overflow: visible;
+  }
+
+  .admin-quick-nav {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 12px;
+    z-index: 70;
+    width: min(260px, calc(100vw - 24px));
+    display: none;
+    grid-column: auto;
+    margin: 0;
+    border: 1px solid rgba(232, 226, 214, 0.12);
+    border-radius: 6px;
+    padding: 8px;
+    background: #101419;
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.38);
+  }
+
+  .admin-sidebar.menu-open .admin-quick-nav {
+    display: grid;
+    gap: 6px;
+  }
+
+  .admin-quick-nav a {
+    width: 100%;
+    min-height: 40px;
+    justify-content: flex-start;
+    padding: 0 12px;
+  }
+
+  .admin-menu-button {
+    justify-self: end;
+  }
+}
+
 /* Final visual match for admin users page */
 .admin-main.show-users .admin-dashboard-card {
   border: 1px solid rgba(232, 226, 214, 0.1);
@@ -9918,4 +9960,928 @@ canvas {
   border-left: 1px solid rgba(232, 226, 214, 0.1);
   border-right: 1px solid rgba(232, 226, 214, 0.1);
   border-radius: 0 0 6px 6px;
+}
+
+/* Mobile/tablet page-by-page polish */
+@media (max-width: 760px) {
+  .admin-shell,
+  .admin-main,
+  .admin-dashboard-card,
+  .admin-catalog-shell,
+  .admin-config-shell,
+  .admin-logs-shell,
+  .movie-create-shell {
+    overflow-x: hidden;
+  }
+
+  .admin-sidebar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
+    gap: 10px;
+    padding: 14px 12px;
+  }
+
+  .admin-brand {
+    min-width: 0;
+    font-size: 30px;
+    white-space: nowrap;
+  }
+
+  .admin-brand span {
+    width: 28px;
+    height: 34px;
+    font-size: 21px;
+  }
+
+  .admin-user-menu {
+    display: flex;
+    margin-left: 0;
+  }
+
+  .admin-user-menu strong {
+    display: none;
+  }
+
+  .admin-sidebar > nav {
+    position: static;
+    display: block;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .admin-exit {
+    min-height: 34px;
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid rgba(232, 226, 214, 0.12);
+    border-radius: 5px;
+    padding: 0 10px;
+    background: rgba(232, 226, 214, 0.04);
+    color: rgba(232, 226, 214, 0.86);
+    font-size: 12px;
+    font-weight: 900;
+  }
+
+  .admin-quick-nav {
+    left: 12px;
+    right: 12px;
+    width: auto;
+  }
+
+  .admin-main.show-movies,
+  .admin-main.show-users,
+  .admin-main.show-config.show-chart,
+  .admin-main.show-logs {
+    padding: 12px;
+  }
+
+  .admin-main.show-movies .admin-topbar,
+  .admin-main.show-users .admin-topbar,
+  .admin-main.show-config.show-chart .admin-topbar,
+  .admin-main.show-logs .admin-topbar {
+    min-height: auto;
+    align-items: stretch;
+    flex-direction: column;
+    padding: 16px;
+  }
+
+  .admin-main.show-movies .admin-tools,
+  .admin-main.show-users .admin-tools,
+  .admin-main.show-config.show-chart .admin-tools,
+  .admin-main.show-logs .admin-tools {
+    width: 100%;
+    margin-left: 0;
+    justify-content: stretch;
+  }
+
+  .admin-main.show-movies .admin-search,
+  .admin-main.show-users .admin-search,
+  .admin-main.show-config.show-chart .admin-search,
+  .admin-main.show-logs .admin-search,
+  .admin-main.show-movies .admin-genre-select,
+  .admin-main.show-users .admin-genre-select,
+  .admin-main.show-config.show-chart .admin-chart-filter-button,
+  .admin-main.show-logs .admin-genre-select,
+  .admin-main.show-logs .admin-export-btn {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .admin-main.show-movies .admin-catalog-shell,
+  .admin-main.show-users .admin-catalog-shell,
+  .admin-main.show-config.show-chart .admin-config-shell,
+  .admin-main.show-logs .admin-logs-shell {
+    padding: 18px 12px;
+  }
+
+  .admin-main.show-movies .admin-catalog-header h2,
+  .admin-main.show-users .admin-user-topbar-title,
+  .admin-main.show-config.show-chart .admin-user-topbar-title,
+  .admin-main.show-logs .admin-user-topbar-title,
+  .admin-main.show-logs .admin-export-title {
+    font-size: 30px;
+  }
+}
+
+@media (max-width: 420px) {
+  .admin-sidebar {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+  }
+
+  .admin-user-menu {
+    display: none;
+  }
+
+  .admin-brand {
+    font-size: 26px;
+  }
+
+  .admin-brand span {
+    width: 24px;
+    height: 30px;
+    font-size: 18px;
+  }
+
+  .admin-exit {
+    padding: 0 8px;
+  }
+}
+
+/* Users page responsive only */
+@media (max-width: 1024px) {
+  .admin-main.show-users {
+    padding: 16px;
+  }
+
+  .admin-main.show-users .admin-topbar {
+    align-items: flex-start;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+
+  .admin-main.show-users .admin-tools {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+
+  .admin-main.show-users .admin-search {
+    width: min(100%, 360px);
+  }
+
+  .admin-main.show-users .admin-catalog-shell {
+    padding: 24px 16px 18px;
+  }
+
+  .admin-main.show-users .admin-catalog-table-wrap {
+    overflow-x: auto;
+  }
+
+  .admin-main.show-users .admin-users-table {
+    min-width: 880px;
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-main.show-users {
+    padding: 12px;
+  }
+
+  .admin-main.show-users .admin-dashboard-card,
+  .admin-main.show-users .admin-catalog-shell {
+    border-radius: 6px;
+  }
+
+  .admin-main.show-users .admin-dashboard-card {
+    border-bottom: 1px solid rgba(232, 226, 214, 0.1);
+  }
+
+  .admin-main.show-users .admin-topbar {
+    display: grid;
+    grid-template-columns: 1fr;
+    min-height: auto;
+    padding: 16px;
+  }
+
+  .admin-main.show-users .admin-user-topbar-title {
+    width: max-content;
+    min-height: 44px;
+    font-size: 32px;
+  }
+
+  .admin-main.show-users .admin-tools {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .admin-main.show-users .admin-search,
+  .admin-main.show-users .admin-genre-select,
+  .admin-main.show-users .admin-export-btn {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .admin-main.show-users .admin-catalog-shell {
+    margin-top: 12px;
+    border-top: 1px solid rgba(232, 226, 214, 0.1);
+    padding: 12px;
+  }
+
+  .admin-main.show-users .admin-catalog-table-wrap {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+
+  .admin-main.show-users .admin-users-table {
+    min-width: 0;
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 10px;
+  }
+
+  .admin-main.show-users .admin-users-table thead {
+    display: none;
+  }
+
+  .admin-main.show-users .admin-users-table tbody,
+  .admin-main.show-users .admin-users-table tr,
+  .admin-main.show-users .admin-users-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .admin-main.show-users .admin-users-table tr {
+    border: 1px solid rgba(232, 226, 214, 0.1);
+    border-radius: 6px;
+    padding: 12px;
+    background: rgba(5, 8, 10, 0.62);
+  }
+
+  .admin-main.show-users .admin-users-table td {
+    height: auto;
+    border-bottom: 1px solid rgba(232, 226, 214, 0.06);
+    padding: 10px 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .admin-main.show-users .admin-users-table td:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .admin-main.show-users .admin-users-table td:first-child {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-top: 0;
+  }
+
+  .admin-main.show-users .admin-users-table td:not(:first-child)::before {
+    display: block;
+    margin-bottom: 5px;
+    color: rgba(232, 226, 214, 0.5);
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .admin-main.show-users .admin-users-table td:nth-child(2)::before { content: "E-mail"; }
+  .admin-main.show-users .admin-users-table td:nth-child(3)::before { content: "Tipo"; }
+  .admin-main.show-users .admin-users-table td:nth-child(4)::before { content: "Status"; }
+  .admin-main.show-users .admin-users-table td:nth-child(5)::before { content: "Último acesso"; }
+  .admin-main.show-users .admin-users-table td:nth-child(6)::before { content: "Data de cadastro"; }
+  .admin-main.show-users .admin-users-table td:nth-child(7)::before { content: "Ações"; }
+
+  .admin-main.show-users .admin-users-table td:nth-child(7) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .admin-main.show-users .admin-users-table td:nth-child(7)::before {
+    flex-basis: 100%;
+  }
+
+  .admin-main.show-users .user-action {
+    margin-right: 0;
+  }
+
+  .admin-main.show-users .admin-catalog-footer {
+    padding: 12px 0 0;
+  }
+}
+
+@media (max-width: 420px) {
+  .admin-main.show-users {
+    padding: 8px;
+  }
+
+  .admin-main.show-users .admin-topbar,
+  .admin-main.show-users .admin-catalog-shell,
+  .admin-main.show-users .admin-users-table tr {
+    padding: 12px;
+  }
+
+  .admin-main.show-users .admin-user-topbar-title {
+    font-size: 28px;
+  }
+}
+
+/* Settings page responsive only */
+@media (max-width: 1024px) {
+  .admin-main.show-config.show-settings {
+    padding: 16px;
+  }
+
+  .admin-main.show-config.show-settings .admin-config-shell {
+    padding: 18px;
+  }
+
+  .admin-main.show-config.show-settings .admin-config-header {
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .admin-main.show-config.show-settings .admin-profile-grid {
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+
+  .admin-main.show-config.show-settings .admin-profile-grid label:last-child {
+    grid-column: 2;
+  }
+
+  .admin-main.show-config.show-settings .admin-password-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-main.show-config.show-settings .admin-password-grid::before {
+    display: none;
+  }
+
+  .admin-main.show-config.show-settings .admin-profile-save {
+    grid-column: 1 / -1;
+  }
+
+  .admin-main.show-config.show-settings .admin-appearance-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-main.show-config.show-settings .settings-preview-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-main.show-config.show-settings {
+    padding: 12px;
+  }
+
+  .admin-main.show-config.show-settings .admin-config-shell {
+    padding: 14px;
+    border-radius: 6px;
+  }
+
+  .admin-main.show-config.show-settings .admin-config-header span {
+    font-size: 30px;
+  }
+
+  .admin-main.show-config.show-settings .admin-config-tabs {
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .admin-main.show-config.show-settings .admin-config-tabs button {
+    flex: 0 0 auto;
+  }
+
+  .admin-main.show-config.show-settings .admin-settings-page {
+    gap: 12px;
+  }
+
+  .admin-main.show-config.show-settings .admin-settings-card {
+    padding: 14px;
+  }
+
+  .admin-main.show-config.show-settings .admin-settings-card header {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .admin-main.show-config.show-settings .admin-settings-card header button {
+    width: 100%;
+  }
+
+  .admin-main.show-config.show-settings .admin-profile-grid,
+  .admin-main.show-config.show-settings .admin-password-grid,
+  .admin-main.show-config.show-settings .admin-theme-form,
+  .admin-main.show-config.show-settings .settings-preview-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-main.show-config.show-settings .admin-profile-avatar {
+    width: 58px;
+    height: 58px;
+    font-size: 30px;
+  }
+
+  .admin-main.show-config.show-settings .admin-profile-grid label:last-child,
+  .admin-main.show-config.show-settings .admin-profile-save {
+    grid-column: auto;
+  }
+
+  .admin-main.show-config.show-settings .admin-profile-save,
+  .admin-main.show-config.show-settings .settings-preview-button,
+  .admin-main.show-config.show-settings .settings-save-button,
+  .admin-main.show-config.show-settings .settings-reset-button {
+    width: 100%;
+  }
+
+  .admin-main.show-config.show-settings .admin-settings-table-wrap {
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+
+  .admin-main.show-config.show-settings .admin-settings-table {
+    min-width: 0;
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 10px;
+  }
+
+  .admin-main.show-config.show-settings .admin-settings-table thead {
+    display: none;
+  }
+
+  .admin-main.show-config.show-settings .admin-settings-table tbody,
+  .admin-main.show-config.show-settings .admin-settings-table tr,
+  .admin-main.show-config.show-settings .admin-settings-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .admin-main.show-config.show-settings .admin-settings-table tr {
+    border: 1px solid rgba(232, 226, 214, 0.1);
+    border-radius: 6px;
+    padding: 12px;
+    background: rgba(5, 8, 10, 0.62);
+  }
+
+  .admin-main.show-config.show-settings .admin-settings-table td {
+    border-bottom: 1px solid rgba(232, 226, 214, 0.06);
+    padding: 10px 0;
+    text-align: left !important;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .admin-main.show-config.show-settings .admin-settings-table td:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .admin-main.show-config.show-settings .admin-settings-table td::before {
+    display: block;
+    margin-bottom: 5px;
+    color: rgba(232, 226, 214, 0.5);
+    font-size: 10px;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .admin-main.show-config.show-settings .admin-settings-table td:nth-child(1)::before { content: "Usuário"; }
+  .admin-main.show-config.show-settings .admin-settings-table td:nth-child(2)::before { content: "E-mail"; }
+  .admin-main.show-config.show-settings .admin-settings-table td:nth-child(3)::before { content: "Status"; }
+  .admin-main.show-config.show-settings .admin-settings-table td:nth-child(4)::before { content: "Último acesso"; }
+  .admin-main.show-config.show-settings .admin-settings-table td:nth-child(5)::before { content: "Ações"; }
+
+  .admin-main.show-config.show-settings .admin-settings-table td:first-child {
+    display: block;
+  }
+
+  .admin-main.show-config.show-settings .settings-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .admin-main.show-config.show-settings .settings-actions button:not(.settings-delete) {
+    flex: 1 1 120px;
+  }
+
+  .admin-main.show-config.show-settings .settings-preview-panel {
+    overflow-x: auto;
+  }
+
+  .admin-main.show-config.show-settings .settings-preview-panel table {
+    min-width: 520px;
+  }
+}
+
+@media (max-width: 420px) {
+  .admin-main.show-config.show-settings {
+    padding: 8px;
+  }
+
+  .admin-main.show-config.show-settings .admin-config-shell,
+  .admin-main.show-config.show-settings .admin-settings-card {
+    padding: 12px;
+  }
+
+  .admin-main.show-config.show-settings .admin-config-header span {
+    font-size: 26px;
+  }
+
+  .admin-main.show-config.show-settings .admin-settings-card header strong {
+    font-size: 16px;
+  }
+}
+
+/* Chart page responsive only */
+@media (max-width: 1024px) {
+  .admin-main.show-config.show-chart {
+    padding: 16px;
+  }
+
+  .admin-main.show-config.show-chart .admin-topbar {
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+
+  .admin-main.show-config.show-chart .admin-tools {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .admin-main.show-config.show-chart .admin-search {
+    width: min(100%, 360px);
+  }
+
+  .admin-main.show-config.show-chart .admin-config-shell {
+    padding: 24px 16px 18px;
+  }
+
+  .admin-main.show-config.show-chart .admin-chart-shell {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .admin-main.show-config.show-chart .admin-chart-card {
+    padding: 16px;
+  }
+
+  .admin-main.show-config.show-chart .admin-donut-chart-layout,
+  .admin-main.show-config.show-chart .admin-user-status-chart {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-main.show-config.show-chart {
+    padding: 12px;
+  }
+
+  .admin-main.show-config.show-chart .admin-dashboard-card {
+    border-bottom: 1px solid rgba(232, 226, 214, 0.1);
+    border-radius: 6px;
+  }
+
+  .admin-main.show-config.show-chart .admin-topbar {
+    display: grid;
+    grid-template-columns: 1fr;
+    min-height: auto;
+    padding: 16px;
+  }
+
+  .admin-main.show-config.show-chart .admin-user-topbar-title {
+    width: max-content;
+    min-height: 44px;
+    font-size: 32px;
+  }
+
+  .admin-main.show-config.show-chart .admin-tools {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .admin-main.show-config.show-chart .admin-search,
+  .admin-main.show-config.show-chart .admin-chart-filter-button,
+  .admin-main.show-config.show-chart .admin-export-btn {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .admin-main.show-config.show-chart .admin-config-shell {
+    margin-top: 12px;
+    border-top: 1px solid rgba(232, 226, 214, 0.1);
+    border-radius: 6px;
+    padding: 12px;
+  }
+
+  .admin-main.show-config.show-chart .admin-chart-card {
+    gap: 14px;
+    padding: 14px;
+  }
+
+  .admin-main.show-config.show-chart .admin-chart-card-header {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    align-items: start;
+  }
+
+  .admin-main.show-config.show-chart .admin-chart-card-title {
+    min-width: 0;
+  }
+
+  .admin-main.show-config.show-chart .admin-chart-card h2 {
+    overflow-wrap: anywhere;
+    font-size: 16px;
+  }
+
+  .admin-main.show-config.show-chart .admin-chart-card select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .admin-main.show-config.show-chart .admin-horizontal-chart {
+    width: 100%;
+    overflow-x: auto;
+    padding: 8px 0 4px;
+  }
+
+  .admin-main.show-config.show-chart .chart-row {
+    grid-template-columns: minmax(120px, 1fr) minmax(120px, 2fr) auto;
+    min-width: 420px;
+  }
+
+  .admin-main.show-config.show-chart .chart-axis {
+    min-width: 420px;
+  }
+
+  .admin-main.show-config.show-chart .admin-donut-chart {
+    width: min(240px, 100%);
+    margin-inline: auto;
+  }
+
+  .admin-main.show-config.show-chart .admin-status-donut {
+    width: min(220px, 100%);
+    margin-inline: auto;
+  }
+
+  .admin-main.show-config.show-chart .admin-chart-legend {
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .admin-main.show-config.show-chart {
+    padding: 8px;
+  }
+
+  .admin-main.show-config.show-chart .admin-topbar,
+  .admin-main.show-config.show-chart .admin-config-shell,
+  .admin-main.show-config.show-chart .admin-chart-card {
+    padding: 12px;
+  }
+
+  .admin-main.show-config.show-chart .admin-user-topbar-title {
+    font-size: 28px;
+  }
+
+  .admin-main.show-config.show-chart .admin-horizontal-chart {
+    overflow-x: visible;
+  }
+
+  .admin-main.show-config.show-chart .chart-row {
+    min-width: 0;
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .admin-main.show-config.show-chart .chart-row span {
+    text-align: left;
+    white-space: normal;
+  }
+
+  .admin-main.show-config.show-chart .chart-row i {
+    width: var(--bar);
+    max-width: 100%;
+    min-height: 8px;
+  }
+
+  .admin-main.show-config.show-chart .chart-row b {
+    justify-self: start;
+  }
+
+  .admin-main.show-config.show-chart .chart-axis,
+  .admin-main.show-config.show-chart .donut-label {
+    display: none;
+  }
+
+  .admin-main.show-config.show-chart .admin-donut-chart {
+    width: min(210px, 100%);
+  }
+
+  .admin-main.show-config.show-chart .admin-status-donut {
+    width: min(190px, 100%);
+  }
+
+  .admin-main.show-config.show-chart .donut-center strong {
+    font-size: 22px;
+  }
+}
+
+/* User home responsive only */
+@media (max-width: 920px) {
+  .user-home-shell .user-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 18px;
+  }
+
+  .user-home-shell .side-brand {
+    min-width: 0;
+  }
+
+  .user-home-shell .sidebar nav {
+    grid-column: 1 / -1;
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px 26px;
+    overflow: visible;
+    padding: 0;
+  }
+
+  .user-home-shell .header-actions {
+    justify-self: end;
+  }
+
+  .user-home-shell #inicioPage,
+  .user-home-shell .hero {
+    min-height: calc(100dvh - 112px);
+  }
+
+  .user-home-shell .hero {
+    display: flex;
+    padding: 70px 54px 48px;
+  }
+
+  .user-home-shell .hero > div {
+    width: min(100%, 560px);
+  }
+}
+
+@media (max-width: 640px) {
+  .user-home-shell .user-header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 14px;
+    padding: 12px;
+  }
+
+  .user-home-shell .side-brand strong {
+    font-size: 30px;
+  }
+
+  .user-home-shell .side-brand span {
+    width: 22px;
+    height: 27px;
+    font-size: 18px;
+  }
+
+  .user-home-shell .sidebar nav {
+    justify-content: space-between;
+    gap: 10px 14px;
+  }
+
+  .user-home-shell .nav-link {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+  }
+
+  .user-home-shell .avatar {
+    width: 34px;
+    height: 34px;
+  }
+
+  .user-home-shell #logoutBtn {
+    width: 30px;
+    min-height: 30px;
+  }
+
+  .user-home-shell #inicioPage,
+  .user-home-shell .hero {
+    min-height: calc(100dvh - 110px);
+  }
+
+  .user-home-shell .hero {
+    align-items: center;
+    padding: 56px 28px 34px;
+  }
+
+  .user-home-shell .hero h1 {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    font-size: clamp(34px, 11vw, 52px);
+    line-height: 0.96;
+  }
+
+  .user-home-shell .hero h1 span {
+    display: inline;
+    margin-top: 0;
+  }
+
+  .user-home-shell .hero p {
+    max-width: 100%;
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
+  .hero-director {
+    margin-bottom: 18px !important;
+  }
+
+  .hero-actions {
+    width: 100%;
+  }
+
+  .hero-actions button:not(.add-button) {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+
+  .hero-arrow {
+    display: inline-grid;
+    width: 28px;
+    min-height: 44px !important;
+    place-items: center;
+    font-size: 34px !important;
+  }
+
+  .hero-arrow.prev {
+    left: 8px;
+  }
+
+  .hero-arrow.next {
+    right: 8px;
+  }
+}
+
+@media (max-width: 420px) {
+  .user-home-shell .user-header {
+    grid-template-columns: 1fr auto;
+    padding: 10px;
+  }
+
+  .user-home-shell .side-brand strong {
+    font-size: 26px;
+  }
+
+  .user-home-shell .side-brand span {
+    width: 20px;
+    height: 24px;
+    font-size: 16px;
+  }
+
+  .user-home-shell .sidebar nav {
+    justify-content: flex-start;
+    gap: 8px 14px;
+  }
+
+  .user-home-shell .nav-link {
+    font-size: 11px;
+  }
+
+  .user-home-shell .hero {
+    padding: 44px 22px 28px;
+  }
+
+  .user-home-shell .hero h1 {
+    font-size: clamp(30px, 12vw, 42px);
+  }
+
+  .hero-kicker {
+    font-size: 11px !important;
+  }
+
+  .user-home-shell .hero p {
+    font-size: 13px;
+    line-height: 1.55;
+  }
 }
