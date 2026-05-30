@@ -14,6 +14,19 @@ class AvaliacaoFilmeDAO {
     return rows;
   }
 
+  async findByUser(usuarioId) {
+    const [rows] = await pool.execute(
+      `SELECT avaliacoes_filmes.*, usuarios.nome AS usuario_nome
+       FROM avaliacoes_filmes
+       LEFT JOIN usuarios ON usuarios.id = avaliacoes_filmes.usuario_id
+       WHERE avaliacoes_filmes.usuario_id = ?
+       ORDER BY avaliacoes_filmes.updated_at DESC`,
+      [usuarioId]
+    );
+
+    return rows;
+  }
+
   async upsert(avaliacao) {
     await pool.execute(
       `INSERT INTO avaliacoes_filmes (filme_id, usuario_id, nota, comentario)

@@ -2960,6 +2960,18 @@ body,
   color: var(--noir-text);
 }
 
+.user-home-shell .profile-actions button {
+  background: var(--noir-text);
+  color: #111111;
+  box-shadow: none;
+}
+
+.user-home-shell .edit-fields button {
+  background: var(--noir-text);
+  color: #111111;
+  box-shadow: none;
+}
+
 .link-button,
 .switch-text button {
   color: var(--noir-text);

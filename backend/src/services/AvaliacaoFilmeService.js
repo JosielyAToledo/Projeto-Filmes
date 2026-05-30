@@ -49,6 +49,16 @@ class AvaliacaoFilmeService {
     return this.avaliacaoDAO.findByMovie(filmeId);
   }
 
+  async listarPorUsuario(usuarioId) {
+    if (isLocalMode()) {
+      return localReviews
+        .filter((review) => Number(review.usuario_id) === Number(usuarioId))
+        .sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at));
+    }
+
+    return this.avaliacaoDAO.findByUser(usuarioId);
+  }
+
   async salvar(filmeId, usuario, dados) {
     await this.filmeService.buscarPorId(filmeId);
 
@@ -89,7 +99,7 @@ class AvaliacaoFilmeService {
       id: index >= 0 ? localReviews[index].id : Date.now(),
       filme_id: Number(filmeId),
       usuario_id: usuario.id,
-      usuario_nome: usuario.nome || usuario.email || 'Usuario',
+      usuario_nome: usuario.nome || usuario.email || 'Usuário',
       nota: dados.nota,
       comentario: dados.comentario,
       created_at: index >= 0 ? localReviews[index].created_at : now,

@@ -5,7 +5,8 @@ let token = localStorage.getItem('token') || '';
 let currentUser = JSON.parse(localStorage.getItem('usuario') || 'null');
 let movies = [];
 let movieRatings = JSON.parse(localStorage.getItem('movieRatings') || '{}');
-let favoriteMovies = JSON.parse(localStorage.getItem('favoriteMovies') || '{}');
+let favoriteMovies = {};
+let userMovieReviews = [];
 let adminSession = localStorage.getItem('adminSession') === '1';
 let userMoviesPage = 1;
 let currentMovieItems = [];
@@ -499,6 +500,10 @@ document.getElementById('loginForm').addEventListener('submit', async (event) =>
     adminSession = isAdminUser(currentUser);
     localStorage.setItem('token', token);
     localStorage.setItem('usuario', JSON.stringify(currentUser));
+    const memberSinceKey = `memberSince:${currentUser.id || currentUser.email}`;
+    if (!localStorage.getItem(memberSinceKey)) {
+      localStorage.setItem(memberSinceKey, new Date().toISOString());
+    }
     if (adminSession) {
       localStorage.setItem('adminSession', '1');
     } else {
@@ -1342,7 +1347,7 @@ function showAdminView(view) {
   }
 
   const titles = {
-    movies: ['Filmes', 'Cadastro e gestao do catalogo'],
+    movies: ['Filmes', 'Cadastro e gestão do catálogo'],
     users: ['Usuários', 'Gerenciamento de usuários'],
     config: ['Configurações', 'Sistema, segurança e logs'],
     dashboard: ['Painel Administrativo', 'Visao geral do sistema']
@@ -1588,7 +1593,7 @@ async function saveAdministratorProfile() {
     if (!name || !email || !administratorsBody) return;
 
     if (password !== confirmPassword) {
-      setStatus('As senhas nÃ£o conferem.');
+      setStatus('As senhas não conferem.');
       return;
     }
 
@@ -1882,11 +1887,11 @@ function getFilteredAdminXmlLogs() {
   const logs = adminLogsCache.length ? adminLogsCache : sampleAdminLogs;
 
   return logs.filter((log) => {
-    const user = normalizeText(formatLogUser(log.usuario || 'anonimo'));
+    const user = normalizeText(formatLogUser(log.usuario || 'anônimo'));
     const action = normalizeText(formatLogAction(log.acao || log.tipoEvento || ''));
     const status = normalizeText(log.statusCode || '');
     const searchable = normalizeText([
-      formatLogUser(log.usuario || 'anonimo'),
+      formatLogUser(log.usuario || 'anônimo'),
       formatLogAction(log.acao || log.tipoEvento || ''),
       log.descricao || log.description || '',
       log.endpoint || '',
@@ -1946,7 +1951,7 @@ function updateAdminPdfPreview() {
     return `
       <tr>
         <td>${escapeHtml(log.timestamp ? new Date(log.timestamp).toLocaleDateString('pt-BR') : '-')}</td>
-        <td>${escapeHtml(formatLogUser(log.usuario || 'anonimo'))}</td>
+        <td>${escapeHtml(formatLogUser(log.usuario || 'anônimo'))}</td>
         <td>${escapeHtml(formatLogAction(action))}</td>
         <td>${escapeHtml(log.statusCode || '-')}</td>
       </tr>
@@ -1972,13 +1977,13 @@ function updateAdminPdfPreview() {
 function buildAdminPdfLines(logs) {
   return [
     'Relatorio de Logs - Catalogo7',
-    `Periodo: ${document.getElementById('adminXmlPeriod')?.value || 'Ultimos 6 meses'}`,
+    `Período: ${document.getElementById('adminXmlPeriod')?.value || 'Últimos 6 meses'}`,
     `Total de logs: ${logs.length}`,
     '',
     ...logs.slice(0, 24).map((log) => {
       const date = log.timestamp ? new Date(log.timestamp).toLocaleString('pt-BR') : '-';
       const action = formatLogAction(log.acao || log.tipoEvento || '-');
-      return `${date} | ${formatLogUser(log.usuario || 'anonimo')} | ${action} | ${log.statusCode || '-'}`;
+      return `${date} | ${formatLogUser(log.usuario || 'anônimo')} | ${action} | ${log.statusCode || '-'}`;
     })
   ];
 }
@@ -1987,7 +1992,7 @@ function buildAdminLogsXML(logs, hasMore = false) {
   const items = logs.map((log, index) => {
     const action = log.acao || log.tipoEvento || '-';
     return `  <evento id="${index + 1}">
-    <usuario>${escapeXml(formatLogUser(log.usuario || 'anonimo'))}</usuario>
+    <usuario>${escapeXml(formatLogUser(log.usuario || 'anônimo'))}</usuario>
     <acao>${escapeXml(formatLogAction(action))}</acao>
     <descricao>${escapeXml(log.descricao || log.description || describeLogAction(action, log.endpoint || ''))}</descricao>
     <data_hora>${escapeXml(log.timestamp ? new Date(log.timestamp).toISOString() : '')}</data_hora>
@@ -2013,7 +2018,7 @@ function buildAdminLogsJSON(logs) {
         const action = log.acao || log.tipoEvento || '-';
         return {
           id: index + 1,
-          usuario: formatLogUser(log.usuario || 'anonimo'),
+          usuario: formatLogUser(log.usuario || 'anônimo'),
           acao: formatLogAction(action),
           descricao: log.descricao || log.description || describeLogAction(action, log.endpoint || ''),
           data_hora: log.timestamp ? new Date(log.timestamp).toISOString() : '',
@@ -2056,7 +2061,7 @@ async function loadAdminLogs() {
 
 function renderAdminLogRow(log, index = 0) {
   const date = log.timestamp ? new Date(log.timestamp).toLocaleString('pt-BR') : '-';
-  const user = log.usuario || 'anonimo';
+  const user = log.usuario || 'anônimo';
   const action = log.acao || log.tipoEvento || '-';
   const method = log.metodo || log.method || '-';
   const statusCode = log.statusCode || '-';
@@ -2133,12 +2138,30 @@ function confirmDeleteLog() {
 }
 
 function formatLogUser(user) {
-  const cleanUser = String(user || 'anonimo').split('@')[0].replace(/[._-]+/g, ' ').trim();
-  return cleanUser || 'anonimo';
+  const cleanUser = String(user || 'anônimo').split('@')[0].replace(/[._-]+/g, ' ').trim();
+  return cleanUser || 'anônimo';
 }
 
 function formatLogAction(action) {
-  return String(action || '-').replace(/\s+/g, '_').toUpperCase();
+  const normalized = normalizeText(action).replace(/\s+/g, '_').toUpperCase();
+  const labels = {
+    CREATE: 'Criação',
+    INCLUSAO: 'Inclusão',
+    UPDATE: 'Atualização',
+    ALTERACAO: 'Alteração',
+    DELETE: 'Exclusão',
+    EXCLUSAO: 'Exclusão',
+    GET: 'Consulta',
+    LOGIN: 'Login',
+    LOGIN_ERROR: 'Erro no login',
+    UPLOAD: 'Upload',
+    EXPORT_XML: 'Exportação XML',
+    EXPORT_PDF: 'Exportação PDF',
+    EXPORTACAO_JSON: 'Exportação JSON',
+    IMPORTACAO_JSON: 'Importação JSON'
+  };
+
+  return labels[normalized] || String(action || '-');
 }
 
 function logActionClass(action) {
@@ -2188,7 +2211,7 @@ function filterAdminLogs() {
     const status = normalizeText(log.statusCode || '');
     const searchable = normalizeText([
       log.timestamp ? new Date(log.timestamp).toLocaleString('pt-BR') : '',
-      log.usuario || 'anonimo',
+      log.usuario || 'anônimo',
       log.acao || log.tipoEvento || '',
       log.descricao || log.description || '',
       log.endpoint || '',
@@ -2244,6 +2267,8 @@ async function logoutAndReload() {
 function clearSessionAndReload(shouldReload = true) {
   token = '';
   currentUser = null;
+  favoriteMovies = {};
+  userMovieReviews = [];
   adminSession = false;
   localStorage.removeItem('token');
   localStorage.removeItem('usuario');
@@ -2317,11 +2342,11 @@ document.getElementById('downloadPdfIconBtn').addEventListener('click', download
 document.getElementById('downloadXmlBtn').addEventListener('click', downloadXMLExport);
 document.getElementById('downloadXmlIconBtn').addEventListener('click', downloadXMLExport);
 document.getElementById('movieSearch').addEventListener('input', (event) => {
-  setMoviesHeader('Filmes', 'Explore todos os filmes disponiveis.');
+  setMoviesHeader('Filmes', 'Explore todos os filmes disponíveis.');
   applyMovieFilters();
 });
 document.getElementById('genreFilter')?.addEventListener('change', () => {
-  setMoviesHeader('Filmes', 'Explore todos os filmes disponiveis.');
+  setMoviesHeader('Filmes', 'Explore todos os filmes disponíveis.');
   applyMovieFilters();
 });
 document.getElementById('globalSearch').addEventListener('keydown', (event) => {
@@ -2376,11 +2401,17 @@ function showPage(page) {
 async function loadMovies() {
   if (previewMode && !token) {
     movies = sampleMovies;
+    favoriteMovies = {};
+    userMovieReviews = [];
   } else {
     try {
       movies = await api('/filmes');
+      await loadFavoriteMovies();
+      await loadUserMovieReviews();
     } catch (error) {
       movies = sampleMovies;
+      favoriteMovies = {};
+      userMovieReviews = [];
     }
   }
 
@@ -2388,6 +2419,28 @@ async function loadMovies() {
   populateMovieGenreFilter();
   renderMovies(movies);
   renderProfile();
+}
+
+async function loadFavoriteMovies() {
+  if (!token) {
+    favoriteMovies = {};
+    return;
+  }
+
+  const favorites = await api('/filmes/favoritos/me');
+  favoriteMovies = favorites.reduce((acc, favorite) => {
+    acc[favorite.filme_id] = true;
+    return acc;
+  }, {});
+}
+
+async function loadUserMovieReviews() {
+  if (!token) {
+    userMovieReviews = [];
+    return;
+  }
+
+  userMovieReviews = await api('/filmes/avaliacoes/me');
 }
 
 function normalizeText(value = '') {
@@ -2416,7 +2469,7 @@ function showAllMovies() {
   if (genreFilter) {
     genreFilter.value = '';
   }
-  setMoviesHeader('Filmes', 'Explore todos os filmes disponiveis.');
+  setMoviesHeader('Filmes', 'Explore todos os filmes disponíveis.');
   userMoviesPage = 1;
   renderMovies(movies);
   showPage('filmes');
@@ -2635,26 +2688,56 @@ function getInitials(name = '') {
   return parts.slice(0, 2).map((part) => part[0]).join('').toUpperCase();
 }
 
+function getProfileStats() {
+  const favoriteIds = Object.keys(favoriteMovies).map(Number);
+  const watchedIds = userMovieReviews.map((review) => Number(review.filme_id));
+  const activityIds = Array.from(new Set([...favoriteIds, ...watchedIds]));
+  const preferredGenres = new Set(
+    activityIds
+      .map((id) => movies.find((movie) => Number(movie.id) === Number(id)))
+      .map(getMovieGenre)
+      .filter(Boolean)
+  );
+
+  return {
+    favorites: favoriteIds.length,
+    watched: new Set(watchedIds).size,
+    genres: preferredGenres.size
+  };
+}
+
+function getMemberSince(user = {}) {
+  const key = `memberSince:${user.id || user.email || 'preview'}`;
+  const savedDate = localStorage.getItem(key);
+  const date = savedDate ? new Date(savedDate) : new Date();
+
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  }).format(date);
+}
+
 function renderProfile() {
   const user = getProfileUser();
-  const name = user.nome || user.email || 'Usuario Catálogo7';
+  const name = user.nome || user.email || 'Usuário Catálogo7';
   const email = user.email || 'email@catalogo7.com';
-  const uniqueCategories = new Set(movies.map((movie) => movie.genero_nome).filter(Boolean));
+  const stats = getProfileStats();
 
   document.getElementById('profileAvatar').textContent = getInitials(name);
   document.getElementById('profileName').textContent = name;
   document.getElementById('profileEmail').textContent = email;
-  document.getElementById('profileMemberSince').textContent = 'Membro desde: Maio de 2024';
-  document.getElementById('favoriteCount').textContent = movies.length ? Math.min(movies.length, 32) : 32;
-  document.getElementById('watchedCount').textContent = movies.length ? Math.min(Math.max(movies.length - 2, 1), 18) : 18;
-  document.getElementById('categoryCount').textContent = uniqueCategories.size || 6;
+  document.getElementById('profileMemberSince').textContent = `Membro desde: ${getMemberSince(user)}`;
+  document.getElementById('favoriteCount').textContent = stats.favorites;
+  document.getElementById('watchedCount').textContent = stats.watched;
+  document.getElementById('categoryCount').textContent = stats.genres;
   document.getElementById('accountName').textContent = name;
   document.getElementById('accountEmail').textContent = email;
 }
 
 function renderProfileForm() {
   const user = getProfileUser();
-  const name = user.nome || user.email || 'Usuario Catálogo7';
+  const name = user.nome || user.email || 'Usuário Catálogo7';
   const email = user.email || 'email@catalogo7.com';
 
   document.getElementById('editProfileAvatar').textContent = getInitials(name);
@@ -2738,11 +2821,11 @@ function makeSimplePDF(lines) {
 
 function downloadPDFReport() {
   const lines = [
-    `Periodo: ${document.querySelector('.export-period-grid select').value}`,
+    `Período: ${document.querySelector('.export-period-grid select').value}`,
     `Data inicial: ${document.querySelector('[aria-label="Data inicial"]').value}`,
     `Data final: ${document.querySelector('[aria-label="Data final"]').value}`,
     `Dados exportados: ${selectedExportItems().join(', ') || 'Nenhum item selecionado'}`,
-    'Resumo: Importacoes e exportacoes do sistema.'
+    'Resumo: Importações e exportações do sistema.'
   ];
 
   downloadBlob(makeSimplePDF(lines), 'relatorio-catalogo7.pdf', 'application/pdf');
@@ -2992,14 +3075,15 @@ window.setMovieRating = (id, rating) => {
   }
 };
 
-window.toggleFavoriteMovie = (id) => {
-  favoriteMovies[id] = !favoriteMovies[id];
+window.toggleFavoriteMovie = async (id) => {
+  const shouldFavorite = !isFavoriteMovie(id);
+  const previousFavorites = { ...favoriteMovies };
 
-  if (!favoriteMovies[id]) {
+  if (shouldFavorite) {
+    favoriteMovies[id] = true;
+  } else {
     delete favoriteMovies[id];
   }
-
-  localStorage.setItem('favoriteMovies', JSON.stringify(favoriteMovies));
 
   const favoriteButton = document.querySelector('.favorite-button');
   if (favoriteButton) {
@@ -3007,6 +3091,21 @@ window.toggleFavoriteMovie = (id) => {
   }
 
   applyDiaryFilters();
+
+  try {
+    await api(`/filmes/${id}/favorito`, {
+      method: shouldFavorite ? 'POST' : 'DELETE'
+    });
+    renderProfile();
+  } catch (error) {
+    favoriteMovies = previousFavorites;
+    if (favoriteButton) {
+      favoriteButton.classList.toggle('active', isFavoriteMovie(id));
+    }
+    applyDiaryFilters();
+    renderProfile();
+    alert(error.message);
+  }
 };
 
 window.submitMovieReview = async (id) => {
@@ -3028,6 +3127,8 @@ window.submitMovieReview = async (id) => {
       })
     });
     await hydrateMovieReviews(id);
+    await loadUserMovieReviews();
+    renderProfile();
   } catch (error) {
     alert(error.message);
   }
