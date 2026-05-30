@@ -1330,6 +1330,8 @@
         </section>
 
         <section class="page" id="filmesPage">
+          <div class="movies-management-card">
+          <div class="movies-page-top">
           <div class="movies-header">
             <h1 id="moviesPageTitle">Filmes</h1>
             <p>Explore todos os filmes disponíveis.</p>
@@ -1337,10 +1339,13 @@
 
           <div class="movies-toolbar">
             <input id="movieSearch" type="search" placeholder="Buscar filmes..." />
-            <button id="filterBtn" type="button">Filtros</button>
+            <button class="movie-export-button" type="button">⇩ Exportar</button>
+            <button id="filterBtn" type="button">Todos os gÃªneros</button>
+          </div>
           </div>
 
           <div class="movies-grid" id="movieGrid"></div>
+          </div>
 
           <div class="pagination">
             <button class="active" type="button">1</button>
@@ -1353,9 +1358,16 @@
         </section>
 
         <section class="page" id="categoriasPage">
+          <div class="genres-management-card">
+          <div class="genres-page-top">
           <div class="movies-header">
             <h1>Gêneros</h1>
             <p>Navegue por gêneros de filmes.</p>
+          </div>
+          <div class="genres-toolbar">
+            <input id="genreSearch" type="search" placeholder="Buscar gêneros..." />
+            <button class="genre-export-button" type="button">⇩ Exportar</button>
+          </div>
           </div>
 
           <div class="categories-grid">
@@ -1473,6 +1485,7 @@
                 <span>38 filmes</span>
               </div>
             </article>
+          </div>
           </div>
         </section>
 

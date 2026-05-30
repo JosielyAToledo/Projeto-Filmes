@@ -2272,6 +2272,15 @@ document.querySelectorAll('.user-header .nav-link').forEach((link) => {
   }
 });
 
+document.getElementById('filterBtn').textContent = 'Todos os gêneros';
+document.querySelector('.movie-export-button').textContent = '⇩ Exportar';
+document.querySelector('.genre-export-button').textContent = '⇩ Exportar';
+document.getElementById('genreSearch')?.addEventListener('input', (event) => {
+  const query = normalizeText(event.target.value);
+  document.querySelectorAll('#categoriasPage .categories-grid article').forEach((card) => {
+    card.hidden = query && !normalizeText(card.textContent).includes(query);
+  });
+});
 document.getElementById('goMovies').addEventListener('click', showAllMovies);
 document.getElementById('editProfileBtn').addEventListener('click', () => {
   renderProfileForm();
@@ -2411,8 +2420,48 @@ function renderFeatured() {
 
 function renderMovies(items) {
   document.getElementById('movieGrid').innerHTML = items.length
-    ? items.map(renderMovieCard).join('')
+    ? renderMovieListPanel(items)
     : '<p class="empty-state">Nenhum filme encontrado para este gênero.</p>';
+}
+
+function renderMovieListPanel(items) {
+  return `
+    <div class="movie-list-panel">
+      <div class="movie-card-list">
+        ${items.map(renderMovieListRow).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function renderMovieListRow(movie) {
+  const title = movie.titulo || 'Filme sem título';
+  const genre = movie.genero_nome || generoNameById(movie.genero_id) || 'Sem gênero';
+  const year = movie.ano_lancamento || 'N/I';
+  const duration = movie.duracao || '2h 00min';
+  const status = movie.status === 'rascunho' ? 'Rascunho' : 'Disponível';
+
+  return `
+    <article class="movie-management-card-item" onclick="openMovieModal(${movie.id})">
+      <div class="movie-management-poster">
+        <img src="${escapeHtml(resolveImageUrl(movie.capa_url))}" alt="Capa de ${escapeHtml(title)}" />
+        <span class="movie-status-pill">${escapeHtml(status)}</span>
+      </div>
+      <div class="movie-management-info">
+        <span class="movie-list-genre">${escapeHtml(genre)}</span>
+        <strong>${escapeHtml(title)}</strong>
+        <p>${escapeHtml(movie.diretor || 'Diretor não informado')}</p>
+        <div class="movie-management-meta">
+          <span>${escapeHtml(String(year))}</span>
+          <span>${escapeHtml(duration)}</span>
+        </div>
+      </div>
+      <div class="movie-list-actions">
+        <button type="button" aria-label="Ver detalhes de ${escapeHtml(title)}" onclick="event.stopPropagation(); openMovieModal(${movie.id})">◎</button>
+        <button type="button" aria-label="Favoritar ${escapeHtml(title)}" onclick="event.stopPropagation()">♡</button>
+      </div>
+    </article>
+  `;
 }
 
 function getProfileUser() {
