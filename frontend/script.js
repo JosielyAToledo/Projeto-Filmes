@@ -314,6 +314,10 @@ function syncView() {
     });
     applyUserAvatar('Lucas Silva');
   }
+
+  if (adminSession) {
+    loadAdminDashboardStats();
+  }
 }
 
 function applyUserAvatar(name) {
@@ -610,6 +614,23 @@ document.querySelectorAll('[data-admin-config-tab]').forEach((button) => {
 
 document.querySelectorAll('[data-admin-log-panel]').forEach((button) => {
   button.addEventListener('click', () => showAdminLogPanel(button.dataset.adminLogPanel));
+});
+
+document.querySelectorAll('[data-admin-dashboard-modal]').forEach((button) => {
+  button.addEventListener('click', () => openAdminDashboardModal(button.dataset.adminDashboardModal));
+});
+
+document.getElementById('closeAdminDashboardModal')?.addEventListener('click', closeAdminDashboardModal);
+document.getElementById('adminDashboardModal')?.addEventListener('click', (event) => {
+  if (event.target.id === 'adminDashboardModal') {
+    closeAdminDashboardModal();
+  }
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') {
+    closeAdminDashboardModal();
+  }
 });
 
 document.getElementById('adminAddAdministrator')?.addEventListener('click', openAdminProfileFormForCreate);
@@ -927,6 +948,7 @@ async function saveAdminMovie() {
 
     adminMoviesPage = 1;
     await loadAdminMovies();
+    await loadAdminDashboardStats();
   } catch (error) {
     document.getElementById('adminMoviesTableBody').innerHTML = `<tr><td colspan="7">${escapeHtml(error.message)}</td></tr>`;
     document.getElementById('adminMoviesTableCount').textContent = 'Erro ao salvar filme';
@@ -1116,6 +1138,172 @@ function closeAdminMovieDetailsModal() {
   document.getElementById('adminMovieDetailsModal').setAttribute('aria-hidden', 'true');
 }
 
+function formatAdminTotal(value) {
+  const number = Number(value) || 0;
+  return number.toLocaleString('pt-BR');
+}
+
+function updateAdminDashboardStats(stats = {}) {
+  const totalMovies = document.getElementById('adminTotalMovies');
+  const totalUsers = document.getElementById('adminTotalUsers');
+  const totalFavorites = document.getElementById('adminTotalFavorites');
+
+  if (totalMovies) totalMovies.textContent = formatAdminTotal(stats.filmes);
+  if (totalUsers) totalUsers.textContent = formatAdminTotal(stats.usuarios);
+  if (totalFavorites) totalFavorites.textContent = formatAdminTotal(stats.favoritos);
+}
+
+function updateAdminDashboardCards(data = {}) {
+  renderAdminLatestReviews(data.ultimasAvaliacoes || []);
+  renderAdminFavoriteMovies(data.filmesFavoritados || []);
+  renderAdminRecentActivity(data.atividadesRecentes || []);
+  updateAdminDashboardModalData(data);
+}
+
+async function loadAdminDashboardStats() {
+  try {
+    const dashboardData = await api('/relatorios/json');
+    updateAdminDashboardStats(dashboardData);
+    updateAdminDashboardCards(dashboardData);
+  } catch (error) {
+    console.warn('Nao foi possivel carregar os totais do dashboard.', error.message);
+  }
+}
+
+function renderAdminLatestReviews(reviews = []) {
+  const container = document.getElementById('adminLatestReviews');
+  if (!container) return;
+
+  const visibleReviews = reviews.slice(0, 2);
+  if (!visibleReviews.length) {
+    container.innerHTML = '<p class="admin-empty-state">Nenhuma avaliação registrada.</p>';
+    return;
+  }
+
+  container.innerHTML = visibleReviews.map((review, index) => {
+    const name = review.usuario_nome || 'Usuário';
+    const rating = Number(review.nota) || 0;
+    const stars = '★'.repeat(rating) + '☆'.repeat(Math.max(0, 5 - rating));
+    const avatarClass = index % 2 === 0 ? 'purple' : 'blue';
+    return `
+      <div class="admin-review-item">
+        <span class="admin-review-avatar ${avatarClass}">${escapeHtml(getInitials(name) || 'U')}</span>
+        <div>
+          <strong>${escapeHtml(name)}</strong>
+          <span class="admin-stars">${escapeHtml(stars)}</span>
+          <p>${escapeHtml(review.comentario || 'Sem comentário escrito.')}</p>
+          <small>${escapeHtml(formatAdminDate(review.updated_at))} <b>${escapeHtml(review.filme_titulo || 'Filme não informado')}</b></small>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderAdminFavoriteMovies(favorites = []) {
+  const list = document.getElementById('adminFavoriteMovies');
+  if (!list) return;
+
+  const visibleFavorites = favorites.slice(0, 5);
+  if (!visibleFavorites.length) {
+    list.innerHTML = '<li class="admin-empty-state">Nenhum favorito registrado.</li>';
+    return;
+  }
+
+  list.innerHTML = visibleFavorites.map((movie, index) => `
+    <li>
+      <span>${index + 1}</span>
+      <img src="${escapeHtml(resolveImageUrl(movie.capa_url))}" alt="" />
+      <strong>${escapeHtml(movie.titulo || 'Filme sem título')}</strong>
+      <b>${escapeHtml(formatAdminTotal(movie.total))} ♥</b>
+    </li>
+  `).join('');
+}
+
+function renderAdminRecentActivity(activities = []) {
+  const list = document.getElementById('adminRecentActivity');
+  if (!list) return;
+
+  const visibleActivities = activities.slice(0, 5);
+  if (!visibleActivities.length) {
+    list.innerHTML = '<li class="admin-empty-state">Nenhuma atividade registrada.</li>';
+    return;
+  }
+
+  list.innerHTML = visibleActivities.map((activity) => {
+    const meta = getAdminActivityMeta(activity);
+    return `
+      <li>
+        <i class="${meta.className}">${meta.icon}</i>
+        ${escapeHtml(meta.text)}
+        <span>${escapeHtml(formatAdminDate(activity.timestamp))}</span>
+      </li>
+    `;
+  }).join('');
+}
+
+function updateAdminDashboardModalData(data = {}) {
+  adminDashboardModalData.reviews.items = (data.ultimasAvaliacoes || []).map((review) => [
+    review.usuario_nome || 'Usuário',
+    `${Number(review.nota) || 0}/5`,
+    review.filme_titulo || 'Filme não informado',
+    review.comentario || 'Sem comentário escrito.',
+    formatAdminDate(review.updated_at)
+  ]);
+
+  adminDashboardModalData.favorites.items = (data.filmesFavoritados || []).map((movie, index) => [
+    String(index + 1),
+    movie.titulo || 'Filme sem título',
+    `${formatAdminTotal(movie.total)} favoritos`
+  ]);
+
+  adminDashboardModalData.activity.items = (data.atividadesRecentes || []).map((activity) => {
+    const meta = getAdminActivityMeta(activity);
+    return [
+      meta.category,
+      meta.text,
+      formatAdminDate(activity.timestamp)
+    ];
+  });
+}
+
+function getAdminActivityMeta(activity = {}) {
+  const action = String(activity.acao || '').toUpperCase();
+  const description = activity.descricao || activity.endpoint || 'Atividade registrada';
+  const endpoint = String(activity.endpoint || '').toLowerCase();
+
+  if (action.includes('FAVORITO')) {
+    return { category: 'Favorito', className: 'red', icon: '♥', text: description };
+  }
+  if (action.includes('AVALIACAO') || action.includes('AVALIAÇÃO') || description.toLowerCase().includes('avaliou')) {
+    return { category: 'Avaliação', className: 'gold', icon: '★', text: description };
+  }
+  if (endpoint.includes('usuarios') || endpoint.includes('auth') || description.toLowerCase().includes('usuário')) {
+    return { category: 'Usuário', className: 'blue', icon: '●', text: description };
+  }
+  if (action.includes('INCLUSAO') || action.includes('CREATE') || action.includes('POST')) {
+    return { category: 'Cadastro', className: 'purple', icon: '▦', text: description };
+  }
+  if (action.includes('ALTERACAO')) {
+    return { category: 'Alteração', className: 'green', icon: '□', text: description };
+  }
+  if (action.includes('EXCLUSAO') || action.includes('DELETE')) {
+    return { category: 'Exclusão', className: 'red', icon: '■', text: description };
+  }
+
+  return { category: 'Sistema', className: 'green', icon: '□', text: description };
+}
+
+function formatAdminDate(value) {
+  if (!value) return '-';
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(new Date(value));
+}
+
 async function loadAdminMovies() {
   const tableBody = document.getElementById('adminMoviesTableBody');
   const tableCount = document.getElementById('adminMoviesTableCount');
@@ -1228,6 +1416,7 @@ async function deleteAdminMovie() {
     await api(`/filmes/${pendingDeleteMovie.id}`, { method: 'DELETE' });
     closeDeleteConfirmModal();
     await loadAdminMovies();
+    await loadAdminDashboardStats();
   } catch (error) {
     document.getElementById('adminDeleteConfirmMovie').textContent = error.message;
   }
@@ -1258,6 +1447,117 @@ function escapeHtml(value = '') {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+const adminDashboardModalData = {
+  recentMovies: {
+    title: 'Filmes adicionados',
+    items: [
+      ['Duna: Parte Dois', 'Ação, Aventura, Drama', '19/05/2024'],
+      ['Godzilla e Kong: O Novo Império', 'Ação, Aventura, Ficção Científica', '18/05/2024'],
+      ['Kung Fu Panda 4', 'Animação, Ação, Comédia', '17/05/2024'],
+      ['Oppenheimer', 'Drama, Biografia, História', '16/05/2024'],
+      ['Interestelar', 'Drama, Ficção Científica', '15/05/2024'],
+      ['Batman: O Cavaleiro das Trevas', 'Ação, Crime, Drama', '14/05/2024']
+    ]
+  },
+  reviews: {
+    title: 'Últimas avaliações',
+    items: [
+      ['Josiely', '5/5', 'Oppenheimer', 'Filme excelente! História envolvente do início ao fim.', 'Hoje, 14:32'],
+      ['Carlos', '4/5', 'Batman: O Cavaleiro das Trevas', 'Muito bom! Efeitos incríveis e ótimas atuações.', 'Hoje, 11:05'],
+      ['Ana Paula', '5/5', 'Interestelar', 'Um dos melhores filmes de ficção científica.', 'Ontem, 20:14'],
+      ['Marina', '4/5', 'A Origem', 'Roteiro criativo e cheio de reviravoltas.', 'Ontem, 18:40']
+    ]
+  },
+  favorites: {
+    title: 'Filmes mais favoritados',
+    items: [
+      ['1', 'Interestelar', '1.245 favoritos'],
+      ['2', 'Batman: O Cavaleiro das Trevas', '987 favoritos'],
+      ['3', 'Oppenheimer', '862 favoritos'],
+      ['4', 'A Origem', '756 favoritos'],
+      ['5', 'Coringa', '645 favoritos'],
+      ['6', 'Duna: Parte Dois', '522 favoritos'],
+      ['7', 'Clube da Luta', '481 favoritos']
+    ]
+  },
+  activity: {
+    title: 'Atividades recentes',
+    items: [
+      ['Filme', 'Novo filme cadastrado: Duna: Parte Dois', 'Hoje, 14:32'],
+      ['Usuário', 'Novo usuário registrado: Juliana Souza', 'Hoje, 13:15'],
+      ['Avaliação', 'Nova avaliação em Oppenheimer', 'Hoje, 11:05'],
+      ['Comentário', 'Comentário denunciado em Coringa', 'Ontem, 21:44'],
+      ['Comentário', 'Usuário excluiu comentário em A Origem', 'Ontem, 16:30'],
+      ['Filme', 'Filme atualizado: Batman: O Cavaleiro das Trevas', 'Ontem, 15:10']
+    ]
+  }
+};
+
+function openAdminDashboardModal(type) {
+  const modal = document.getElementById('adminDashboardModal');
+  const title = document.getElementById('adminDashboardModalTitle');
+  const content = document.getElementById('adminDashboardModalContent');
+  const data = adminDashboardModalData[type];
+
+  if (!modal || !title || !content || !data) return;
+
+  title.textContent = data.title;
+  content.innerHTML = renderAdminDashboardModalContent(type, data.items);
+  modal.classList.add('visible');
+  modal.setAttribute('aria-hidden', 'false');
+}
+
+function closeAdminDashboardModal() {
+  const modal = document.getElementById('adminDashboardModal');
+  if (!modal) return;
+
+  modal.classList.remove('visible');
+  modal.setAttribute('aria-hidden', 'true');
+}
+
+function renderAdminDashboardModalContent(type, items) {
+  if (type === 'recentMovies') {
+    return `<div class="admin-dashboard-modal-list movie-list">${items.map(([title, genre, date]) => `
+      <article>
+        <strong>${escapeHtml(title)}</strong>
+        <span>${escapeHtml(genre)}</span>
+        <time>${escapeHtml(date)}</time>
+      </article>
+    `).join('')}</div>`;
+  }
+
+  if (type === 'reviews') {
+    return `<div class="admin-dashboard-modal-list review-list">${items.map(([user, rating, movie, comment, date]) => `
+      <article>
+        <div>
+          <strong>${escapeHtml(user)}</strong>
+          <span>${escapeHtml(rating)} em ${escapeHtml(movie)}</span>
+        </div>
+        <p>${escapeHtml(comment)}</p>
+        <time>${escapeHtml(date)}</time>
+      </article>
+    `).join('')}</div>`;
+  }
+
+  if (type === 'favorites') {
+    return `<div class="admin-dashboard-modal-list favorite-list">${items.map(([position, title, count]) => `
+      <article>
+        <b>${escapeHtml(position)}</b>
+        <strong>${escapeHtml(title)}</strong>
+        <span>${escapeHtml(count)}</span>
+      </article>
+    `).join('')}</div>`;
+  }
+
+  return `<div class="admin-dashboard-modal-list activity-list">${items.map(([category, description, date]) => `
+    <article>
+      <b>${escapeHtml(category)}</b>
+      <strong>${escapeHtml(description)}</strong>
+      <time>${escapeHtml(date)}</time>
+    </article>
+  `).join('')}</div>`;
 }
 
 function openInactivateUserModal(userName) {

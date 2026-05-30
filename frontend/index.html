@@ -144,70 +144,81 @@
 
           <section class="admin-stats">
             <article class="admin-stat-card purple">
-              <span class="admin-stat-icon" aria-hidden="true">▦</span>
+              <span class="admin-stat-icon" aria-hidden="true">🎞️</span>
               <div>
                 <span>Filmes</span>
-                <strong>128</strong>
+                <strong id="adminTotalMovies">0</strong>
                 <p>Total de filmes</p>
               </div>
             </article>
             <article class="admin-stat-card blue">
-              <span class="admin-stat-icon" aria-hidden="true">●</span>
+              <span class="admin-stat-icon admin-user-stat-icon" aria-hidden="true"><i></i></span>
               <div>
                 <span>Usuários</span>
-                <strong>1.234</strong>
+                <strong id="adminTotalUsers">0</strong>
                 <p>Total de usuários</p>
               </div>
             </article>
             <article class="admin-stat-card red">
-              <span class="admin-stat-icon" aria-hidden="true">♥</span>
+              <span class="admin-stat-icon" aria-hidden="true">❤️</span>
               <div>
                 <span>Favoritos</span>
-                <strong>1.890</strong>
+                <strong id="adminTotalFavorites">0</strong>
                 <p>Total de favoritos</p>
               </div>
             </article>
           </section>
 
-          <section class="admin-grid">
-            <article class="admin-panel admin-recent-movies">
-              <header class="admin-panel-head">
-                <h2>Filmes adicionados (últimos 3)</h2>
-                <button type="button">Ver todos</button>
-              </header>
-              <div class="admin-recent-movie-grid">
-                <article class="admin-recent-movie">
-                  <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=240&q=80" alt="Poster Duna: Parte Dois" />
-                  <div>
-                    <strong>Duna: Parte Dois</strong>
-                    <span>Ação, Aventura, Drama</span>
-                    <time>19/05/2024</time>
-                  </div>
-                </article>
-                <article class="admin-recent-movie">
-                  <img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?auto=format&fit=crop&w=240&q=80" alt="Poster Godzilla e Kong" />
-                  <div>
-                    <strong>Godzilla e Kong: O Novo Império</strong>
-                    <span>Ação, Aventura, Ficção Científica</span>
-                    <time>18/05/2024</time>
-                  </div>
-                </article>
-                <article class="admin-recent-movie">
-                  <img src="https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=240&q=80" alt="Poster Kung Fu Panda 4" />
-                  <div>
-                    <strong>Kung Fu Panda 4</strong>
-                    <span>Animação, Ação, Comédia</span>
-                    <time>17/05/2024</time>
-                  </div>
-                </article>
-              </div>
-            </article>
+          <section class="admin-added-movies-card">
+            <header class="admin-panel-head">
+              <h2>Filmes adicionados recentemente</h2>
+            </header>
+            <div class="admin-added-movie-row">
+              <article class="admin-added-movie" style="--admin-movie-cover: url('https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=420&q=80')">
+                <div>
+                  <strong>Interestelar</strong>
+                  <span>Ficção Científica</span>
+                  <small>2014 • 169 min</small>
+                </div>
+              </article>
+              <article class="admin-added-movie" style="--admin-movie-cover: url('https://images.unsplash.com/photo-1509347528160-9a9e33742cdb?auto=format&fit=crop&w=420&q=80')">
+                <div>
+                  <strong>Batman: O Cavaleiro das Trevas</strong>
+                  <span>Ação, Crime</span>
+                  <small>2008 • 152 min</small>
+                </div>
+              </article>
+              <article class="admin-added-movie" style="--admin-movie-cover: url('https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?auto=format&fit=crop&w=420&q=80')">
+                <div>
+                  <strong>Oppenheimer</strong>
+                  <span>Drama</span>
+                  <small>2023 • 180 min</small>
+                </div>
+              </article>
+              <article class="admin-added-movie" style="--admin-movie-cover: url('https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=420&q=80')">
+                <div>
+                  <strong>A Origem</strong>
+                  <span>Ficção Científica</span>
+                  <small>2010 • 148 min</small>
+                </div>
+              </article>
+              <article class="admin-added-movie" style="--admin-movie-cover: url('https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=420&q=80')">
+                <div>
+                  <strong>Coringa</strong>
+                  <span>Drama, Crime</span>
+                  <small>2019 • 122 min</small>
+                </div>
+              </article>
+            </div>
+          </section>
 
+          <section class="admin-grid">
             <article class="admin-panel admin-reviews-panel">
               <header class="admin-panel-head">
                 <h2>Últimas avaliações</h2>
-                <button type="button">Ver todas</button>
+                <button type="button" data-admin-dashboard-modal="reviews">Ver todas</button>
               </header>
+              <div id="adminLatestReviews">
               <div class="admin-review-item">
                 <span class="admin-review-avatar purple">J</span>
                 <div>
@@ -226,14 +237,15 @@
                   <small>Hoje, 11:05 <b>Batman: O Cavaleiro das Trevas</b></small>
                 </div>
               </div>
+              </div>
             </article>
 
             <article class="admin-panel admin-favorites-panel">
               <header class="admin-panel-head">
                 <h2>Filmes mais favoritados</h2>
-                <button type="button">Ver todos</button>
+                <button type="button" data-admin-dashboard-modal="favorites">Ver todos</button>
               </header>
-              <ol class="admin-favorite-list">
+              <ol class="admin-favorite-list" id="adminFavoriteMovies">
                 <li><span>1</span><img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?auto=format&fit=crop&w=60&q=80" alt="" /><strong>Interestelar</strong><b>1.245 ♥</b></li>
                 <li><span>2</span><img src="https://images.unsplash.com/photo-1478720568477-152d9b164e26?auto=format&fit=crop&w=60&q=80" alt="" /><strong>Batman: O Cavaleiro das Trevas</strong><b>987 ♥</b></li>
                 <li><span>3</span><img src="https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?auto=format&fit=crop&w=60&q=80" alt="" /><strong>Oppenheimer</strong><b>862 ♥</b></li>
@@ -245,9 +257,9 @@
             <article class="admin-panel admin-activity">
               <header class="admin-panel-head">
                 <h2>Atividades recentes</h2>
-                <button type="button">Ver todas</button>
+                <button type="button" data-admin-dashboard-modal="activity">Ver todas</button>
               </header>
-              <ul>
+              <ul id="adminRecentActivity">
                 <li><i class="purple">▦</i>Novo filme cadastrado: Duna: Parte Dois <span>Hoje, 14:32</span></li>
                 <li><i class="blue">●</i>Novo usuário registrado: Juliana Souza <span>Hoje, 13:15</span></li>
                 <li><i class="gold">★</i>Nova avaliação em Oppenheimer <span>Hoje, 11:05</span></li>
@@ -1894,6 +1906,14 @@
         </section>
       </main>
     </section>
+
+    <div class="movie-modal admin-dashboard-modal" id="adminDashboardModal" aria-hidden="true">
+      <div class="movie-modal-card admin-dashboard-modal-card" role="dialog" aria-modal="true" aria-labelledby="adminDashboardModalTitle">
+        <button class="modal-close" id="closeAdminDashboardModal" type="button" aria-label="Fechar">×</button>
+        <h2 id="adminDashboardModalTitle">Dados</h2>
+        <div id="adminDashboardModalContent"></div>
+      </div>
+    </div>
 
     <div class="movie-modal" id="movieModal" aria-hidden="true">
       <div class="movie-modal-card" role="dialog" aria-modal="true" aria-labelledby="modalMovieTitle">

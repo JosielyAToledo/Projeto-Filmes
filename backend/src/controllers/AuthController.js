@@ -10,6 +10,17 @@ class AuthController {
   registrar = async (req, res, next) => {
     try {
       const usuario = await this.authService.registrar(req.body);
+      await this.logService.registrar({
+        usuario: usuario.email,
+        acao: 'REGISTRO_USUARIO',
+        tipoEvento: 'usuario',
+        descricao: `Novo usuario registrado: ${usuario.nome}`,
+        tabela: 'usuarios',
+        registroId: String(usuario.id),
+        dadosInseridos: usuario,
+        ip: req.ip,
+        userAgent: req.get('user-agent')
+      });
       return res.status(201).json(usuario);
     } catch (error) {
       return next(error);
