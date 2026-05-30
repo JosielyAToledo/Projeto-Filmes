@@ -113,83 +113,149 @@
       </aside>
 
       <main class="admin-main">
-        <header class="admin-topbar">
-          <div>
-            <button id="adminOpenMovieForm" class="admin-catalog-add admin-topbar-add" type="button">+ Cadastrar Filme</button>
-            <div class="admin-title-row">
-              <button class="admin-user-topbar-title admin-log-tab active" type="button" data-admin-log-panel="logs">Usuários</button>
-              <button class="admin-export-title admin-log-tab" type="button" data-admin-log-panel="export">Exportar</button>
+        <section class="admin-dashboard-card">
+          <header class="admin-topbar">
+            <div>
+              <button id="adminOpenMovieForm" class="admin-catalog-add admin-topbar-add" type="button">+ Cadastrar Filme</button>
+              <div class="admin-title-row">
+                <button class="admin-user-topbar-title admin-log-tab active" type="button" data-admin-log-panel="logs">Usuários</button>
+                <button class="admin-export-title admin-log-tab" type="button" data-admin-log-panel="export">Exportar</button>
+              </div>
+              <h1>Painel Administrativo</h1>
+              <p>Visão geral do sistema</p>
             </div>
-            <h1>Painel Administrativo</h1>
-            <p>Visão geral do sistema</p>
-          </div>
-          <div class="admin-tools">
-            <div class="admin-search">
-              <input id="adminTopSearch" type="search" placeholder="Buscar filmes, usuários, etc..." />
-              <span>⌕</span>
+            <div class="admin-tools">
+              <div class="admin-search">
+                <input id="adminTopSearch" type="search" placeholder="Buscar filmes, usuários, etc..." />
+                <span>⌕</span>
+              </div>
+              <select class="admin-genre-select" id="adminTopFilter" aria-label="Filtrar por gênero">
+                <option>Todos os gêneros</option>
+                <option>Ação</option>
+                <option>Drama</option>
+                <option>Ficção Científica</option>
+                <option>Romance</option>
+                <option>Suspense</option>
+              </select>
+              <button class="admin-chart-filter-button" id="adminChartFilterButton" type="button">Filtro</button>
+              <button class="admin-export-btn" type="button">⇩ Exportar</button>
             </div>
-            <select class="admin-genre-select" id="adminTopFilter" aria-label="Filtrar por gênero">
-              <option>Todos os gêneros</option>
-              <option>Ação</option>
-              <option>Drama</option>
-              <option>Ficção Científica</option>
-              <option>Romance</option>
-              <option>Suspense</option>
-            </select>
-            <button class="admin-chart-filter-button" id="adminChartFilterButton" type="button">Filtro</button>
-            <button class="admin-export-btn" type="button">⇩ Exportar</button>
-          </div>
-        </header>
+          </header>
 
-        <section class="admin-stats">
-          <article><span>Filmes</span><strong>128</strong><p>Total de filmes</p></article>
-          <article><span>Usuários</span><strong>1.234</strong><p>Total de usuários</p></article>
-          <article><span>Comentários</span><strong>532</strong><p>Total de comentários</p></article>
-          <article><span>Avaliações</span><strong>2.456</strong><p>Total de avaliações</p></article>
-        </section>
+          <section class="admin-stats">
+            <article class="admin-stat-card purple">
+              <span class="admin-stat-icon" aria-hidden="true">▦</span>
+              <div>
+                <span>Filmes</span>
+                <strong>128</strong>
+                <p>Total de filmes</p>
+              </div>
+            </article>
+            <article class="admin-stat-card blue">
+              <span class="admin-stat-icon" aria-hidden="true">●</span>
+              <div>
+                <span>Usuários</span>
+                <strong>1.234</strong>
+                <p>Total de usuários</p>
+              </div>
+            </article>
+            <article class="admin-stat-card red">
+              <span class="admin-stat-icon" aria-hidden="true">♥</span>
+              <div>
+                <span>Favoritos</span>
+                <strong>1.890</strong>
+                <p>Total de favoritos</p>
+              </div>
+            </article>
+          </section>
 
-        <section class="admin-grid">
-          <article class="admin-panel admin-chart">
-            <h2>Filmes adicionados (últimos 7 dias)</h2>
-            <div class="chart-line" aria-hidden="true">
-              <span style="left: 8%; bottom: 28%"></span>
-              <span style="left: 24%; bottom: 42%"></span>
-              <span style="left: 40%; bottom: 54%"></span>
-              <span style="left: 56%; bottom: 32%"></span>
-              <span style="left: 72%; bottom: 50%"></span>
-              <span style="left: 88%; bottom: 66%"></span>
-            </div>
-          </article>
+          <section class="admin-grid">
+            <article class="admin-panel admin-recent-movies">
+              <header class="admin-panel-head">
+                <h2>Filmes adicionados (últimos 3)</h2>
+                <button type="button">Ver todos</button>
+              </header>
+              <div class="admin-recent-movie-grid">
+                <article class="admin-recent-movie">
+                  <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=240&q=80" alt="Poster Duna: Parte Dois" />
+                  <div>
+                    <strong>Duna: Parte Dois</strong>
+                    <span>Ação, Aventura, Drama</span>
+                    <time>19/05/2024</time>
+                  </div>
+                </article>
+                <article class="admin-recent-movie">
+                  <img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?auto=format&fit=crop&w=240&q=80" alt="Poster Godzilla e Kong" />
+                  <div>
+                    <strong>Godzilla e Kong: O Novo Império</strong>
+                    <span>Ação, Aventura, Ficção Científica</span>
+                    <time>18/05/2024</time>
+                  </div>
+                </article>
+                <article class="admin-recent-movie">
+                  <img src="https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=240&q=80" alt="Poster Kung Fu Panda 4" />
+                  <div>
+                    <strong>Kung Fu Panda 4</strong>
+                    <span>Animação, Ação, Comédia</span>
+                    <time>17/05/2024</time>
+                  </div>
+                </article>
+              </div>
+            </article>
 
-          <article class="admin-panel admin-activity">
-            <h2>Atividades recentes</h2>
-            <ul>
-              <li>Filme “Duna: Parte 2” foi adicionado <span>Hoje, 14:32</span></li>
-              <li>Usuário “marina” comentou em “Interestelar” <span>Hoje, 13:15</span></li>
-              <li>Filme “Oppenheimer” foi atualizado <span>Hoje, 11:06</span></li>
-              <li>Usuário “joao” avaliou “Clube da Luta” <span>Hoje, 10:22</span></li>
-            </ul>
-            <button type="button">Ver todas atividades</button>
-          </article>
+            <article class="admin-panel admin-reviews-panel">
+              <header class="admin-panel-head">
+                <h2>Últimas avaliações</h2>
+                <button type="button">Ver todas</button>
+              </header>
+              <div class="admin-review-item">
+                <span class="admin-review-avatar purple">J</span>
+                <div>
+                  <strong>Josiely</strong>
+                  <span class="admin-stars">★★★★★</span>
+                  <p>Filme excelente! História envolvente do início ao fim.</p>
+                  <small>Hoje, 14:32 <b>Oppenheimer</b></small>
+                </div>
+              </div>
+              <div class="admin-review-item">
+                <span class="admin-review-avatar blue">C</span>
+                <div>
+                  <strong>Carlos</strong>
+                  <span class="admin-stars">★★★★☆</span>
+                  <p>Muito bom! Efeitos incríveis e ótimas atuações.</p>
+                  <small>Hoje, 11:05 <b>Batman: O Cavaleiro das Trevas</b></small>
+                </div>
+              </div>
+            </article>
 
-          <article class="admin-panel">
-            <h2>Filmes em destaque</h2>
-            <div class="admin-posters">
-              <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=240&q=80" alt="Poster Duna" />
-              <img src="https://images.unsplash.com/photo-1542204165-65bf26472b9b?auto=format&fit=crop&w=240&q=80" alt="Poster sci-fi" />
-              <img src="https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=240&q=80" alt="Poster cinema" />
-              <img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?auto=format&fit=crop&w=240&q=80" alt="Poster drama" />
-            </div>
-          </article>
+            <article class="admin-panel admin-favorites-panel">
+              <header class="admin-panel-head">
+                <h2>Filmes mais favoritados</h2>
+                <button type="button">Ver todos</button>
+              </header>
+              <ol class="admin-favorite-list">
+                <li><span>1</span><img src="https://images.unsplash.com/photo-1518709268805-4e9042af2176?auto=format&fit=crop&w=60&q=80" alt="" /><strong>Interestelar</strong><b>1.245 ♥</b></li>
+                <li><span>2</span><img src="https://images.unsplash.com/photo-1478720568477-152d9b164e26?auto=format&fit=crop&w=60&q=80" alt="" /><strong>Batman: O Cavaleiro das Trevas</strong><b>987 ♥</b></li>
+                <li><span>3</span><img src="https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?auto=format&fit=crop&w=60&q=80" alt="" /><strong>Oppenheimer</strong><b>862 ♥</b></li>
+                <li><span>4</span><img src="https://images.unsplash.com/photo-1505686994434-e3cc5abf1330?auto=format&fit=crop&w=60&q=80" alt="" /><strong>A Origem</strong><b>756 ♥</b></li>
+                <li><span>5</span><img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=60&q=80" alt="" /><strong>Coringa</strong><b>645 ♥</b></li>
+              </ol>
+            </article>
 
-          <article class="admin-panel admin-genres">
-            <h2>Gêneros mais populares</h2>
-            <p><span>Drama</span><i style="width: 85%"></i><strong>35%</strong></p>
-            <p><span>Ação</span><i style="width: 65%"></i><strong>25%</strong></p>
-            <p><span>Ficção Científica</span><i style="width: 52%"></i><strong>20%</strong></p>
-            <p><span>Suspense</span><i style="width: 32%"></i><strong>10%</strong></p>
-            <p><span>Outros</span><i style="width: 28%"></i><strong>10%</strong></p>
-          </article>
+            <article class="admin-panel admin-activity">
+              <header class="admin-panel-head">
+                <h2>Atividades recentes</h2>
+                <button type="button">Ver todas</button>
+              </header>
+              <ul>
+                <li><i class="purple">▦</i>Novo filme cadastrado: Duna: Parte Dois <span>Hoje, 14:32</span></li>
+                <li><i class="blue">●</i>Novo usuário registrado: Juliana Souza <span>Hoje, 13:15</span></li>
+                <li><i class="gold">★</i>Nova avaliação em Oppenheimer <span>Hoje, 11:05</span></li>
+                <li><i class="red">⚑</i>Comentário denunciado em Coringa <span>Ontem, 21:44</span></li>
+                <li><i class="green">✉</i>Usuário excluiu comentário em A Origem <span>Ontem, 16:30</span></li>
+              </ul>
+            </article>
+          </section>
         </section>
 
         <section class="admin-movie-create" id="adminMoviesView">
