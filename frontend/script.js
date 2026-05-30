@@ -2272,15 +2272,16 @@ document.querySelectorAll('.user-header .nav-link').forEach((link) => {
   }
 });
 
-document.getElementById('filterBtn').textContent = 'Todos os gêneros';
-document.querySelector('.movie-export-button').textContent = '⇩ Exportar';
-document.querySelector('.genre-export-button').textContent = '⇩ Exportar';
 document.getElementById('genreSearch')?.addEventListener('input', (event) => {
   const query = normalizeText(event.target.value);
   document.querySelectorAll('#categoriasPage .categories-grid article').forEach((card) => {
     card.hidden = query && !normalizeText(card.textContent).includes(query);
   });
 });
+document.getElementById('diarySearch')?.addEventListener('input', (event) => {
+  applyDiaryFilters();
+});
+document.getElementById('diaryGenreFilter')?.addEventListener('change', applyDiaryFilters);
 document.getElementById('goMovies').addEventListener('click', showAllMovies);
 document.getElementById('editProfileBtn').addEventListener('click', () => {
   renderProfileForm();
@@ -2293,7 +2294,11 @@ document.getElementById('downloadXmlBtn').addEventListener('click', downloadXMLE
 document.getElementById('downloadXmlIconBtn').addEventListener('click', downloadXMLExport);
 document.getElementById('movieSearch').addEventListener('input', (event) => {
   setMoviesHeader('Filmes', 'Explore todos os filmes disponiveis.');
-  renderMovies(filterMovies(event.target.value));
+  applyMovieFilters();
+});
+document.getElementById('genreFilter')?.addEventListener('change', () => {
+  setMoviesHeader('Filmes', 'Explore todos os filmes disponiveis.');
+  applyMovieFilters();
 });
 document.getElementById('globalSearch').addEventListener('keydown', (event) => {
   if (event.key === 'Enter') {
@@ -2313,8 +2318,7 @@ const categoryNames = [
   'Ficção Científica',
   'Terror',
   'Romance',
-  'Animação',
-  'Documentário'
+  'Suspense'
 ];
 
 document.querySelectorAll('.categories-grid article').forEach((card, index) => {
@@ -2356,6 +2360,7 @@ async function loadMovies() {
   }
 
   renderFeatured();
+  populateMovieGenreFilter();
   renderMovies(movies);
   renderProfile();
 }
@@ -2382,6 +2387,10 @@ function setMoviesHeader(title, subtitle) {
 
 function showAllMovies() {
   document.getElementById('movieSearch').value = '';
+  const genreFilter = document.getElementById('genreFilter');
+  if (genreFilter) {
+    genreFilter.value = '';
+  }
   setMoviesHeader('Filmes', 'Explore todos os filmes disponiveis.');
   renderMovies(movies);
   showPage('filmes');
@@ -2393,29 +2402,65 @@ function showCategoryMovies(category) {
   });
 
   document.getElementById('movieSearch').value = category;
+  const genreFilter = document.getElementById('genreFilter');
+  if (genreFilter) {
+    genreFilter.value = category;
+  }
   setMoviesHeader(`Filmes de ${category}`, `Explore filmes do gênero ${category}.`);
   renderMovies(filteredMovies);
   showPage('filmes');
 }
 
-function filterMovies(query = '') {
-  if (!query) {
-    return movies;
-  }
+function populateMovieGenreFilter() {
+  const genreFilter = document.getElementById('genreFilter');
+  const diaryGenreFilter = document.getElementById('diaryGenreFilter');
 
+  const genres = Array.from(new Set(movies.map(getMovieGenre).filter(Boolean)))
+    .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+  const options = '<option value="">Todos os gêneros</option>'
+    + genres.map((genre) => `<option value="${escapeHtml(genre)}">${escapeHtml(genre)}</option>`).join('');
+
+  if (genreFilter) genreFilter.innerHTML = options;
+  if (diaryGenreFilter) diaryGenreFilter.innerHTML = options;
+}
+
+function applyMovieFilters() {
+  const query = document.getElementById('movieSearch')?.value || '';
+  const genre = document.getElementById('genreFilter')?.value || '';
+  renderMovies(filterMovies(query, genre));
+}
+
+function applyDiaryFilters() {
+  const query = document.getElementById('diarySearch')?.value || '';
+  const genre = document.getElementById('diaryGenreFilter')?.value || '';
+  renderDiaryMovies(filterMovies(query, genre).slice(0, 8));
+}
+
+function filterMovies(query = '', genre = '') {
   const normalizedQuery = normalizeText(query);
+  const normalizedGenre = normalizeText(genre);
 
   return movies.filter((movie) => {
-    return normalizeText(movie.titulo).includes(normalizedQuery)
-      || normalizeText(movie.genero_nome).includes(normalizedQuery);
+    const movieGenre = getMovieGenre(movie);
+    const matchesQuery = !normalizedQuery
+      || normalizeText(movie.titulo).includes(normalizedQuery)
+      || normalizeText(movieGenre).includes(normalizedQuery);
+    const matchesGenre = !normalizedGenre || normalizeText(movieGenre) === normalizedGenre;
+
+    return matchesQuery && matchesGenre;
   });
+}
+
+function getMovieGenre(movie = {}) {
+  return movie.genero_nome || generoNameById(movie.genero_id) || '';
 }
 
 function renderFeatured() {
   const featured = movies.slice(0, 5);
   document.getElementById('featuredGrid').innerHTML = featured.map(renderMovieCard).join('');
   document.getElementById('favoritesGrid').innerHTML = movies.slice(0, 4).map(renderMovieCard).join('');
-  document.getElementById('watchedGrid').innerHTML = movies.slice(1, 9).map((movie, index) => renderMovieCard(movie, { watched: true, positive: index % 3 !== 0 })).join('');
+  renderDiaryMovies(movies.slice(1, 9));
 }
 
 function renderMovies(items) {
@@ -2445,7 +2490,6 @@ function renderMovieListRow(movie) {
     <article class="movie-management-card-item" onclick="openMovieModal(${movie.id})">
       <div class="movie-management-poster">
         <img src="${escapeHtml(resolveImageUrl(movie.capa_url))}" alt="Capa de ${escapeHtml(title)}" />
-        <span class="movie-status-pill">${escapeHtml(status)}</span>
       </div>
       <div class="movie-management-info">
         <span class="movie-list-genre">${escapeHtml(genre)}</span>
@@ -2462,6 +2506,12 @@ function renderMovieListRow(movie) {
       </div>
     </article>
   `;
+}
+
+function renderDiaryMovies(items) {
+  document.getElementById('watchedGrid').innerHTML = items.length
+    ? renderMovieListPanel(items)
+    : '<p class="empty-state">Nenhum filme encontrado no diário.</p>';
 }
 
 function getProfileUser() {

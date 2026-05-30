@@ -2724,7 +2724,7 @@ body,
   background: transparent;
   box-shadow: none;
   color: var(--noir-text);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.11em;
   text-decoration: none;
@@ -6977,20 +6977,49 @@ body.admin-theme-light .settings-preview-stats p {
 
 .user-home-shell #filmesPage .movies-toolbar {
   width: min(100%, 608px);
-  grid-template-columns: minmax(0, 1fr) 164px 126px;
+  grid-template-columns: minmax(0, 344px) 250px;
   gap: 14px;
   margin: 0;
+  justify-content: end;
 }
 
+.user-home-shell #filmesPage .movie-search-field,
 .user-home-shell #filmesPage .movies-toolbar input,
+.user-home-shell #filmesPage .movies-toolbar select,
 .user-home-shell #filmesPage .movies-toolbar button {
-  min-height: 34px;
+  min-height: 48px;
   border: 1px solid rgba(232, 226, 214, 0.12);
   border-radius: 4px;
   background: #0d1014;
   color: var(--noir-text);
   font-size: 13px;
   font-weight: 800;
+}
+
+.user-home-shell #filmesPage .movie-search-field {
+  display: flex;
+  align-items: center;
+  padding: 0 12px 0 14px;
+}
+
+.user-home-shell #filmesPage .movie-search-field input {
+  flex: 1;
+  min-width: 0;
+  min-height: 46px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.user-home-shell #filmesPage .movie-search-field span {
+  color: #f3eee5;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.user-home-shell #filmesPage #filterBtn,
+.user-home-shell #filmesPage .movie-export-button {
+  display: none;
 }
 
 .user-home-shell #filmesPage #filterBtn {
@@ -7002,11 +7031,18 @@ body.admin-theme-light .settings-preview-stats p {
 }
 
 .user-home-shell #filmesPage .movies-toolbar input {
-  padding: 0 38px 0 14px;
+  color: var(--noir-text);
+}
+
+.user-home-shell #filmesPage .movies-toolbar select {
+  min-height: 48px;
+  padding: 0 48px 0 22px;
+  appearance: none;
   background:
-    linear-gradient(var(--noir-text), var(--noir-text)) right 15px center / 8px 2px no-repeat,
-    radial-gradient(circle at center, transparent 3px, var(--noir-text) 4px, transparent 5px) right 20px center / 13px 13px no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='12' viewBox='0 0 18 12'%3E%3Cpath d='M2 2.5 9 9.5 16 2.5' fill='none' stroke='%23c9c2b8' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") right 18px center / 18px 12px no-repeat,
     #0d1014;
+  font-size: 14px;
+  font-weight: 900;
 }
 
 .user-home-shell #filmesPage .movies-toolbar button {
@@ -7338,32 +7374,39 @@ body.admin-theme-light .settings-preview-stats p {
 }
 
 .user-home-shell #categoriasPage .genres-toolbar {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 126px;
-  gap: 14px;
+  display: flex;
+  justify-content: flex-end;
 }
 
-.user-home-shell #categoriasPage .genres-toolbar input,
-.user-home-shell #categoriasPage .genres-toolbar button {
-  min-height: 34px;
+.user-home-shell #categoriasPage .genre-search-field {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  width: min(100%, 344px);
   border: 1px solid rgba(232, 226, 214, 0.12);
   border-radius: 4px;
+  padding: 0 12px 0 14px;
   background: #0d1014;
+  color: var(--noir-text);
+  font-weight: 800;
+}
+
+.user-home-shell #categoriasPage .genre-search-field input {
+  flex: 1;
+  min-width: 0;
+  min-height: 46px;
+  border: 0;
+  padding: 0;
+  background: transparent;
   color: var(--noir-text);
   font-size: 13px;
   font-weight: 800;
 }
 
-.user-home-shell #categoriasPage .genres-toolbar input {
-  padding: 0 38px 0 14px;
-  background:
-    linear-gradient(var(--noir-text), var(--noir-text)) right 15px center / 8px 2px no-repeat,
-    radial-gradient(circle at center, transparent 3px, var(--noir-text) 4px, transparent 5px) right 20px center / 13px 13px no-repeat,
-    #0d1014;
-}
-
-.user-home-shell #categoriasPage .genres-toolbar button {
-  padding: 0 14px;
+.user-home-shell #categoriasPage .genre-search-field span {
+  color: #f3eee5;
+  font-size: 15px;
+  line-height: 1;
 }
 
 .user-home-shell #categoriasPage .categories-grid {
@@ -7396,6 +7439,191 @@ body.admin-theme-light .settings-preview-stats p {
 .user-home-shell #categoriasPage .category-icon svg {
   width: 30px;
   height: 30px;
+}
+
+.user-home-shell #assistidosPage {
+  padding-top: clamp(24px, 4vw, 56px);
+}
+
+.user-home-shell #assistidosPage .diary-management-card {
+  overflow: hidden;
+  border: 1px solid rgba(232, 226, 214, 0.08);
+  border-radius: 6px;
+  background: #0b0f12;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.16);
+}
+
+.user-home-shell #assistidosPage .diary-page-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px 18px 26px;
+  border-bottom: 1px solid rgba(232, 226, 214, 0.06);
+  background: #0f1318;
+}
+
+.user-home-shell #assistidosPage .movies-header {
+  margin: 0;
+}
+
+.user-home-shell #assistidosPage .movies-header h1 {
+  position: relative;
+  display: inline-block;
+  margin: 0;
+  color: var(--noir-text);
+  font-size: 34px;
+  line-height: 1.1;
+}
+
+.user-home-shell #assistidosPage .movies-header h1::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -9px;
+  width: 50px;
+  height: 3px;
+  border-radius: 999px;
+  background: #c9c2b8;
+}
+
+.user-home-shell #assistidosPage .movies-header p {
+  display: none;
+}
+
+.user-home-shell #assistidosPage .diary-toolbar {
+  width: min(100%, 608px);
+  display: grid;
+  grid-template-columns: minmax(0, 344px) 250px;
+  gap: 14px;
+  justify-content: end;
+}
+
+.user-home-shell #assistidosPage .diary-search-field,
+.user-home-shell #assistidosPage .diary-toolbar input,
+.user-home-shell #assistidosPage .diary-toolbar select,
+.user-home-shell #assistidosPage .diary-toolbar button {
+  min-height: 48px;
+  border: 1px solid rgba(232, 226, 214, 0.12);
+  border-radius: 4px;
+  background: #0d1014;
+  color: var(--noir-text);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.user-home-shell #assistidosPage .diary-search-field {
+  display: flex;
+  align-items: center;
+  padding: 0 12px 0 14px;
+}
+
+.user-home-shell #assistidosPage .diary-search-field input {
+  flex: 1;
+  min-width: 0;
+  min-height: 46px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--noir-text);
+  outline: 0;
+}
+
+.user-home-shell #assistidosPage .diary-search-field:focus-within {
+  border-color: rgba(232, 226, 214, 0.18);
+  box-shadow: none;
+}
+
+.user-home-shell #assistidosPage .diary-search-field span {
+  color: #f3eee5;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.user-home-shell #assistidosPage .diary-toolbar select {
+  min-height: 48px;
+  padding: 0 48px 0 22px;
+  appearance: none;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='12' viewBox='0 0 18 12'%3E%3Cpath d='M2 2.5 9 9.5 16 2.5' fill='none' stroke='%23c9c2b8' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") right 18px center / 18px 12px no-repeat,
+    #0d1014;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.user-home-shell #assistidosPage .watched-grid {
+  display: block;
+  padding: 42px 30px 30px;
+}
+
+.user-home-shell #categoriasPage .categories-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: stretch;
+}
+
+.user-home-shell #categoriasPage .categories-grid article {
+  min-height: 154px;
+  padding: 24px 18px 18px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0)),
+    #151515;
+}
+
+.user-home-shell #categoriasPage .category-icon,
+.user-home-shell #categoriasPage .category-icon.orange,
+.user-home-shell #categoriasPage .category-icon.yellow,
+.user-home-shell #categoriasPage .category-icon.amber,
+.user-home-shell #categoriasPage .category-icon.purple,
+.user-home-shell #categoriasPage .category-icon.blue,
+.user-home-shell #categoriasPage .category-icon.red,
+.user-home-shell #categoriasPage .category-icon.rose,
+.user-home-shell #categoriasPage .category-icon.green,
+.user-home-shell #categoriasPage .category-icon.violet {
+  width: 44px;
+  height: 44px;
+  margin: 0 auto;
+  border: 0;
+  background: transparent;
+  color: #f3eee5;
+}
+
+.user-home-shell #categoriasPage .category-icon svg {
+  width: 36px;
+  height: 36px;
+  stroke-width: 1.8;
+}
+
+.user-home-shell #categoriasPage .categories-grid article > div:last-child {
+  text-align: center;
+}
+
+.user-home-shell #categoriasPage .categories-grid strong {
+  color: #f3eee5;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.user-home-shell #categoriasPage .categories-grid span {
+  margin-top: 8px;
+  color: #b9b0a3;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.user-home-shell #categoriasPage .categories-grid span::before {
+  content: "▣";
+  margin-right: 5px;
+  color: #b9b0a3;
+  font-size: 8px;
+}
+
+.user-home-shell #categoriasPage .categories-grid article::after {
+  content: "Ver filmes  →";
+  align-self: end;
+  justify-self: start;
+  color: #d8c9b4;
+  font-size: 11px;
+  font-weight: 900;
 }
 
 .user-home-shell .profile-page,
@@ -7481,6 +7709,21 @@ body.admin-theme-light .settings-preview-stats p {
   }
 
   .user-home-shell #categoriasPage .categories-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 20px 12px 18px;
+  }
+
+  .user-home-shell #assistidosPage .diary-page-top {
+    flex-direction: column;
+    padding: 20px 16px 34px;
+  }
+
+  .user-home-shell #assistidosPage .diary-toolbar {
+    width: 100%;
+    grid-template-columns: 1fr;
+  }
+
+  .user-home-shell #assistidosPage .watched-grid {
     padding: 20px 12px 18px;
   }
 
@@ -7530,6 +7773,10 @@ body.admin-theme-light .settings-preview-stats p {
 }
 
 @media (max-width: 560px) {
+  .user-home-shell #categoriasPage .categories-grid {
+    grid-template-columns: 1fr;
+  }
+
   .user-home-shell .user-header {
     padding: 16px;
   }
