@@ -4131,6 +4131,10 @@ body,
 
 .admin-dashboard-card .admin-topbar {
   margin: 0 0 26px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .admin-dashboard-card .admin-stats {
@@ -8675,4 +8679,728 @@ body.admin-theme-light .settings-preview-stats p {
 .movie-detail-shell .movie-info dl > div {
   border-color: transparent;
   background: transparent;
+}
+
+/* Responsive hardening */
+img,
+video,
+canvas {
+  max-width: 100%;
+}
+
+.admin-main,
+.admin-dashboard-card,
+.admin-catalog-shell,
+.movie-create-shell,
+.admin-config-shell,
+.admin-chart-shell,
+.admin-logs-shell,
+.user-home-shell .page,
+.movie-modal-card,
+.admin-confirm-card {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-catalog-table-wrap,
+.admin-settings-table-wrap,
+.admin-logs-table-wrap,
+.logs-table-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.admin-catalog-table,
+.admin-settings-table,
+.admin-logs-table,
+.logs-table {
+  min-width: 760px;
+}
+
+.admin-logs-table {
+  min-width: 980px;
+}
+
+.admin-settings-table {
+  min-width: 720px;
+}
+
+.admin-catalog-table th,
+.admin-catalog-table td,
+.admin-settings-table th,
+.admin-settings-table td,
+.admin-logs-table th,
+.admin-logs-table td {
+  white-space: nowrap;
+}
+
+.admin-catalog-table td:first-child,
+.admin-users-table td:first-child,
+.admin-settings-table td:first-child {
+  white-space: normal;
+}
+
+.admin-tools,
+.admin-catalog-toolbar,
+.admin-users-toolbar,
+.admin-log-export-actions,
+.admin-xml-filter-actions,
+.report-actions,
+.reports-filters,
+.export-period-grid,
+.export-actions {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.admin-search,
+.admin-catalog-filters input,
+.admin-users-toolbar select,
+.admin-genre-select,
+.admin-export-btn,
+.admin-chart-filter-button {
+  max-width: 100%;
+}
+
+.admin-panel,
+.admin-stat-card,
+.admin-added-movie,
+.admin-review-item,
+.admin-favorite-list li,
+.admin-activity li,
+.movie-management-card-item,
+.category-card,
+.profile-panel,
+.report-panel,
+.logs-panel {
+  min-width: 0;
+}
+
+.admin-review-item strong,
+.admin-review-item p,
+.admin-favorite-list strong,
+.admin-activity li,
+.admin-added-movie strong,
+.user-home-shell .movie-management-info strong,
+.user-home-shell .movie-management-info p {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1180px) {
+  .admin-main {
+    padding: 22px;
+  }
+
+  .admin-dashboard-card .admin-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .admin-added-movie-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .admin-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-grid > .admin-panel {
+    min-height: auto;
+  }
+
+  .admin-activity {
+    grid-column: 1 / -1;
+  }
+
+  .admin-topbar {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .admin-tools {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .admin-search {
+    width: min(100%, 360px);
+  }
+
+  .movie-create-layout,
+  .admin-log-export-box,
+  .admin-appearance-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .movie-preview-card {
+    order: 2;
+  }
+
+  .admin-chart-shell {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 980px) {
+  .admin-shell.visible {
+    display: block;
+  }
+
+  .admin-sidebar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    padding: 14px 18px;
+  }
+
+  .admin-sidebar nav {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .admin-main,
+  .admin-main.show-movies,
+  .admin-main.show-users,
+  .admin-main.show-config,
+  .admin-main.show-logs {
+    padding: 18px;
+  }
+
+  .admin-dashboard-card {
+    padding: 14px;
+  }
+
+  .admin-dashboard-card .admin-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-stat-card.red {
+    grid-column: 1 / -1;
+  }
+
+  .admin-added-movie-row,
+  .admin-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-activity {
+    grid-column: auto;
+  }
+
+  .admin-catalog-shell,
+  .movie-create-shell,
+  .admin-config-shell,
+  .admin-logs-shell {
+    min-height: auto;
+    padding: 18px;
+  }
+
+  .admin-catalog-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-catalog-footer div {
+    flex-wrap: wrap;
+  }
+
+  .admin-donut-chart-layout,
+  .admin-user-status-chart,
+  .admin-log-export-top,
+  .admin-profile-grid,
+  .admin-password-grid,
+  .settings-preview-panel,
+  .movie-detail-shell,
+  .movie-detail-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .movie-detail-poster img {
+    max-height: 440px;
+    object-fit: cover;
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-main,
+  .admin-main.show-movies,
+  .admin-main.show-users,
+  .admin-main.show-config,
+  .admin-main.show-logs {
+    padding: 12px;
+  }
+
+  .admin-sidebar {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .admin-quick-nav {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 10px;
+    margin-left: 0;
+    padding-left: 0;
+    border-left: 0;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .admin-quick-nav a {
+    flex: 0 0 auto;
+  }
+
+  .admin-topbar {
+    gap: 16px;
+    padding: 14px;
+  }
+
+  .admin-topbar h1,
+  .admin-user-topbar-title,
+  .admin-export-title,
+  .admin-catalog-header h2 {
+    font-size: 28px;
+  }
+
+  .admin-tools,
+  .admin-search,
+  .admin-genre-select,
+  .admin-export-btn,
+  .admin-chart-filter-button {
+    width: 100%;
+  }
+
+  .admin-dashboard-card .admin-stats,
+  .admin-added-movie-row,
+  .admin-grid,
+  .admin-posters,
+  .admin-xml-filter-grid,
+  .admin-confirm-card div,
+  .movie-form-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-stat-card.red {
+    grid-column: auto;
+  }
+
+  .admin-stats article {
+    min-height: 96px;
+  }
+
+  .admin-stat-card {
+    gap: 14px;
+  }
+
+  .admin-stats strong {
+    font-size: 30px;
+  }
+
+  .admin-added-movie {
+    min-height: 210px;
+  }
+
+  .admin-panel {
+    padding: 14px;
+  }
+
+  .admin-panel-head {
+    align-items: flex-start;
+  }
+
+  .admin-favorite-list li {
+    grid-template-columns: 20px 36px minmax(0, 1fr);
+  }
+
+  .admin-favorite-list b {
+    grid-column: 3;
+  }
+
+  .admin-activity li,
+  .admin-dashboard-modal-list.favorite-list article,
+  .admin-dashboard-modal-list.activity-list article {
+    grid-template-columns: 28px minmax(0, 1fr);
+  }
+
+  .admin-activity span,
+  .admin-dashboard-modal-list.favorite-list span,
+  .admin-dashboard-modal-list.activity-list time {
+    grid-column: 2;
+    text-align: left;
+  }
+
+  .movie-create-form.movie-create-card,
+  .movie-preview-card,
+  .admin-confirm-card,
+  .admin-dashboard-modal-card,
+  .movie-modal-card {
+    padding: 16px;
+  }
+
+  .movie-create-page-header h2,
+  .admin-confirm-card h2,
+  .admin-dashboard-modal-card h2 {
+    font-size: 24px;
+  }
+
+  .movie-preview-card h3 {
+    font-size: 19px;
+  }
+
+  .admin-confirm-modal,
+  .movie-modal {
+    padding: 12px;
+  }
+
+  .admin-confirm-card button,
+  .movie-form-actions button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .admin-sidebar {
+    grid-template-columns: 1fr auto;
+  }
+
+  .admin-user-menu {
+    display: none;
+  }
+
+  .admin-topbar h1,
+  .admin-user-topbar-title,
+  .admin-export-title,
+  .admin-catalog-header h2 {
+    font-size: 24px;
+  }
+
+  .admin-title-row {
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .admin-search input,
+  .admin-genre-select,
+  .admin-export-btn,
+  .admin-chart-filter-button {
+    font-size: 12px;
+  }
+
+  .admin-stat-icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .admin-stats strong {
+    font-size: 26px;
+  }
+
+  .admin-catalog-table,
+  .admin-settings-table {
+    min-width: 680px;
+  }
+
+  .admin-logs-table {
+    min-width: 900px;
+  }
+
+  .movie-create-breadcrumb {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 1180px) {
+  .user-home-shell .movie-card-list {
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  }
+
+  .user-home-shell #categoriasPage .categories-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .movie-detail-shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 920px) {
+  .user-home-shell .user-header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+  }
+
+  .user-home-shell .side-brand strong {
+    font-size: 32px;
+  }
+
+  .user-home-shell .sidebar nav {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+  }
+
+  .user-home-shell .nav-link {
+    flex: 0 0 auto;
+  }
+
+  .user-home-shell .hero h1 {
+    max-width: 100%;
+    font-size: clamp(34px, 8vw, 58px);
+    overflow-wrap: anywhere;
+  }
+
+  .movie-detail-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .movie-detail-poster img {
+    width: min(100%, 320px);
+    max-height: 460px;
+    margin: 0 auto;
+    display: block;
+  }
+
+  .movie-detail-meta,
+  .movie-detail-actions,
+  .movie-stats-grid {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 760px) {
+  .user-home-shell .page:not(#inicioPage) {
+    padding: 18px 12px 32px;
+  }
+
+  .user-home-shell .user-header {
+    gap: 14px;
+  }
+
+  .user-home-shell .side-brand strong {
+    font-size: 28px;
+  }
+
+  .user-home-shell .side-brand span {
+    width: 21px;
+    height: 25px;
+    font-size: 17px;
+  }
+
+  .user-home-shell .header-actions {
+    flex-wrap: wrap;
+  }
+
+  .user-home-shell .search-box {
+    width: 100%;
+  }
+
+  .user-home-shell .hero {
+    min-height: calc(100vh - 160px);
+    padding: 72px 24px 44px;
+  }
+
+  .user-home-shell .hero > div {
+    width: min(100%, 520px);
+  }
+
+  .hero-actions {
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .hero-actions button:not(.add-button) {
+    flex: 1 1 180px;
+  }
+
+  .user-home-shell #filmesPage .movies-management-card,
+  .user-home-shell #categoriasPage .genres-management-card,
+  .user-home-shell #assistidosPage .diary-management-card {
+    border-radius: 5px;
+  }
+
+  .user-home-shell #filmesPage .movies-header h1,
+  .user-home-shell #categoriasPage .movies-header h1,
+  .user-home-shell #assistidosPage .movies-header h1 {
+    font-size: 30px;
+  }
+
+  .user-home-shell .movie-card-list {
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 14px;
+  }
+
+  .user-home-shell .movie-management-card-item {
+    min-height: 250px;
+  }
+
+  .user-home-shell #categoriasPage .categories-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .user-home-shell #filmesPage .movies-pagination {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .user-home-shell #filmesPage .movies-pagination > div {
+    flex-wrap: wrap;
+  }
+
+  .profile-hero,
+  .user-home-shell .profile-hero {
+    grid-template-columns: 1fr;
+    text-align: left;
+  }
+
+  .user-home-shell .profile-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .movie-detail-hero,
+  .movie-review-card,
+  .movie-comments-card {
+    padding: 14px;
+  }
+
+  .movie-detail-main h2 {
+    font-size: 28px;
+    overflow-wrap: anywhere;
+  }
+
+  .movie-detail-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .movie-detail-actions button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  .user-home-shell .user-header {
+    padding: 14px 12px;
+  }
+
+  .user-home-shell .sidebar nav {
+    gap: 12px;
+  }
+
+  .user-home-shell .nav-link {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+  }
+
+  .user-home-shell .hero {
+    min-height: calc(100vh - 150px);
+    padding: 56px 18px 34px;
+  }
+
+  .user-home-shell .hero h1 {
+    font-size: clamp(30px, 13vw, 44px);
+    line-height: 1;
+  }
+
+  .user-home-shell .hero p {
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  .hero-kicker {
+    letter-spacing: 0.08em;
+  }
+
+  .user-home-shell #filmesPage .movies-grid,
+  .user-home-shell #assistidosPage .watched-grid,
+  .user-home-shell #categoriasPage .categories-grid {
+    padding: 16px 10px;
+  }
+
+  .user-home-shell .movie-card-list,
+  .user-home-shell #categoriasPage .categories-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .user-home-shell .movie-management-card-item {
+    min-height: 238px;
+  }
+
+  .user-home-shell .movie-management-info {
+    padding: 16px 14px 8px;
+  }
+
+  .user-home-shell .movie-management-info strong {
+    white-space: normal;
+  }
+
+  .user-home-shell .movie-management-meta {
+    flex-wrap: wrap;
+  }
+
+  .user-home-shell .account-info div {
+    padding: 14px 0;
+  }
+
+  .edit-fields,
+  .user-home-shell .edit-fields {
+    min-width: 0;
+  }
+
+  .edit-fields input,
+  .user-home-shell .edit-fields input {
+    min-width: 0;
+  }
+
+  .movie-modal-card,
+  .admin-dashboard-modal-card {
+    width: min(100%, calc(100vw - 18px));
+    max-height: calc(100dvh - 18px);
+  }
+
+  .movie-detail-poster img {
+    width: 100%;
+    max-height: 360px;
+  }
+
+  .movie-review-form,
+  .rating-control,
+  .movie-comment {
+    grid-template-columns: 1fr;
+  }
+
+  .rating-control {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 380px) {
+  .user-home-shell .page:not(#inicioPage) {
+    padding-inline: 8px;
+  }
+
+  .user-home-shell .hero {
+    padding-inline: 14px;
+  }
+
+  .admin-main,
+  .admin-main.show-movies,
+  .admin-main.show-users,
+  .admin-main.show-config,
+  .admin-main.show-logs {
+    padding: 8px;
+  }
+
+  .admin-dashboard-card,
+  .admin-catalog-shell,
+  .movie-create-form.movie-create-card,
+  .movie-preview-card,
+  .profile-panel {
+    padding: 12px;
+  }
 }
