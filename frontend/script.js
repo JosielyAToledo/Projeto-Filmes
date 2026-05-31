@@ -655,14 +655,22 @@ document.getElementById('adminOpenJsonImport')?.addEventListener('click', openAd
 document.getElementById('adminOpenJsonExport')?.addEventListener('click', openAdminJsonExportPanel);
 document.getElementById('adminOpenPdfExport')?.addEventListener('click', openAdminPdfExportPanel);
 document.getElementById('adminCancelJsonImport')?.addEventListener('click', closeAdminJsonImportPanel);
-document.getElementById('adminDownloadXmlPreview')?.addEventListener('click', () => {
-  downloadBlob(buildAdminLogsXML(getFilteredAdminXmlLogs()), 'logs-catalogo7.xml', 'application/xml');
+document.querySelector('.admin-export-btn')?.addEventListener('click', () => {
+  showAdminView('config');
+  showAdminConfigTab('logs');
+  showAdminLogPanel('export');
 });
-document.getElementById('adminDownloadJsonPreview')?.addEventListener('click', () => {
-  downloadBlob(buildAdminLogsJSON(getFilteredAdminXmlLogs()), 'logs-catalogo7.json', 'application/json');
+document.getElementById('adminDownloadXmlPreview')?.addEventListener('click', async () => {
+  await ensureAdminLogsLoaded();
+  await downloadAdminExport('xml');
 });
-document.getElementById('adminDownloadPdfPreview')?.addEventListener('click', () => {
-  downloadBlob(makeSimplePDF(buildAdminPdfLines(getFilteredAdminXmlLogs())), 'logs-catalogo7.pdf', 'application/pdf');
+document.getElementById('adminDownloadJsonPreview')?.addEventListener('click', async () => {
+  await ensureAdminLogsLoaded();
+  await downloadAdminExport('json');
+});
+document.getElementById('adminDownloadPdfPreview')?.addEventListener('click', async () => {
+  await ensureAdminLogsLoaded();
+  await downloadAdminExport('pdf');
 });
 document.getElementById('adminCopyXmlPreview')?.addEventListener('click', async () => {
   const preview = document.getElementById('adminXmlPreview')?.textContent || '';
@@ -2246,10 +2254,21 @@ function showAdminLogPanel(panel) {
   document.getElementById('adminLogExportPanel')?.classList.toggle('active', isExportPanel);
 }
 
-function openAdminXmlExportPanel() {
-  if (!adminLogsCache.length) {
-    adminLogsCache = sampleAdminLogs;
+async function ensureAdminLogsLoaded() {
+  if (adminLogsCache.length) return adminLogsCache;
+
+  try {
+    adminLogsCache = await api('/logs');
+  } catch (error) {
+    console.warn('Nao foi possivel carregar logs reais para exportacao.', error.message);
+    adminLogsCache = [];
   }
+
+  return adminLogsCache;
+}
+
+async function openAdminXmlExportPanel() {
+  await ensureAdminLogsLoaded();
   document.getElementById('adminJsonImportPanel')?.classList.remove('visible');
   document.getElementById('adminJsonExportPanel')?.classList.remove('visible');
   document.getElementById('adminPdfExportPanel')?.classList.remove('visible');
@@ -2268,10 +2287,8 @@ function closeAdminJsonImportPanel() {
   document.getElementById('adminJsonImportPanel')?.classList.remove('visible');
 }
 
-function openAdminJsonExportPanel() {
-  if (!adminLogsCache.length) {
-    adminLogsCache = sampleAdminLogs;
-  }
+async function openAdminJsonExportPanel() {
+  await ensureAdminLogsLoaded();
   document.getElementById('adminXmlExportPanel')?.classList.remove('visible');
   document.getElementById('adminJsonImportPanel')?.classList.remove('visible');
   document.getElementById('adminPdfExportPanel')?.classList.remove('visible');
@@ -2279,10 +2296,8 @@ function openAdminJsonExportPanel() {
   document.getElementById('adminJsonExportPanel')?.classList.add('visible');
 }
 
-function openAdminPdfExportPanel() {
-  if (!adminLogsCache.length) {
-    adminLogsCache = sampleAdminLogs;
-  }
+async function openAdminPdfExportPanel() {
+  await ensureAdminLogsLoaded();
   document.getElementById('adminXmlExportPanel')?.classList.remove('visible');
   document.getElementById('adminJsonImportPanel')?.classList.remove('visible');
   document.getElementById('adminJsonExportPanel')?.classList.remove('visible');
@@ -2295,7 +2310,7 @@ function getFilteredAdminXmlLogs() {
   const selectedType = normalizeText(document.getElementById('adminXmlType')?.value || 'Todas as ações');
   const selectedStatus = normalizeText(document.getElementById('adminXmlStatus')?.value || 'Todos os status');
   const query = normalizeText(document.getElementById('adminXmlSearch')?.value || '');
-  const logs = adminLogsCache.length ? adminLogsCache : sampleAdminLogs;
+  const logs = adminLogsCache;
 
   return logs.filter((log) => {
     const user = normalizeText(formatLogUser(log.usuario || 'anônimo'));
@@ -2397,6 +2412,62 @@ function buildAdminPdfLines(logs) {
       return `${date} | ${formatLogUser(log.usuario || 'anônimo')} | ${action} | ${log.statusCode || '-'}`;
     })
   ];
+}
+
+function getAdminExportQueryString() {
+  const params = new URLSearchParams();
+  const user = document.getElementById('adminXmlUser')?.value || '';
+  const status = document.getElementById('adminXmlStatus')?.value || '';
+
+  if (user && normalizeText(user) !== normalizeText('Todos')) {
+    params.set('usuario', user);
+  }
+
+  if (status && normalizeText(status) !== normalizeText('Todos os status')) {
+    params.set('statusCode', status);
+  }
+
+  return params.toString();
+}
+
+async function downloadAdminExport(format) {
+  const query = getAdminExportQueryString();
+  const suffix = query ? `?${query}` : '';
+  const contentTypes = {
+    xml: 'application/xml',
+    json: 'application/json',
+    pdf: 'application/pdf'
+  };
+  const filenames = {
+    xml: 'logs-catalogo7.xml',
+    json: 'logs-catalogo7.json',
+    pdf: 'logs-catalogo7.pdf'
+  };
+
+  try {
+    const response = await fetch(`${API_URL}/logs/exportar/${format}${suffix}`, {
+      headers: headers()
+    });
+
+    if (response.ok) {
+      const content = format === 'json'
+        ? JSON.stringify(await response.json(), null, 2)
+        : await response.text();
+      downloadBlob(content, filenames[format], contentTypes[format]);
+      return;
+    }
+  } catch (error) {
+    console.warn('Exportacao pela API indisponivel, usando dados filtrados em tela.', error.message);
+  }
+
+  const logs = getFilteredAdminXmlLogs();
+  const fallback = {
+    xml: () => buildAdminLogsXML(logs),
+    json: () => buildAdminLogsJSON(logs),
+    pdf: () => makeSimplePDF(buildAdminPdfLines(logs))
+  };
+
+  downloadBlob(fallback[format](), filenames[format], contentTypes[format]);
 }
 
 function buildAdminLogsXML(logs, hasMore = false) {

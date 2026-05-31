@@ -12,6 +12,8 @@ class LogsRoutes {
   register() {
     this.router.get('/', authMiddleware, this.logController.index);
     this.router.get('/exportar/xml', authMiddleware, this.logController.exportarXML);
+    this.router.get('/exportar/json', authMiddleware, this.logController.exportarJSON);
+    this.router.get('/exportar/pdf', authMiddleware, this.logController.exportarPDF);
   }
 }
 

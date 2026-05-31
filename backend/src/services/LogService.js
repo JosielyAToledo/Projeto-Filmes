@@ -28,6 +28,10 @@ class LogService {
       query.usuario = filtros.usuario;
     }
 
+    if (filtros.statusCode) {
+      query.statusCode = Number(filtros.statusCode) || filtros.statusCode;
+    }
+
     if (filtros.dataInicio || filtros.dataFim) {
       query.timestamp = {};
       if (filtros.dataInicio) {
@@ -41,8 +45,8 @@ class LogService {
     return Log.find(query).sort({ timestamp: -1 }).limit(200);
   }
 
-  async exportarXML() {
-    const logs = await this.listar();
+  async exportarXML(filtros = {}) {
+    const logs = await this.listar(filtros);
     const itens = logs
       .map((log, index) => (
         `  <evento id="${index + 1}">
@@ -66,6 +70,34 @@ class LogService {
 
     return `<?xml version="1.0" encoding="UTF-8"?>\n<logs>\n${itens}\n</logs>`;
   }
+
+  async exportarJSON(filtros = {}) {
+    const logs = await this.listar(filtros);
+    return {
+      exportacao: {
+        formato: 'JSON',
+        gerado_em: new Date().toISOString(),
+        total: logs.length,
+        logs
+      }
+    };
+  }
+
+  async exportarPDF(filtros = {}) {
+    const logs = await this.listar(filtros);
+    const linhas = [
+      'Relatorio de Logs - Catalogo7',
+      `Gerado em: ${new Date().toLocaleString('pt-BR')}`,
+      `Total de logs: ${logs.length}`,
+      '',
+      ...logs.slice(0, 24).map((log) => {
+        const data = log.timestamp ? new Date(log.timestamp).toLocaleString('pt-BR') : '-';
+        return `${data} | ${log.usuario || 'anonimo'} | ${log.acao || '-'} | ${log.statusCode || '-'}`;
+      })
+    ];
+
+    return makeSimplePDF(linhas);
+  }
 }
 
 function isMongoConnected() {
@@ -79,6 +111,49 @@ function escapeXml(value) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&apos;');
+}
+
+function escapePDFText(text) {
+  return String(text)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[()\\]/g, '\\$&');
+}
+
+function makeSimplePDF(lines) {
+  const content = [
+    'BT',
+    '/F1 18 Tf',
+    '50 790 Td',
+    '(Relatorio Catalogo7) Tj',
+    '/F1 11 Tf',
+    '0 -28 Td',
+    ...lines.map((line) => `(${escapePDFText(line)}) Tj 0 -18 Td`),
+    'ET'
+  ].join('\n');
+  const objects = [
+    '1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n',
+    '2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n',
+    '3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>\nendobj\n',
+    '4 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n',
+    `5 0 obj\n<< /Length ${content.length} >>\nstream\n${content}\nendstream\nendobj\n`
+  ];
+  let pdf = '%PDF-1.4\n';
+  const offsets = [0];
+
+  objects.forEach((object) => {
+    offsets.push(pdf.length);
+    pdf += object;
+  });
+
+  const xref = pdf.length;
+  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+  offsets.slice(1).forEach((offset) => {
+    pdf += `${String(offset).padStart(10, '0')} 00000 n \n`;
+  });
+  pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+
+  return pdf;
 }
 
 module.exports = LogService;
