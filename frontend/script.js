@@ -20,6 +20,7 @@ let adminMoviesPage = 1;
 let adminUsersCache = [];
 let adminCurrentView = 'dashboard';
 let adminLogsCache = [];
+let adminDashboardSummary = {};
 let pendingDeleteLogIndex = null;
 const ADMIN_MOVIES_PER_PAGE = 4;
 const USER_MOVIES_PER_PAGE = 5;
@@ -685,11 +686,15 @@ document.getElementById('adminCopyJsonPreview')?.addEventListener('click', async
   const preview = document.getElementById('adminJsonPreview')?.textContent || '';
   await navigator.clipboard?.writeText(preview).catch(() => null);
 });
-['adminXmlPeriod', 'adminXmlStartDate', 'adminXmlEndDate', 'adminXmlUser', 'adminXmlType', 'adminXmlStatus', 'adminXmlSearch', 'adminJsonEntity'].forEach((id) => {
+['adminXmlPeriod', 'adminXmlStartDate', 'adminXmlEndDate', 'adminXmlUser', 'adminXmlType', 'adminXmlStatus', 'adminXmlSearch', 'adminJsonEntity', 'adminPdfScope', 'adminPdfGenre'].forEach((id) => {
   document.getElementById(id)?.addEventListener('change', updateAdminXmlPreview);
   document.getElementById(id)?.addEventListener('input', updateAdminXmlPreview);
 });
 document.getElementById('adminJsonEntity')?.addEventListener('change', updateAdminJsonStatusOptions);
+document.getElementById('adminPdfScope')?.addEventListener('change', () => {
+  updateAdminPdfGenreFilterState();
+  updateAdminXmlPreview();
+});
 document.getElementById('adminXmlPeriod')?.addEventListener('change', () => {
   if (document.querySelector('.admin-xml-filters')?.classList.contains('json-mode')) {
     applyAdminJsonPeriodDates();
@@ -1206,6 +1211,7 @@ function updateAdminDashboardCards(data = {}) {
 async function loadAdminDashboardStats() {
   try {
     const dashboardData = await api('/relatorios/json');
+    adminDashboardSummary = dashboardData || {};
     updateAdminDashboardStats(dashboardData);
     updateAdminDashboardCards(dashboardData);
   } catch (error) {
@@ -2325,7 +2331,7 @@ async function importAdminJsonFile() {
   }
 
   if (false && !selectedTable.includes('filmes')) {
-    setAdminJsonImportStatus('Neste momento a importaÃ§Ã£o JSON estÃ¡ disponÃ­vel para Filmes.', true);
+    setAdminJsonImportStatus('Neste momento a importação JSON está disponível para Filmes.', true);
     return;
   }
 
@@ -2360,7 +2366,18 @@ async function openAdminJsonExportPanel() {
 }
 
 async function openAdminPdfExportPanel() {
-  setAdminExportMode('logs');
+  setAdminExportMode('pdf');
+  if (!Object.keys(adminDashboardSummary).length) {
+    await loadAdminDashboardStats();
+  }
+  if (!adminMoviesCache.length) {
+    await loadAdminMovies();
+  }
+  populateAdminPdfGenreFilter();
+  updateAdminPdfGenreFilterState();
+  if (!adminUsersCache.length) {
+    await loadAdminUsers();
+  }
   await ensureAdminLogsLoaded();
   document.getElementById('adminXmlExportPanel')?.classList.remove('visible');
   document.getElementById('adminJsonImportPanel')?.classList.remove('visible');
@@ -2374,12 +2391,15 @@ function setAdminExportMode(mode) {
   const description = filters?.querySelector('header p');
   filters?.classList.toggle('json-mode', mode === 'json');
   filters?.classList.toggle('xml-mode', mode === 'xml');
+  filters?.classList.toggle('pdf-mode', mode === 'pdf');
   updateAdminJsonFilterControls(mode);
   if (description) {
     if (mode === 'json') {
       description.textContent = 'Filtre os dados do MySQL antes de exportar.';
     } else if (mode === 'xml') {
       description.textContent = 'Filtre os logs por usuário e status antes de exportar.';
+    } else if (mode === 'pdf') {
+      description.textContent = 'Escolha o conteúdo e o período do relatório PDF.';
     } else {
       description.textContent = 'Filtre os logs antes de exportar os dados.';
     }
@@ -2503,7 +2523,9 @@ function clearAdminXmlFilters() {
     adminXmlStatus: 'Todos os status',
     adminXmlType: 'Todas as ações',
     adminXmlSearch: '',
-    adminJsonEntity: 'filmes'
+    adminJsonEntity: 'filmes',
+    adminPdfScope: 'completo',
+    adminPdfGenre: ''
   };
 
   Object.entries(defaults).forEach(([id, value]) => {
@@ -2545,49 +2567,330 @@ function updateAdminPdfPreview() {
   const preview = document.getElementById('adminPdfPreview');
   if (!preview) return;
 
-  const logs = getFilteredAdminXmlLogs();
-  const rows = logs.slice(0, 8).map((log) => {
-    const action = log.acao || log.tipoEvento || '-';
-    return `
-      <tr>
-        <td>${escapeHtml(log.timestamp ? new Date(log.timestamp).toLocaleDateString('pt-BR') : '-')}</td>
-        <td>${escapeHtml(formatLogUser(log.usuario || 'anônimo'))}</td>
-        <td>${escapeHtml(formatLogAction(action))}</td>
-        <td>${escapeHtml(log.statusCode || '-')}</td>
-      </tr>
-    `;
-  }).join('');
+  const data = adminDashboardSummary || {};
+  const scope = getSelectedAdminPdfScope();
+  const filteredMovies = getAdminPdfPreviewMovies();
+  const filteredUsers = getAdminPdfPreviewUsers();
+  const reviews = data.ultimasAvaliacoes || [];
+  const favorites = data.filmesFavoritados || [];
+  const activities = data.atividadesRecentes || [];
+  const count = document.getElementById('adminPdfPreviewCount');
+  if (count) count.textContent = getAdminPdfScopeLabel(scope);
 
-  document.getElementById('adminPdfPreviewCount').textContent = `${logs.length} logs`;
   preview.innerHTML = `
     <div class="admin-pdf-page">
       <h3>Catálogo7</h3>
-      <h4>Relatório de Logs</h4>
-      <p>Período: ${escapeHtml(document.getElementById('adminXmlPeriod')?.value || 'Últimos 6 meses')}</p>
-      <table>
-        <thead>
-          <tr><th>Data</th><th>Usuário</th><th>Ação</th><th>Status</th></tr>
-        </thead>
-        <tbody>${rows || '<tr><td colspan="4">Nenhum log encontrado.</td></tr>'}</tbody>
-      </table>
+      <h4>${escapeHtml(getAdminPdfScopeLabel(scope))}</h4>
+      <p>Gerado em: ${escapeHtml(new Date().toLocaleString('pt-BR'))}</p>
+      ${buildAdminPdfPreviewBody(scope, {
+        data,
+        filteredMovies,
+        filteredUsers,
+        reviews,
+        favorites,
+        activities
+      })}
     </div>
   `;
 }
 
-function buildAdminPdfLines(logs) {
-  return [
-    'Relatorio de Logs - Catalogo7',
-    `Período: ${document.getElementById('adminXmlPeriod')?.value || 'Últimos 6 meses'}`,
-    `Total de logs: ${logs.length}`,
-    '',
-    ...logs.slice(0, 24).map((log) => {
-      const date = log.timestamp ? new Date(log.timestamp).toLocaleString('pt-BR') : '-';
-      const action = formatLogAction(log.acao || log.tipoEvento || '-');
-      return `${date} | ${formatLogUser(log.usuario || 'anônimo')} | ${action} | ${log.statusCode || '-'}`;
-    })
-  ];
+function buildAdminPdfPreviewBody(scope, context) {
+  const { data, filteredMovies, filteredUsers, reviews, favorites, activities } = context;
+  const totals = getAdminPdfPreviewTotals(data, filteredMovies, filteredUsers);
+  const previewFavorites = getAdminPdfPreviewFavorites(data, favorites);
+  const previewReviews = getAdminPdfPreviewReviews(data, reviews);
+  const previewActivities = getAdminPdfPreviewActivities(data, activities);
+
+  if (scope === 'filmes') {
+    return `
+      <p><strong>Total de filmes no período:</strong> ${escapeHtml(formatAdminTotal(filteredMovies.length))}</p>
+      ${buildAdminPdfPreviewTable(['Filme', 'Gênero', 'Ano'], filteredMovies.slice(0, 8).map((movie) => [
+        movie.titulo || 'Filme',
+        movie.genero_nome || generoNameById(movie.genero_id) || 'Sem gênero',
+        movie.ano_lancamento || '-'
+      ]))}
+    `;
+  }
+
+  if (scope === 'usuarios') {
+    return `
+      <p><strong>Total de usuários no período:</strong> ${escapeHtml(formatAdminTotal(filteredUsers.length))}</p>
+      ${buildAdminPdfPreviewTable(['Usuário', 'E-mail', 'Status'], filteredUsers.slice(0, 8).map((user) => [
+        user.nome || 'Usuário',
+        user.email || '-',
+        user.status || '-'
+      ]))}
+    `;
+  }
+
+  if (scope === 'favoritos') {
+    return `
+      <p><strong>Total de favoritos:</strong> ${escapeHtml(formatAdminTotal(data.favoritos))}</p>
+      <p><strong>Mais favoritados:</strong> ${escapeHtml(previewFavorites.slice(0, 5).map((movie) => `${movie.titulo} (${formatAdminTotal(movie.total)})`).join(', ') || 'Nenhum favorito registrado')}</p>
+      <p><strong>Últimas avaliações:</strong> ${escapeHtml(previewReviews.slice(0, 4).map((review) => `${review.usuario_nome || 'Usuário'} em ${review.filme_titulo || 'Filme'}`).join('; ') || 'Nenhuma avaliação registrada')}</p>
+    `;
+  }
+
+  if (scope === 'atividades') {
+    return `
+      <p><strong>Atividades recentes:</strong> ${escapeHtml(formatAdminTotal(previewActivities.length))}</p>
+      ${buildAdminPdfPreviewTable(['Data', 'Usuário', 'Descrição'], previewActivities.slice(0, 8).map((activity) => [
+        formatAdminDate(activity.timestamp),
+        activity.usuario || 'anônimo',
+        activity.descricao || activity.acao || '-'
+      ]))}
+    `;
+  }
+
+  return `
+    <table>
+      <thead>
+        <tr><th>Indicador</th><th>Total</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Filmes cadastrados</td><td>${escapeHtml(formatAdminTotal(totals.filmes))}</td></tr>
+        <tr><td>Usuários cadastrados</td><td>${escapeHtml(formatAdminTotal(totals.usuarios))}</td></tr>
+        <tr><td>Favoritos registrados</td><td>${escapeHtml(formatAdminTotal(totals.favoritos))}</td></tr>
+        <tr><td>Clientes</td><td>${escapeHtml(formatAdminTotal(totals.clientes))}</td></tr>
+        <tr><td>Locações</td><td>${escapeHtml(formatAdminTotal(totals.locacoes))}</td></tr>
+      </tbody>
+    </table>
+    <p><strong>Filmes no período:</strong> ${escapeHtml(formatAdminTotal(filteredMovies.length))}</p>
+    ${buildAdminPdfPreviewTable(['Filme', 'Gênero', 'Ano'], filteredMovies.slice(0, 5).map((movie) => [
+      movie.titulo || 'Filme',
+      movie.genero_nome || generoNameById(movie.genero_id) || 'Sem gênero',
+      movie.ano_lancamento || '-'
+    ]))}
+    <p><strong>Usuários no período:</strong> ${escapeHtml(formatAdminTotal(filteredUsers.length))}</p>
+    ${buildAdminPdfPreviewTable(['Usuário', 'E-mail', 'Status'], filteredUsers.slice(0, 5).map((user) => [
+      user.nome || 'Usuário',
+      user.email || '-',
+      user.status || '-'
+    ]))}
+    <p><strong>Mais favoritados:</strong> ${escapeHtml(previewFavorites.slice(0, 5).map((movie) => `${movie.titulo} (${formatAdminTotal(movie.total)})`).join(', ') || 'Nenhum favorito registrado')}</p>
+    <p><strong>Últimas avaliações:</strong> ${escapeHtml(previewReviews.slice(0, 3).map((review) => `${review.usuario_nome || 'Usuário'} em ${review.filme_titulo || 'Filme'}`).join('; ') || 'Nenhuma avaliação registrada')}</p>
+    <p><strong>Atividades recentes:</strong> ${escapeHtml(previewActivities.slice(0, 3).map((activity) => activity.descricao || activity.acao || '-').join('; ') || 'Nenhuma atividade registrada')}</p>
+  `;
 }
 
+function getAdminPdfPreviewTotals(data = {}, filteredMovies = [], filteredUsers = []) {
+  return {
+    filmes: Number(data.filmes) || adminMoviesCache.length || filteredMovies.length || 0,
+    usuarios: Number(data.usuarios) || adminUsersCache.length || filteredUsers.length || 0,
+    favoritos: Number(data.favoritos) || Object.keys(favoriteMovies || {}).length || 0,
+    clientes: Number(data.clientes) || 0,
+    locacoes: Number(data.locacoes) || 0
+  };
+}
+
+function getAdminPdfPreviewFavorites(data = {}, favorites = []) {
+  if (favorites.length) return favorites;
+
+  const favoriteIds = Object.keys(favoriteMovies || {}).map(Number);
+  if (!favoriteIds.length) return [];
+
+  return adminMoviesCache
+    .filter((movie) => favoriteIds.includes(Number(movie.id)))
+    .map((movie) => ({
+      titulo: movie.titulo || 'Filme',
+      total: 1
+    }));
+}
+
+function getAdminPdfPreviewReviews(data = {}, reviews = []) {
+  if (reviews.length) return reviews;
+
+  return (userMovieReviews || []).map((review) => {
+    const movie = adminMoviesCache.find((item) => Number(item.id) === Number(review.filme_id));
+    return {
+      usuario_nome: currentUser?.nome || currentUser?.email || 'Usuário',
+      filme_titulo: movie?.titulo || review.filme_titulo || 'Filme',
+      nota: review.nota || 0,
+      updated_at: review.updated_at || review.created_at
+    };
+  });
+}
+
+function getAdminPdfPreviewActivities(data = {}, activities = []) {
+  if (activities.length) return activities;
+
+  return (adminLogsCache || []).map((log) => ({
+    timestamp: log.timestamp,
+    usuario: formatLogUser(log.usuario || 'anônimo'),
+    descricao: log.descricao || log.description || describeLogAction(log.acao || log.tipoEvento || '', log.endpoint || ''),
+    acao: log.acao || log.tipoEvento || ''
+  }));
+}
+
+function buildAdminPdfPreviewTable(headers, rows) {
+  const body = rows.length
+    ? rows.map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(String(cell))}</td>`).join('')}</tr>`).join('')
+    : `<tr><td colspan="${headers.length}">Nenhum dado encontrado.</td></tr>`;
+
+  return `
+    <table>
+      <thead>
+        <tr>${headers.map((header) => `<th>${escapeHtml(header)}</th>`).join('')}</tr>
+      </thead>
+      <tbody>${body}</tbody>
+    </table>
+  `;
+}
+
+function getAdminPdfPreviewMovies() {
+  const { startDate, endDate } = getAdminPdfPreviewDateRange();
+  const selectedGenre = shouldApplyAdminPdfGenre() ? normalizeText(getSelectedAdminPdfGenre()) : '';
+  return adminMoviesCache.filter((movie) => {
+    const genre = movie.genero_nome || generoNameById(movie.genero_id) || '';
+    const matchesGenre = !selectedGenre || normalizeText(genre) === selectedGenre;
+    return matchesGenre && isAdminPdfDateInRange(movie.created_at, startDate, endDate);
+  });
+}
+
+function getAdminPdfPreviewUsers() {
+  const { startDate, endDate } = getAdminPdfPreviewDateRange();
+  return adminUsersCache.filter((user) => isAdminPdfDateInRange(user.created_at, startDate, endDate));
+}
+
+function getAdminPdfPreviewDateRange() {
+  return {
+    startDate: parseAdminFilterDate(document.getElementById('adminXmlStartDate')?.value),
+    endDate: parseAdminFilterDate(document.getElementById('adminXmlEndDate')?.value, true)
+  };
+}
+
+function isAdminPdfDateInRange(value, startDateValue, endDateValue) {
+  if (!value) return true;
+  const date = new Date(value);
+  const startDate = startDateValue ? new Date(startDateValue) : null;
+  const endDate = endDateValue ? new Date(endDateValue) : null;
+  return (!startDate || date >= startDate) && (!endDate || date <= endDate);
+}
+
+function getSelectedAdminPdfGenre() {
+  return document.getElementById('adminPdfGenre')?.value || '';
+}
+
+function populateAdminPdfGenreFilter() {
+  const select = document.getElementById('adminPdfGenre');
+  if (!select) return;
+
+  const currentValue = select.value;
+  const genres = Array.from(new Set(adminMoviesCache
+    .map((movie) => movie.genero_nome || generoNameById(movie.genero_id) || '')
+    .filter(Boolean)))
+    .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  select.innerHTML = '<option value="">Todos os gêneros</option>'
+    + genres.map((genre) => `<option value="${escapeHtml(genre)}">${escapeHtml(genre)}</option>`).join('');
+  select.value = genres.includes(currentValue) ? currentValue : '';
+  updateAdminPdfGenreFilterState();
+}
+
+function shouldApplyAdminPdfGenre() {
+  return ['filmes', 'favoritos'].includes(getSelectedAdminPdfScope());
+}
+
+function updateAdminPdfGenreFilterState() {
+  const select = document.getElementById('adminPdfGenre');
+  if (!select) return;
+
+  const enabled = shouldApplyAdminPdfGenre();
+  select.disabled = !enabled;
+  if (!enabled) {
+    select.value = '';
+  }
+}
+
+function getSelectedAdminPdfScope() {
+  return document.getElementById('adminPdfScope')?.value || 'completo';
+}
+
+function getAdminPdfScopeLabel(scope = getSelectedAdminPdfScope()) {
+  const labels = {
+    completo: 'Relatório completo',
+    resumo: 'Resumo geral',
+    filmes: 'Filmes',
+    usuarios: 'Usuários',
+    favoritos: 'Favoritos e avaliações',
+    atividades: 'Atividades recentes'
+  };
+  return labels[scope] || labels.completo;
+}
+
+function buildAdminSystemPdfLines(data = adminDashboardSummary) {
+  const scope = getSelectedAdminPdfScope();
+  const filteredMovies = getAdminPdfPreviewMovies();
+  const filteredUsers = getAdminPdfPreviewUsers();
+  const lines = [
+    'Relatorio Geral do Sistema - Catalogo7',
+    `Gerado em: ${new Date().toLocaleString('pt-BR')}`,
+    `Conteudo: ${getAdminPdfScopeLabel(scope)}`,
+    '',
+  ];
+
+  if (scope === 'filmes') {
+    return [
+      ...lines,
+      `Total de filmes no periodo: ${formatAdminTotal(filteredMovies.length)}`,
+      `Genero: ${getSelectedAdminPdfGenre() || 'Todos'}`,
+      '',
+      'Filmes',
+      ...filteredMovies.map((movie) => {
+        return `${movie.titulo || 'Filme'} | ${movie.genero_nome || generoNameById(movie.genero_id) || 'Sem genero'} | ${movie.ano_lancamento || '-'} | ${movie.status || '-'}`;
+      })
+    ];
+  }
+
+  if (scope === 'usuarios') {
+    return [
+      ...lines,
+      `Total de usuarios no periodo: ${formatAdminTotal(filteredUsers.length)}`,
+      '',
+      'Usuarios',
+      ...filteredUsers.map((user) => `${user.nome || 'Usuario'} | ${user.email || '-'} | ${user.tipo_usuario || '-'} | ${user.status || '-'}`)
+    ];
+  }
+
+  if (scope === 'favoritos') {
+    return [
+      ...lines,
+      `Favoritos registrados: ${formatAdminTotal(data.favoritos)}`,
+      '',
+      'Filmes mais favoritados',
+      ...(data.filmesFavoritados || []).map((movie, index) => `${index + 1}. ${movie.titulo || 'Filme'} - ${formatAdminTotal(movie.total)} favoritos`),
+      '',
+      'Ultimas avaliacoes',
+      ...(data.ultimasAvaliacoes || []).map((review) => `${review.usuario_nome || 'Usuario'} avaliou ${review.filme_titulo || 'Filme'} com ${review.nota || 0}/5`)
+    ];
+  }
+
+  if (scope === 'atividades') {
+    return [
+      ...lines,
+      'Atividades recentes',
+      ...(data.atividadesRecentes || []).map((activity) => `${formatAdminDate(activity.timestamp)} | ${activity.usuario || 'anonimo'} | ${activity.descricao || activity.acao || '-'}`)
+    ];
+  }
+
+  return [
+    ...lines,
+    'Resumo',
+    `Filmes cadastrados: ${formatAdminTotal(data.filmes)}`,
+    `Usuarios cadastrados: ${formatAdminTotal(data.usuarios)}`,
+    `Favoritos registrados: ${formatAdminTotal(data.favoritos)}`,
+    `Clientes cadastrados: ${formatAdminTotal(data.clientes)}`,
+    `Locacoes registradas: ${formatAdminTotal(data.locacoes)}`,
+    '',
+    'Filmes mais favoritados',
+    ...(data.filmesFavoritados || []).slice(0, 8).map((movie, index) => `${index + 1}. ${movie.titulo || 'Filme'} - ${formatAdminTotal(movie.total)} favoritos`),
+    '',
+    'Ultimas avaliacoes',
+    ...(data.ultimasAvaliacoes || []).slice(0, 8).map((review) => `${review.usuario_nome || 'Usuario'} avaliou ${review.filme_titulo || 'Filme'} com ${review.nota || 0}/5`),
+    '',
+    'Atividades recentes',
+    ...(data.atividadesRecentes || []).slice(0, 8).map((activity) => `${formatAdminDate(activity.timestamp)} | ${activity.usuario || 'anonimo'} | ${activity.descricao || activity.acao || '-'}`)
+  ];
+}
 function getAdminExportQueryString() {
   const params = new URLSearchParams();
   const user = document.getElementById('adminXmlUser')?.value || '';
@@ -2607,6 +2910,11 @@ function getAdminExportQueryString() {
 async function downloadAdminExport(format) {
   if (format === 'json' && document.querySelector('.admin-xml-filters')?.classList.contains('json-mode')) {
     await downloadAdminEntityJson();
+    return;
+  }
+
+  if (format === 'pdf') {
+    await downloadAdminSystemPdf();
     return;
   }
 
@@ -2642,11 +2950,45 @@ async function downloadAdminExport(format) {
   const logs = getFilteredAdminXmlLogs();
   const fallback = {
     xml: () => buildAdminLogsXML(logs),
-    json: () => buildAdminLogsJSON(logs),
-    pdf: () => makeSimplePDF(buildAdminPdfLines(logs))
+    json: () => buildAdminLogsJSON(logs)
   };
 
   downloadBlob(fallback[format](), filenames[format], contentTypes[format]);
+}
+
+async function downloadAdminSystemPdf() {
+  try {
+    const params = new URLSearchParams({
+      conteudo: getSelectedAdminPdfScope()
+    });
+    const startDate = parseAdminFilterDate(document.getElementById('adminXmlStartDate')?.value);
+    const endDate = parseAdminFilterDate(document.getElementById('adminXmlEndDate')?.value, true);
+    const genre = shouldApplyAdminPdfGenre() ? getSelectedAdminPdfGenre() : '';
+    if (startDate) params.set('dataInicio', startDate);
+    if (endDate) params.set('dataFim', endDate);
+    if (genre) params.set('genero', genre);
+    const response = await fetch(`${API_URL}/relatorios/pdf?${params.toString()}`, {
+      headers: headers()
+    });
+
+    if (response.ok) {
+      downloadBlob(await response.arrayBuffer(), 'relatorio-geral-catalogo7.pdf', 'application/pdf');
+      return;
+    }
+  } catch (error) {
+    console.warn('Relatorio geral pela API indisponivel, usando resumo em tela.', error.message);
+  }
+
+  if (!Object.keys(adminDashboardSummary).length) {
+    await loadAdminDashboardStats();
+  }
+  if (!adminMoviesCache.length) {
+    await loadAdminMovies();
+  }
+  if (!adminUsersCache.length) {
+    await loadAdminUsers();
+  }
+  downloadBlob(makeSimplePDF(buildAdminSystemPdfLines()), 'relatorio-geral-catalogo7.pdf', 'application/pdf');
 }
 
 function getSelectedAdminJsonEntity() {
@@ -3546,6 +3888,7 @@ function selectedExportItems() {
 function escapePDFText(text) {
   return text.normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^\x20-\x7E]/g, '')
     .replace(/[()\\]/g, '\\$&');
 }
 
@@ -3554,10 +3897,11 @@ function makeSimplePDF(lines) {
     'BT',
     '/F1 18 Tf',
     '50 790 Td',
-    '(Relatorio Catálogo7) Tj',
+    '(Relatorio Catalogo7) Tj',
     '/F1 11 Tf',
+    '15 TL',
     '0 -28 Td',
-    ...lines.map((line) => `(${escapePDFText(line)}) Tj 0 -18 Td`),
+    ...lines.map((line) => `(${escapePDFText(line)}) Tj T*`),
     'ET'
   ].join('\n');
   const objects = [
@@ -3565,17 +3909,17 @@ function makeSimplePDF(lines) {
     '2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n',
     '3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>\nendobj\n',
     '4 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n',
-    `5 0 obj\n<< /Length ${content.length} >>\nstream\n${content}\nendstream\nendobj\n`
+    `5 0 obj\n<< /Length ${new TextEncoder().encode(content).length} >>\nstream\n${content}\nendstream\nendobj\n`
   ];
   let pdf = '%PDF-1.4\n';
   const offsets = [0];
 
   objects.forEach((object) => {
-    offsets.push(pdf.length);
+    offsets.push(new TextEncoder().encode(pdf).length);
     pdf += object;
   });
 
-  const xref = pdf.length;
+  const xref = new TextEncoder().encode(pdf).length;
   pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
   offsets.slice(1).forEach((offset) => {
     pdf += `${String(offset).padStart(10, '0')} 00000 n \n`;

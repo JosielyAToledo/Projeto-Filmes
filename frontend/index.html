@@ -1061,14 +1061,14 @@
 
                         <section class="admin-pdf-export-card" id="adminPdfExportPanel" aria-labelledby="adminPdfExportTitle">
                           <header>
-                            <h2 id="adminPdfExportTitle">Relatório de Logs (PDF)</h2>
-                            <p>Pré-visualize o relatório conforme os filtros selecionados.</p>
+                            <h2 id="adminPdfExportTitle">Relatório Geral (PDF)</h2>
+                            <p>Pré-visualize o resumo geral do sistema antes de gerar o PDF.</p>
                           </header>
 
                           <section class="admin-pdf-preview" aria-label="Pré-visualização PDF">
                             <div>
                               <strong>Pré-visualização</strong>
-                              <span id="adminPdfPreviewCount">0 logs</span>
+                              <span id="adminPdfPreviewCount">Relatório geral</span>
                             </div>
                             <div class="admin-pdf-sheet" id="adminPdfPreview"></div>
                           </section>
@@ -1097,6 +1097,21 @@
                             <select id="adminJsonEntity">
                               <option value="filmes">Filmes</option>
                               <option value="usuarios">Usuários</option>
+                            </select>
+                          </label>
+                          <label class="admin-pdf-scope-filter">Conteúdo do PDF
+                            <select id="adminPdfScope">
+                              <option value="completo">Relatório completo</option>
+                              <option value="resumo">Resumo geral</option>
+                              <option value="filmes">Filmes</option>
+                              <option value="usuarios">Usuários</option>
+                              <option value="favoritos">Favoritos e avaliações</option>
+                              <option value="atividades">Atividades recentes</option>
+                            </select>
+                          </label>
+                          <label class="admin-pdf-genre-filter">Gênero
+                            <select id="adminPdfGenre">
+                              <option value="">Todos os gêneros</option>
                             </select>
                           </label>
                           <label>Período

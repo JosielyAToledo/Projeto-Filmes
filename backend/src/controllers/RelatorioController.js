@@ -25,8 +25,10 @@ class RelatorioController {
 
   relatorioPDF = async (req, res, next) => {
     try {
-      const resultado = await this.relatorioService.relatorioPDFPlaceholder();
-      return res.json(resultado);
+      const pdf = await this.relatorioService.relatorioPDF(req.query);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename="relatorio-geral-catalogo7.pdf"');
+      return res.send(Buffer.from(pdf, 'utf8'));
     } catch (error) {
       return next(error);
     }

@@ -5792,6 +5792,11 @@ body,
   display: none !important;
 }
 
+.admin-pdf-scope-filter,
+.admin-pdf-genre-filter {
+  display: none !important;
+}
+
 .admin-xml-filters.json-mode .admin-json-entity-filter {
   display: grid !important;
 }
@@ -5812,6 +5817,21 @@ body,
 .admin-xml-filters.xml-mode .admin-xml-filter-grid label:has(#adminXmlType),
 .admin-xml-filters.xml-mode .admin-json-entity-filter,
 .admin-xml-filters.xml-mode .admin-xml-search {
+  display: none !important;
+}
+
+.admin-xml-filters.pdf-mode .admin-pdf-scope-filter,
+.admin-xml-filters.pdf-mode .admin-pdf-genre-filter {
+  display: grid !important;
+}
+
+.admin-xml-filters.pdf-mode .admin-xml-filter-grid label:has(#adminXmlStartDate),
+.admin-xml-filters.pdf-mode .admin-xml-filter-grid label:has(#adminXmlEndDate) {
+  display: grid !important;
+}
+
+.admin-xml-filters.pdf-mode .admin-xml-filter-grid label:not(.admin-pdf-scope-filter):not(.admin-pdf-genre-filter):not(:has(#adminXmlStartDate)):not(:has(#adminXmlEndDate)),
+.admin-xml-filters.pdf-mode .admin-xml-search {
   display: none !important;
 }
 
