@@ -655,6 +655,11 @@ document.getElementById('adminOpenJsonImport')?.addEventListener('click', openAd
 document.getElementById('adminOpenJsonExport')?.addEventListener('click', openAdminJsonExportPanel);
 document.getElementById('adminOpenPdfExport')?.addEventListener('click', openAdminPdfExportPanel);
 document.getElementById('adminCancelJsonImport')?.addEventListener('click', closeAdminJsonImportPanel);
+document.getElementById('adminConfirmJsonImport')?.addEventListener('click', importAdminJsonFile);
+document.getElementById('adminJsonFile')?.addEventListener('change', () => {
+  const fileName = document.getElementById('adminJsonFile')?.files?.[0]?.name;
+  setAdminJsonImportStatus(fileName ? `Arquivo selecionado: ${fileName}` : '');
+});
 document.querySelector('.admin-export-btn')?.addEventListener('click', () => {
   showAdminView('config');
   showAdminConfigTab('logs');
@@ -680,9 +685,15 @@ document.getElementById('adminCopyJsonPreview')?.addEventListener('click', async
   const preview = document.getElementById('adminJsonPreview')?.textContent || '';
   await navigator.clipboard?.writeText(preview).catch(() => null);
 });
-['adminXmlPeriod', 'adminXmlUser', 'adminXmlType', 'adminXmlStatus', 'adminXmlSearch'].forEach((id) => {
+['adminXmlPeriod', 'adminXmlStartDate', 'adminXmlEndDate', 'adminXmlUser', 'adminXmlType', 'adminXmlStatus', 'adminXmlSearch', 'adminJsonEntity'].forEach((id) => {
   document.getElementById(id)?.addEventListener('change', updateAdminXmlPreview);
   document.getElementById(id)?.addEventListener('input', updateAdminXmlPreview);
+});
+document.getElementById('adminJsonEntity')?.addEventListener('change', updateAdminJsonStatusOptions);
+document.getElementById('adminXmlPeriod')?.addEventListener('change', () => {
+  if (document.querySelector('.admin-xml-filters')?.classList.contains('json-mode')) {
+    applyAdminJsonPeriodDates();
+  }
 });
 document.getElementById('adminApplyXmlFilters')?.addEventListener('click', updateAdminXmlPreview);
 document.getElementById('adminClearXmlFilters')?.addEventListener('click', clearAdminXmlFilters);
@@ -871,13 +882,13 @@ document.querySelector('.admin-users-table tbody')?.addEventListener('click', (e
   }
 
   if (button.classList.contains('lock')) {
-    const userName = row.querySelector('td strong')?.textContent || 'este usuÃ¡rio';
+    const userName = row.querySelector('td strong')?.textContent || 'este usuário';
     openInactivateUserModal(userName);
     return;
   }
 
   if (button.classList.contains('delete')) {
-    const userName = row.querySelector('td strong')?.textContent || 'este usuÃ¡rio';
+    const userName = row.querySelector('td strong')?.textContent || 'este usuário';
     const isInactive = row.querySelector('.user-status-pill')?.classList.contains('inactive');
     openDeleteUserModal(userName, isInactive);
   }
@@ -1341,15 +1352,15 @@ async function loadAdminUsers() {
   const userCount = document.querySelector('.admin-users-view .admin-catalog-footer span');
   if (!tableBody) return;
 
-  tableBody.innerHTML = '<tr><td colspan="7">Carregando usuÃ¡rios...</td></tr>';
-  if (userCount) userCount.textContent = 'Carregando usuÃ¡rios...';
+  tableBody.innerHTML = '<tr><td colspan="7">Carregando usuários...</td></tr>';
+  if (userCount) userCount.textContent = 'Carregando usuários...';
 
   try {
     adminUsersCache = await api('/auth/usuarios');
     renderAdminUsersTable(adminUsersCache);
   } catch (error) {
     tableBody.innerHTML = `<tr><td colspan="7">${escapeHtml(error.message)}</td></tr>`;
-    if (userCount) userCount.textContent = 'Erro ao carregar usuÃ¡rios';
+    if (userCount) userCount.textContent = 'Erro ao carregar usuários';
   }
 }
 
@@ -1358,7 +1369,7 @@ function renderAdminUsersTable(users = []) {
   if (!tableBody) return;
 
   if (!users.length) {
-    tableBody.innerHTML = '<tr><td colspan="7">Nenhum usuÃ¡rio cadastrado.</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="7">Nenhum usuário cadastrado.</td></tr>';
     updateAdminUsersCount(0);
     return;
   }
@@ -1368,7 +1379,7 @@ function renderAdminUsersTable(users = []) {
 }
 
 function renderAdminUserRow(user, index) {
-  const name = user.nome || 'UsuÃ¡rio sem nome';
+  const name = user.nome || 'Usuário sem nome';
   const email = user.email || '-';
   const type = formatAdminUserType(user.tipo_usuario);
   const status = String(user.status || 'ativo').toLowerCase() === 'inativo' ? 'Inativo' : 'Ativo';
@@ -1399,7 +1410,7 @@ function renderAdminUserRow(user, index) {
 }
 
 function formatAdminUserType(type) {
-  return String(type || '').toLowerCase() === 'admin' ? 'Admin' : 'UsuÃ¡rio';
+  return String(type || '').toLowerCase() === 'admin' ? 'Admin' : 'Usuário';
 }
 
 function getAdminUserAvatarClass(name = '', index = 0) {
@@ -1413,8 +1424,8 @@ function updateAdminUsersCount(count) {
   if (!userCount) return;
 
   userCount.textContent = count
-    ? `Mostrando 1 a ${count} de ${count} usuÃ¡rios`
-    : 'Nenhum usuÃ¡rio encontrado';
+    ? `Mostrando 1 a ${count} de ${count} usuários`
+    : 'Nenhum usuário encontrado';
 }
 
 async function loadAdminMovies() {
@@ -2268,6 +2279,7 @@ async function ensureAdminLogsLoaded() {
 }
 
 async function openAdminXmlExportPanel() {
+  setAdminExportMode('xml');
   await ensureAdminLogsLoaded();
   document.getElementById('adminJsonImportPanel')?.classList.remove('visible');
   document.getElementById('adminJsonExportPanel')?.classList.remove('visible');
@@ -2277,17 +2289,68 @@ async function openAdminXmlExportPanel() {
 }
 
 function openAdminJsonImportPanel() {
+  setAdminExportMode('import');
   document.getElementById('adminXmlExportPanel')?.classList.remove('visible');
   document.getElementById('adminJsonExportPanel')?.classList.remove('visible');
   document.getElementById('adminPdfExportPanel')?.classList.remove('visible');
+  setAdminJsonImportStatus('');
   document.getElementById('adminJsonImportPanel')?.classList.add('visible');
 }
 
 function closeAdminJsonImportPanel() {
   document.getElementById('adminJsonImportPanel')?.classList.remove('visible');
+  setAdminJsonImportStatus('');
+}
+
+function setAdminJsonImportStatus(message, isError = false) {
+  const status = document.getElementById('adminJsonImportStatus');
+  if (!status) return;
+
+  status.textContent = message || '';
+  status.classList.toggle('error', Boolean(isError));
+}
+
+async function importAdminJsonFile() {
+  const fileInput = document.getElementById('adminJsonFile');
+  const tableSelect = document.getElementById('adminJsonTable');
+  const selectedTable = normalizeText([
+    tableSelect?.value || '',
+    tableSelect?.selectedOptions?.[0]?.textContent || ''
+  ].join(' '));
+  const file = fileInput?.files?.[0];
+
+  if (!file) {
+    setAdminJsonImportStatus('Selecione um arquivo JSON para importar.', true);
+    return;
+  }
+
+  if (false && !selectedTable.includes('filmes')) {
+    setAdminJsonImportStatus('Neste momento a importaÃ§Ã£o JSON estÃ¡ disponÃ­vel para Filmes.', true);
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('arquivo', file);
+  setAdminJsonImportStatus('Importando filmes...');
+
+  try {
+    const importedMovies = await api('/filmes/importar/json', {
+      method: 'POST',
+      body: formData
+    });
+    const total = Array.isArray(importedMovies) ? importedMovies.length : 0;
+    setAdminJsonImportStatus(`${total} filme${total === 1 ? '' : 's'} importado${total === 1 ? '' : 's'} com sucesso.`);
+    if (fileInput) fileInput.value = '';
+    await loadAdminMovies();
+    await loadAdminDashboardStats();
+    await loadAdminLogs();
+  } catch (error) {
+    setAdminJsonImportStatus(error.message, true);
+  }
 }
 
 async function openAdminJsonExportPanel() {
+  setAdminExportMode('json');
   await ensureAdminLogsLoaded();
   document.getElementById('adminXmlExportPanel')?.classList.remove('visible');
   document.getElementById('adminJsonImportPanel')?.classList.remove('visible');
@@ -2297,12 +2360,111 @@ async function openAdminJsonExportPanel() {
 }
 
 async function openAdminPdfExportPanel() {
+  setAdminExportMode('logs');
   await ensureAdminLogsLoaded();
   document.getElementById('adminXmlExportPanel')?.classList.remove('visible');
   document.getElementById('adminJsonImportPanel')?.classList.remove('visible');
   document.getElementById('adminJsonExportPanel')?.classList.remove('visible');
   updateAdminPdfPreview();
   document.getElementById('adminPdfExportPanel')?.classList.add('visible');
+}
+
+function setAdminExportMode(mode) {
+  const filters = document.querySelector('.admin-xml-filters');
+  const description = filters?.querySelector('header p');
+  filters?.classList.toggle('json-mode', mode === 'json');
+  filters?.classList.toggle('xml-mode', mode === 'xml');
+  updateAdminJsonFilterControls(mode);
+  if (description) {
+    if (mode === 'json') {
+      description.textContent = 'Filtre os dados do MySQL antes de exportar.';
+    } else if (mode === 'xml') {
+      description.textContent = 'Filtre os logs por usuário e status antes de exportar.';
+    } else {
+      description.textContent = 'Filtre os logs antes de exportar os dados.';
+    }
+  }
+}
+
+function updateAdminJsonFilterControls(mode) {
+  const status = document.getElementById('adminXmlStatus');
+  const action = document.getElementById('adminXmlType');
+  const search = document.getElementById('adminXmlSearch');
+
+  if (mode === 'json') {
+    applyAdminJsonPeriodDates();
+    updateAdminJsonStatusOptions();
+    if (search) search.placeholder = 'Buscar por titulo, diretor, nome, e-mail...';
+    return;
+  }
+
+  if (status) {
+    status.innerHTML = `
+      <option>Todos os status</option>
+      <option>200</option>
+      <option>204</option>
+      <option>401</option>
+      <option>404</option>
+    `;
+  }
+  if (action) {
+    action.innerHTML = `
+      <option>Todas as acoes</option>
+      <option>CREATE</option>
+      <option>UPDATE</option>
+      <option>DELETE</option>
+      <option>LOGIN</option>
+      <option>EXPORT_XML</option>
+    `;
+  }
+  if (search) search.placeholder = 'Buscar por IP, usuario, acao, etc...';
+}
+
+function applyAdminJsonPeriodDates() {
+  const period = normalizeText(document.getElementById('adminXmlPeriod')?.value || '');
+  const startInput = document.getElementById('adminXmlStartDate');
+  const endInput = document.getElementById('adminXmlEndDate');
+  if (!startInput || !endInput) return;
+
+  const today = new Date();
+  const startDate = new Date(today);
+  if (period.includes('12')) {
+    startDate.setMonth(startDate.getMonth() - 12);
+  } else if (period.includes('ano')) {
+    startDate.setMonth(0, 1);
+  } else {
+    startDate.setMonth(startDate.getMonth() - 6);
+  }
+
+  startInput.value = formatAdminFilterDate(startDate);
+  endInput.value = formatAdminFilterDate(today);
+}
+
+function formatAdminFilterDate(date) {
+  return date.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+}
+
+function updateAdminJsonStatusOptions() {
+  const status = document.getElementById('adminXmlStatus');
+  if (!status) return;
+
+  const entity = getSelectedAdminJsonEntity();
+  status.innerHTML = entity === 'usuarios'
+    ? `
+      <option>Todos os status</option>
+      <option>Ativo</option>
+      <option>Inativo</option>
+    `
+    : `
+      <option>Todos os status</option>
+      <option>Publicado</option>
+      <option>Rascunho</option>
+      <option>Arquivado</option>
+    `;
 }
 
 function getFilteredAdminXmlLogs() {
@@ -2335,16 +2497,23 @@ function getFilteredAdminXmlLogs() {
 function clearAdminXmlFilters() {
   const defaults = {
     adminXmlPeriod: 'Últimos 6 meses',
+    adminXmlStartDate: '01/12/2023',
+    adminXmlEndDate: '31/05/2024',
     adminXmlUser: 'Todos',
     adminXmlStatus: 'Todos os status',
     adminXmlType: 'Todas as ações',
-    adminXmlSearch: ''
+    adminXmlSearch: '',
+    adminJsonEntity: 'filmes'
   };
 
   Object.entries(defaults).forEach(([id, value]) => {
     const field = document.getElementById(id);
     if (field) field.value = value;
   });
+  if (document.querySelector('.admin-xml-filters')?.classList.contains('json-mode')) {
+    applyAdminJsonPeriodDates();
+    updateAdminJsonStatusOptions();
+  }
   updateAdminXmlPreview();
 }
 
@@ -2363,6 +2532,11 @@ function updateAdminXmlPreview() {
 function updateAdminJsonPreview() {
   const preview = document.getElementById('adminJsonPreview');
   if (!preview) return;
+
+  if (document.querySelector('.admin-xml-filters')?.classList.contains('json-mode')) {
+    preview.textContent = buildAdminEntityJsonPreview();
+    return;
+  }
 
   preview.textContent = buildAdminLogsJSON(getFilteredAdminXmlLogs().slice(0, 4));
 }
@@ -2431,6 +2605,11 @@ function getAdminExportQueryString() {
 }
 
 async function downloadAdminExport(format) {
+  if (format === 'json' && document.querySelector('.admin-xml-filters')?.classList.contains('json-mode')) {
+    await downloadAdminEntityJson();
+    return;
+  }
+
   const query = getAdminExportQueryString();
   const suffix = query ? `?${query}` : '';
   const contentTypes = {
@@ -2468,6 +2647,111 @@ async function downloadAdminExport(format) {
   };
 
   downloadBlob(fallback[format](), filenames[format], contentTypes[format]);
+}
+
+function getSelectedAdminJsonEntity() {
+  return document.getElementById('adminJsonEntity')?.value || 'filmes';
+}
+
+function getAdminJsonFilters() {
+  return {
+    startDate: parseAdminFilterDate(document.getElementById('adminXmlStartDate')?.value),
+    endDate: parseAdminFilterDate(document.getElementById('adminXmlEndDate')?.value, true),
+    status: document.getElementById('adminXmlStatus')?.value || 'Todos os status',
+    query: normalizeText(document.getElementById('adminXmlSearch')?.value || '')
+  };
+}
+
+function parseAdminFilterDate(value, endOfDay = false) {
+  const match = String(value || '').trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!match) return null;
+
+  const [, day, month, year] = match;
+  const date = new Date(Number(year), Number(month) - 1, Number(day), endOfDay ? 23 : 0, endOfDay ? 59 : 0, endOfDay ? 59 : 0);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
+function filterAdminEntityRows(rows = [], entity = 'filmes') {
+  const filters = getAdminJsonFilters();
+  const statusFilter = normalizeText(filters.status);
+  const shouldFilterStatus = statusFilter && statusFilter !== normalizeText('Todos os status');
+  const startDate = filters.startDate ? new Date(filters.startDate) : null;
+  const endDate = filters.endDate ? new Date(filters.endDate) : null;
+
+  return rows.filter((row) => {
+    const createdAt = row.created_at ? new Date(row.created_at) : null;
+    const rawStatus = entity === 'usuarios' ? row.status : row.status;
+    const searchable = normalizeText(entity === 'usuarios'
+      ? [row.nome, row.email, row.tipo_usuario, row.status].join(' ')
+      : [row.titulo, row.titulo_original, row.diretor, row.genero_nome, row.status, row.ano_lancamento].join(' '));
+
+    const matchesSearch = !filters.query || searchable.includes(filters.query);
+    const matchesStatus = !shouldFilterStatus || normalizeText(rawStatus) === statusFilter;
+    const matchesStart = !startDate || !createdAt || createdAt >= startDate;
+    const matchesEnd = !endDate || !createdAt || createdAt <= endDate;
+
+    return matchesSearch && matchesStatus && matchesStart && matchesEnd;
+  });
+}
+
+function buildAdminEntityJsonPreview() {
+  const entity = getSelectedAdminJsonEntity();
+  const filters = getAdminJsonFilters();
+  const labels = {
+    filmes: 'Filmes',
+    usuarios: 'Usuários'
+  };
+
+  return JSON.stringify({
+    exportacao: {
+      formato: 'JSON',
+      entidade: labels[entity] || entity,
+      fonte: 'MySQL',
+      filtros: {
+        periodo: document.getElementById('adminXmlPeriod')?.value || '',
+        dataInicial: filters.startDate || null,
+        dataFinal: filters.endDate || null,
+        status: filters.status || 'Todos os status',
+        busca: filters.query || null
+      },
+      observacao: 'Clique em Exportar JSON para baixar os dados reais.'
+    }
+  }, null, 2);
+}
+
+async function getAdminEntityExportData(entity) {
+  if (entity === 'usuarios') {
+    const usuarios = filterAdminEntityRows(await api('/auth/usuarios'), 'usuarios');
+    return {
+      exportedAt: new Date().toISOString(),
+      entidade: 'usuarios',
+      total: usuarios.length,
+      usuarios
+    };
+  }
+
+  const response = await fetch(`${API_URL}/filmes/exportar/json`, {
+    headers: headers()
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Erro ao exportar filmes.' }));
+    throw new Error(formatApiError(error.message, response.status));
+  }
+
+  const payload = await response.json();
+  const filmes = filterAdminEntityRows(payload.filmes || [], 'filmes');
+  return {
+    ...payload,
+    total: filmes.length,
+    filmes
+  };
+}
+
+async function downloadAdminEntityJson() {
+  const entity = getSelectedAdminJsonEntity();
+  const payload = await getAdminEntityExportData(entity);
+  downloadBlob(JSON.stringify(payload, null, 2), `${entity}-catalogo7.json`, 'application/json');
 }
 
 function buildAdminLogsXML(logs, hasMore = false) {

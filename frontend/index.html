@@ -1030,6 +1030,7 @@
                               Importar
                             </button>
                           </footer>
+                          <p id="adminJsonImportStatus" class="admin-json-import-status" aria-live="polite"></p>
                         </section>
 
                         <section class="admin-json-export-card" id="adminJsonExportPanel" aria-labelledby="adminJsonExportTitle">
@@ -1092,6 +1093,12 @@
                           <p>Filtre os logs antes de exportar os dados.</p>
                         </header>
                         <div class="admin-xml-filter-grid">
+                          <label class="admin-json-entity-filter">Entidade
+                            <select id="adminJsonEntity">
+                              <option value="filmes">Filmes</option>
+                              <option value="usuarios">Usuários</option>
+                            </select>
+                          </label>
                           <label>Período
                             <select id="adminXmlPeriod">
                               <option>Últimos 6 meses</option>

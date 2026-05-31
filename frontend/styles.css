@@ -5788,6 +5788,33 @@ body,
   font-weight: 900;
 }
 
+.admin-json-entity-filter {
+  display: none !important;
+}
+
+.admin-xml-filters.json-mode .admin-json-entity-filter {
+  display: grid !important;
+}
+
+.admin-xml-filters.json-mode .admin-xml-filter-grid label {
+  display: grid;
+}
+
+.admin-xml-filters.json-mode .admin-xml-filter-grid label:has(#adminXmlUser),
+.admin-xml-filters.json-mode .admin-xml-filter-grid label:has(#adminXmlType),
+.admin-xml-filters.json-mode .admin-xml-filter-grid label:has(#adminXmlStatus) {
+  display: none;
+}
+
+.admin-xml-filters.xml-mode .admin-xml-filter-grid label:has(#adminXmlPeriod),
+.admin-xml-filters.xml-mode .admin-xml-filter-grid label:has(#adminXmlStartDate),
+.admin-xml-filters.xml-mode .admin-xml-filter-grid label:has(#adminXmlEndDate),
+.admin-xml-filters.xml-mode .admin-xml-filter-grid label:has(#adminXmlType),
+.admin-xml-filters.xml-mode .admin-json-entity-filter,
+.admin-xml-filters.xml-mode .admin-xml-search {
+  display: none !important;
+}
+
 .admin-xml-filters select,
 .admin-xml-filters input {
   width: 100%;
@@ -5990,6 +6017,18 @@ body,
 
 .admin-json-import-card footer button:last-child .log-export-icon {
   color: #151515;
+}
+
+.admin-json-import-status {
+  min-height: 18px;
+  margin: 14px 0 0;
+  color: rgba(232, 226, 214, 0.72);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.admin-json-import-status.error {
+  color: #fca5a5;
 }
 
 .admin-pdf-export-card footer button .log-export-icon {
