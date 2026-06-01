@@ -33,10 +33,6 @@ let pendingEditAdministratorData = null;
 let pendingEditAdministratorRow = null;
 let editingAdministratorRow = null;
 let heroMovieIndex = 0;
-const DEFAULT_ADMIN_APPEARANCE = {
-  theme: 'Escuro',
-  color: '#ead9c4'
-};
 
 const curatedMovieImages = [
   'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=2200&q=85',
@@ -409,70 +405,6 @@ function formatApiError(message, status) {
   return message || 'Não foi possível concluir a operação.';
 }
 
-function getReadableTextColor(hexColor = DEFAULT_ADMIN_APPEARANCE.color) {
-  const hex = hexColor.replace('#', '');
-  const r = parseInt(hex.slice(0, 2), 16);
-  const g = parseInt(hex.slice(2, 4), 16);
-  const b = parseInt(hex.slice(4, 6), 16);
-  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-  return brightness > 150 ? '#07090c' : '#fff7f3';
-}
-
-function applyAdminAppearance(preferences = DEFAULT_ADMIN_APPEARANCE) {
-  const theme = preferences.theme || DEFAULT_ADMIN_APPEARANCE.theme;
-  const color = preferences.color || DEFAULT_ADMIN_APPEARANCE.color;
-
-  document.body.classList.toggle('admin-theme-light', theme === 'Claro');
-  document.documentElement.style.setProperty('--admin-primary', color);
-  document.documentElement.style.setProperty('--admin-primary-text', getReadableTextColor(color));
-}
-
-function getAppearanceControls() {
-  return {
-    theme: document.getElementById('adminThemeSelect')?.value || DEFAULT_ADMIN_APPEARANCE.theme,
-    color: document.getElementById('adminCustomColor')?.value || DEFAULT_ADMIN_APPEARANCE.color
-  };
-}
-
-function setAppearanceControls(preferences = DEFAULT_ADMIN_APPEARANCE) {
-  const themeSelect = document.getElementById('adminThemeSelect');
-  const color = preferences.color || DEFAULT_ADMIN_APPEARANCE.color;
-
-  if (themeSelect) {
-    themeSelect.value = preferences.theme || DEFAULT_ADMIN_APPEARANCE.theme;
-  }
-
-  const customColorInput = document.getElementById('adminCustomColor');
-  if (customColorInput) {
-    customColorInput.value = color;
-  }
-
-  updateAppearancePreview();
-}
-
-function updateAppearancePreview() {
-  const preferences = getAppearanceControls();
-  const preview = document.querySelector('.settings-preview-panel');
-
-  if (!preview) return;
-
-  preview.classList.toggle('preview-light', preferences.theme === 'Claro');
-  preview.style.setProperty('--admin-primary', preferences.color);
-}
-
-function applySavedAppearance() {
-  const savedAppearance = JSON.parse(localStorage.getItem('adminAppearance') || 'null') || DEFAULT_ADMIN_APPEARANCE;
-  setAppearanceControls(savedAppearance);
-  applyAdminAppearance(savedAppearance);
-}
-
-function setAppearanceStatus(message = '') {
-  const status = document.getElementById('adminAppearanceStatus');
-  if (status) {
-    status.textContent = message;
-  }
-}
-
 document.querySelectorAll('#showRegister').forEach((button) => {
   button.addEventListener('click', showRegister);
 });
@@ -519,7 +451,6 @@ document.getElementById('loginForm').addEventListener('submit', async (event) =>
       localStorage.removeItem('adminSession');
     }
 
-applySavedAppearance();
 syncView();
     if (!adminSession) {
       await loadMovies();
@@ -741,36 +672,6 @@ document.getElementById('adminDeleteAdministratorModal')?.addEventListener('clic
     closeDeleteAdministratorModal();
   }
 });
-document.getElementById('adminThemeSelect')?.addEventListener('change', updateAppearancePreview);
-document.getElementById('adminOpenColorPicker')?.addEventListener('click', () => {
-  document.getElementById('adminCustomColor')?.click();
-});
-document.getElementById('adminCustomColor')?.addEventListener('input', (event) => {
-  setAppearanceControls({
-    theme: document.getElementById('adminThemeSelect')?.value || 'Escuro',
-    color: event.target.value
-  });
-});
-document.getElementById('adminPreviewAppearance')?.addEventListener('click', () => {
-  const preferences = getAppearanceControls();
-  applyAdminAppearance(preferences);
-  updateAppearancePreview();
-  setAppearanceStatus('Visualização aplicada.');
-});
-document.getElementById('adminSaveAppearance')?.addEventListener('click', () => {
-  const preferences = getAppearanceControls();
-  localStorage.setItem('adminAppearance', JSON.stringify(preferences));
-  applyAdminAppearance(preferences);
-  updateAppearancePreview();
-  setAppearanceStatus('Preferências salvas.');
-});
-document.getElementById('adminResetAppearance')?.addEventListener('click', () => {
-  localStorage.removeItem('adminAppearance');
-  setAppearanceControls(DEFAULT_ADMIN_APPEARANCE);
-  applyAdminAppearance(DEFAULT_ADMIN_APPEARANCE);
-  setAppearanceStatus('Preferências restauradas para o padrão.');
-});
-
 document.getElementById('adminOpenMovieForm').addEventListener('click', () => {
   openAdminMovieForm();
 });
@@ -2276,8 +2177,8 @@ function filterAdminCharts() {
 }
 
 function getSelectedChartKinds() {
-  return Array.from(document.querySelectorAll('#adminChartFilterModal input:checked'))
-    .map((input) => input.value);
+  return [...new Set(Array.from(document.querySelectorAll('#adminChartFilterModal input:checked'))
+    .map((input) => input.value))];
 }
 
 function openAdminChartFilterModal() {

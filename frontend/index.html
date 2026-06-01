@@ -831,48 +831,6 @@
                   </div>
                 </section>
 
-                <section class="admin-settings-card admin-appearance-settings">
-                  <header>
-                    <div>
-                      <strong>Aparência do Sistema</strong>
-                      <p>Personalize a aparência do painel administrativo.</p>
-                    </div>
-                  </header>
-                  <div class="admin-appearance-grid">
-                    <div class="admin-theme-form">
-                      <label>Tema
-                        <select id="adminThemeSelect">
-                          <option>Escuro</option>
-                          <option>Claro</option>
-                        </select>
-                      </label>
-                      <span>Cor principal</span>
-                      <div class="settings-color-picker">
-                        <button id="adminOpenColorPicker" type="button" aria-label="Abrir paleta de cores">🎨</button>
-                        <input id="adminCustomColor" type="color" value="#ead9c4" aria-label="Escolher cor principal" />
-                      </div>
-                      <button class="settings-preview-button" id="adminPreviewAppearance" type="button">Visualizar</button>
-                      <button class="settings-save-button" id="adminSaveAppearance" type="button">Salvar Preferências</button>
-                      <button class="settings-reset-button" id="adminResetAppearance" type="button">Voltar padrão</button>
-                      <p class="settings-appearance-status" id="adminAppearanceStatus" aria-live="polite"></p>
-                    </div>
-                    <div class="settings-preview-panel">
-                      <strong>CATÁLOGO <span>7</span></strong>
-                      <div class="settings-preview-stats">
-                        <p><span>Total de logs</span><b>1.248</b></p>
-                        <p><span>Usuários ativos</span><b>24</b></p>
-                        <p><span>Exportações</span><b>320</b></p>
-                      </div>
-                      <table>
-                        <tbody>
-                          <tr><td>31/05/2024 14:32</td><td>Admin</td><td>Login realizado</td><td>200</td></tr>
-                          <tr><td>31/05/2024 14:28</td><td>João Silva</td><td>Exportação XML</td><td>200</td></tr>
-                          <tr><td>31/05/2024 14:25</td><td>Maria</td><td>Atualização</td><td>204</td></tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </section>
               </div>
             </section>
 
@@ -1200,6 +1158,10 @@
           <label>
             <input type="checkbox" value="users" />
             <span>Usuários ativos/inativos</span>
+          </label>
+          <label>
+            <input type="checkbox" value="users" />
+            <span>Ver usuários</span>
           </label>
           <label>
             <input type="checkbox" value="comments" />
