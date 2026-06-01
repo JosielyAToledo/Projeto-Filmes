@@ -33,6 +33,7 @@ let pendingEditAdministratorData = null;
 let pendingEditAdministratorRow = null;
 let editingAdministratorRow = null;
 let heroMovieIndex = 0;
+const adminChartInstances = {};
 
 const curatedMovieImages = [
   'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=2200&q=85',
@@ -1178,7 +1179,18 @@ function renderAdminHorizontalChart(kind, rows = [], emptyText, valueLabel) {
     .filter((row) => row.total > 0);
 
   if (!values.length) {
+    destroyAdminChartJsInstance(kind);
     chart.innerHTML = `<p class="admin-empty-state">${escapeHtml(emptyText)}</p>`;
+    return;
+  }
+
+  if (window.Chart) {
+    renderAdminChartJsBar({
+      instanceKey: kind,
+      chart,
+      values,
+      valueLabel
+    });
     return;
   }
 
@@ -1188,6 +1200,77 @@ function renderAdminHorizontalChart(kind, rows = [], emptyText, valueLabel) {
     const width = Math.max(4, Math.round((row.total / maxValue) * 100));
     return `<div class="chart-row"><span>${escapeHtml(row.label)}</span><i title="${formatAdminTotal(row.total)} ${escapeHtml(valueLabel)}" style="--bar: ${width}%"></i><b>${escapeHtml(formatAdminTotal(row.total))}</b></div>`;
   }).join('');
+}
+
+function renderAdminChartJsBar({ instanceKey, chart, values, valueLabel }) {
+  chart.innerHTML = '<canvas class="admin-chart-canvas" aria-label="Gráfico de barras"></canvas>';
+  const canvas = chart.querySelector('canvas');
+  const color = instanceKey === 'comments' ? '#c65f63' : '#d99142';
+
+  destroyAdminChartJsInstance(instanceKey);
+
+  adminChartInstances[instanceKey] = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: values.map((row) => row.label),
+      datasets: [{
+        label: valueLabel,
+        data: values.map((row) => row.total),
+        backgroundColor: color,
+        borderColor: color,
+        borderRadius: 3,
+        barThickness: 13
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          callbacks: {
+            label(context) {
+              return `${formatAdminTotal(context.raw)} ${valueLabel}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          display: false,
+          ticks: {
+            color: 'rgba(232, 226, 214, 0.62)',
+            precision: 0
+          },
+          grid: {
+            color: 'rgba(232, 226, 214, 0.06)'
+          },
+          border: {
+            display: false
+          }
+        },
+        y: {
+          ticks: {
+            color: 'rgba(232, 226, 214, 0.86)',
+            font: {
+              size: 10,
+              weight: 800
+            }
+          },
+          grid: {
+            display: false
+          },
+          border: {
+            display: false
+          }
+        }
+      }
+    }
+  });
 }
 
 function renderAdminGenreChart(rows = []) {
@@ -1202,6 +1285,19 @@ function renderAdminGenreChart(rows = []) {
       total: Number(row.total) || 0
     }))
     .filter((row) => row.total > 0);
+
+  if (window.Chart) {
+    renderAdminChartJsDonut({
+      instanceKey: 'genres',
+      chart,
+      legend,
+      values,
+      centerLabel: 'Filmes',
+      emptyText: 'Nenhum filme cadastrado por gênero.',
+      colors: ['#d9811d', '#b37425', '#2f5a78', '#638d4f', '#7653a3', '#c65f63', '#7e8583']
+    });
+    return;
+  }
 
   renderAdminDonutChart({
     chart,
@@ -1225,6 +1321,19 @@ function renderAdminUserStatusChart(rows = []) {
     }))
     .filter((row) => row.total > 0);
 
+  if (window.Chart && chart.querySelector('canvas')) {
+    renderAdminChartJsDonut({
+      instanceKey: 'users',
+      chart,
+      legend,
+      values,
+      centerLabel: 'Usuários',
+      emptyText: 'Nenhum usuário cadastrado.',
+      colors: ['#638d4f', '#c65f63', '#2f5a78', '#7653a3', '#d9811d', '#b37425', '#7e8583']
+    });
+    return;
+  }
+
   renderAdminDonutChart({
     chart,
     legend,
@@ -1232,6 +1341,89 @@ function renderAdminUserStatusChart(rows = []) {
     centerLabel: 'Usuários',
     emptyText: 'Nenhum usuário cadastrado.'
   });
+}
+
+function renderAdminChartJsDonut({ instanceKey, chart, legend, values, centerLabel, emptyText, colors }) {
+  chart.querySelectorAll('.donut-label').forEach((label) => label.remove());
+  let canvas = chart.querySelector('canvas');
+  let center = chart.querySelector('.donut-center');
+
+  if (!canvas) {
+    canvas = document.createElement('canvas');
+    canvas.className = 'admin-chart-canvas';
+    canvas.setAttribute('aria-label', `Gráfico de ${centerLabel}`);
+    chart.prepend(canvas);
+  }
+
+  if (!center) {
+    center = document.createElement('div');
+    center.className = 'donut-center';
+    chart.appendChild(center);
+  }
+
+  const total = values.reduce((sum, row) => sum + row.total, 0);
+  const palette = colors || ['#d9811d', '#638d4f', '#2f5a78', '#7653a3', '#c65f63', '#b37425', '#7e8583'];
+
+  chart.style.background = 'transparent';
+
+  if (!total) {
+    destroyAdminChartJsInstance(instanceKey);
+    if (center) center.innerHTML = `<strong>0</strong><span>${escapeHtml(centerLabel)}</span>`;
+    legend.innerHTML = `<span>${escapeHtml(emptyText)}</span>`;
+    return;
+  }
+
+  if (center) {
+    center.innerHTML = `<strong>${escapeHtml(formatAdminTotal(total))}</strong><span>${escapeHtml(centerLabel)}</span>`;
+  }
+
+  destroyAdminChartJsInstance(instanceKey);
+
+  adminChartInstances[instanceKey] = new Chart(canvas, {
+    type: 'doughnut',
+    data: {
+      labels: values.map((row) => row.label),
+      datasets: [{
+        data: values.map((row) => row.total),
+        backgroundColor: values.map((_, index) => palette[index % palette.length]),
+        borderColor: '#080c10',
+        borderWidth: 3,
+        hoverOffset: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '68%',
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          callbacks: {
+            label(context) {
+              const value = Number(context.raw) || 0;
+              const percent = total ? ((value / total) * 100).toFixed(1).replace('.', ',') : '0';
+              return `${context.label}: ${formatAdminTotal(value)} (${percent}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+
+  legend.innerHTML = values.map((row, index) => {
+    const percent = ((row.total / total) * 100).toFixed(1).replace('.', ',');
+    const color = palette[index % palette.length];
+    return `<span><i style="background: ${color}"></i>${escapeHtml(row.label)} <b>${escapeHtml(formatAdminTotal(row.total))} (${percent}%)</b></span>`;
+  }).join('');
+}
+
+function destroyAdminChartJsInstance(instanceKey) {
+  if (adminChartInstances[instanceKey]) {
+    adminChartInstances[instanceKey].destroy();
+    delete adminChartInstances[instanceKey];
+  }
 }
 
 function renderAdminDonutChart({ chart, legend, values, centerLabel, emptyText }) {

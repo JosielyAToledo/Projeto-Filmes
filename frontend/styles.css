@@ -6638,6 +6638,10 @@ body,
   padding: 8px 8px 0;
 }
 
+.admin-horizontal-chart canvas {
+  min-height: 270px;
+}
+
 .chart-row {
   display: grid;
   grid-template-columns: minmax(110px, 190px) minmax(90px, 1fr) 34px;
@@ -6729,6 +6733,14 @@ body,
     radial-gradient(circle, rgba(9, 12, 15, 1) 0 31%, transparent 32%),
     conic-gradient(#638d4f 0deg 291.6deg, #c65f63 291.6deg 360deg);
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.26);
+}
+
+.admin-donut-chart canvas,
+.admin-status-donut canvas {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
 }
 
 .donut-center {
