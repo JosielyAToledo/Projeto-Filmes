@@ -82,6 +82,14 @@ async function ensureUsuarios(connection) {
   if (!(await columnExists(connection, 'usuarios', 'foto_perfil_url'))) {
     await connection.query('ALTER TABLE usuarios ADD COLUMN foto_perfil_url VARCHAR(255) NULL AFTER status');
   }
+
+  if (!(await columnExists(connection, 'usuarios', 'created_at'))) {
+    await connection.query('ALTER TABLE usuarios ADD COLUMN created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER foto_perfil_url');
+  }
+
+  if (!(await columnExists(connection, 'usuarios', 'updated_at'))) {
+    await connection.query('ALTER TABLE usuarios ADD COLUMN updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER created_at');
+  }
 }
 
 async function ensureFilmes(connection) {
