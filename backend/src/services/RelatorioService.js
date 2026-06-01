@@ -56,6 +56,19 @@ class RelatorioService {
       ORDER BY total DESC, filmes.titulo ASC
       LIMIT 10
     `);
+    const [filmesRecentes] = await pool.execute(`
+      SELECT
+        filmes.id,
+        filmes.titulo,
+        filmes.capa_url,
+        filmes.ano_lancamento,
+        filmes.duracao,
+        generos.nome AS genero_nome
+      FROM filmes
+      LEFT JOIN generos ON generos.id = filmes.genero_id
+      ORDER BY filmes.created_at DESC, filmes.id DESC
+      LIMIT 8
+    `);
 
     return {
       filmes: filmes.total,
@@ -63,6 +76,7 @@ class RelatorioService {
       favoritos: favoritos.total,
       clientes: clientes.total,
       locacoes: locacoes.total,
+      filmesRecentes,
       ultimasAvaliacoes,
       filmesFavoritados,
       atividadesRecentes: await this.listarAtividadesRecentes(),
@@ -76,6 +90,9 @@ class RelatorioService {
     const avaliacoes = loadLocalJson(LOCAL_REVIEWS_FILE);
     const usuarios = await this.authService.listarUsuarios();
     const movieById = new Map(filmes.map((filme) => [Number(filme.id), filme]));
+    const filmesRecentes = [...filmes]
+      .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0) || Number(b.id) - Number(a.id))
+      .slice(0, 8);
     const ultimasAvaliacoes = avaliacoes
       .map((avaliacao) => ({
         ...avaliacao,
@@ -104,6 +121,7 @@ class RelatorioService {
       favoritos: favoritos.length,
       clientes: 0,
       locacoes: 0,
+      filmesRecentes,
       ultimasAvaliacoes,
       filmesFavoritados,
       atividadesRecentes: await this.listarAtividadesRecentes(),

@@ -1112,11 +1112,40 @@ function updateAdminDashboardStats(stats = {}) {
 }
 
 function updateAdminDashboardCards(data = {}) {
+  renderAdminRecentMovies(data.filmesRecentes || []);
   renderAdminLatestReviews(data.ultimasAvaliacoes || []);
   renderAdminFavoriteMovies(data.filmesFavoritados || []);
   renderAdminRecentActivity(data.atividadesRecentes || []);
   renderAdminDashboardCharts(data.graficos || {});
   updateAdminDashboardModalData(data);
+}
+
+function renderAdminRecentMovies(movies = []) {
+  const container = document.getElementById('adminRecentMovies');
+  if (!container) return;
+
+  const visibleMovies = movies.slice(0, 8);
+  if (!visibleMovies.length) {
+    container.innerHTML = '<p class="admin-empty-state">Nenhum filme cadastrado recentemente.</p>';
+    return;
+  }
+
+  container.innerHTML = visibleMovies.map((movie, index) => {
+    const title = movie.titulo || 'Filme sem título';
+    const genre = movie.genero_nome || generoNameById(movie.genero_id) || 'Sem gênero';
+    const details = [movie.ano_lancamento, movie.duracao].filter(Boolean).join(' • ');
+    const cover = resolveImageUrl(movie.capa_url) || getCuratedMovieImage(index);
+
+    return `
+      <article class="admin-added-movie" style="--admin-movie-cover: url('${escapeHtml(cover)}')">
+        <div>
+          <strong>${escapeHtml(title)}</strong>
+          <span>${escapeHtml(genre)}</span>
+          <small>${escapeHtml(details || '-')}</small>
+        </div>
+      </article>
+    `;
+  }).join('');
 }
 
 function renderAdminDashboardCharts(charts = {}) {

@@ -113,6 +113,8 @@ async function ensureFilmes(connection) {
   await addColumnIfMissing(connection, 'filmes', 'status', "ENUM('rascunho', 'publicado', 'arquivado') NOT NULL DEFAULT 'publicado' AFTER trailer_url");
   await addColumnIfMissing(connection, 'filmes', 'destaque', 'BOOLEAN NOT NULL DEFAULT FALSE AFTER status');
   await addColumnIfMissing(connection, 'filmes', 'criado_por', 'INT NULL AFTER destaque');
+  await addColumnIfMissing(connection, 'filmes', 'created_at', 'TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER criado_por');
+  await addColumnIfMissing(connection, 'filmes', 'updated_at', 'TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER created_at');
 
   if (await columnExists(connection, 'filmes', 'ano')) {
     await connection.query('UPDATE filmes SET ano_lancamento = ano WHERE ano_lancamento IS NULL');
@@ -128,7 +130,11 @@ async function ensureFilmes(connection) {
 }
 
 async function ensureAvaliacoesFilmes(connection) {
-  if (await tableExists(connection, 'avaliacoes_filmes')) return;
+  if (await tableExists(connection, 'avaliacoes_filmes')) {
+    await addColumnIfMissing(connection, 'avaliacoes_filmes', 'created_at', 'TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER comentario');
+    await addColumnIfMissing(connection, 'avaliacoes_filmes', 'updated_at', 'TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER created_at');
+    return;
+  }
 
   await connection.query(`
     CREATE TABLE avaliacoes_filmes (
@@ -155,7 +161,10 @@ async function ensureAvaliacoesFilmes(connection) {
 }
 
 async function ensureFavoritoFilmes(connection) {
-  if (await tableExists(connection, 'favorito_filmes')) return;
+  if (await tableExists(connection, 'favorito_filmes')) {
+    await addColumnIfMissing(connection, 'favorito_filmes', 'created_at', 'TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP AFTER usuario_id');
+    return;
+  }
 
   await connection.query(`
     CREATE TABLE favorito_filmes (
