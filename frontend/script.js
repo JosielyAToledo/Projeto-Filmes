@@ -21,6 +21,8 @@ let adminUsersCache = [];
 let adminCurrentView = 'dashboard';
 let adminLogsCache = [];
 let adminDashboardSummary = {};
+let reportsLogsCache = [];
+let reportsSummaryCache = {};
 let pendingDeleteLogIndex = null;
 const ADMIN_MOVIES_PER_PAGE = 4;
 const USER_MOVIES_PER_PAGE = 5;
@@ -318,6 +320,7 @@ function syncView() {
   }
 
   if (adminSession) {
+    renderAdminDashboardCharts({});
     loadAdminDashboardStats();
   }
 }
@@ -705,6 +708,12 @@ document.getElementById('adminClearXmlFilters')?.addEventListener('click', clear
 
 document.getElementById('adminTopSearch').addEventListener('input', applyAdminTopFilters);
 document.getElementById('adminTopFilter').addEventListener('change', applyAdminTopFilters);
+document.querySelectorAll('.admin-chart-card select').forEach((select) => {
+  select.addEventListener('change', () => {
+    loadAdminDashboardStats();
+    filterAdminCharts();
+  });
+});
 document.getElementById('adminChartFilterButton')?.addEventListener('click', openAdminChartFilterModal);
 document.getElementById('adminCancelChartFilter')?.addEventListener('click', closeAdminChartFilterModal);
 document.getElementById('adminApplyChartFilter')?.addEventListener('click', applyAdminChartFilterModal);
@@ -1205,18 +1214,165 @@ function updateAdminDashboardCards(data = {}) {
   renderAdminLatestReviews(data.ultimasAvaliacoes || []);
   renderAdminFavoriteMovies(data.filmesFavoritados || []);
   renderAdminRecentActivity(data.atividadesRecentes || []);
+  renderAdminDashboardCharts(data.graficos || {});
   updateAdminDashboardModalData(data);
+}
+
+function renderAdminDashboardCharts(charts = {}) {
+  renderAdminHorizontalChart(
+    'watched',
+    charts.filmesMaisFavoritados || charts.filmesMaisAssistidos || [],
+    'Nenhum favorito registrado no período.',
+    'favoritos'
+  );
+  renderAdminGenreChart(charts.filmesPorGenero || []);
+  renderAdminUserStatusChart(charts.usuariosPorStatus || []);
+  renderAdminHorizontalChart(
+    'comments',
+    charts.filmesMaisComentados || [],
+    'Nenhum comentário registrado ainda.',
+    'comentários'
+  );
+}
+
+function renderAdminHorizontalChart(kind, rows = [], emptyText, valueLabel) {
+  const card = document.querySelector(`.admin-chart-card[data-chart-kind="${kind}"]`);
+  const chart = card?.querySelector('.admin-horizontal-chart');
+  if (!chart) return;
+
+  const values = rows
+    .map((row) => ({
+      label: row.titulo || row.label || 'Filme',
+      total: Number(row.total) || 0
+    }))
+    .filter((row) => row.total > 0);
+
+  if (!values.length) {
+    chart.innerHTML = `<p class="admin-empty-state">${escapeHtml(emptyText)}</p>`;
+    return;
+  }
+
+  const maxValue = Math.max(...values.map((row) => row.total));
+
+  chart.innerHTML = values.map((row) => {
+    const width = Math.max(4, Math.round((row.total / maxValue) * 100));
+    return `<div class="chart-row"><span>${escapeHtml(row.label)}</span><i title="${formatAdminTotal(row.total)} ${escapeHtml(valueLabel)}" style="--bar: ${width}%"></i><b>${escapeHtml(formatAdminTotal(row.total))}</b></div>`;
+  }).join('');
+}
+
+function renderAdminGenreChart(rows = []) {
+  const card = document.querySelector('.admin-chart-card[data-chart-kind="genres"]');
+  const chart = card?.querySelector('.admin-donut-chart');
+  const legend = card?.querySelector('.admin-chart-legend');
+  if (!chart || !legend) return;
+
+  const values = rows
+    .map((row) => ({
+      label: row.genero || row.label || 'Sem gênero',
+      total: Number(row.total) || 0
+    }))
+    .filter((row) => row.total > 0);
+
+  renderAdminDonutChart({
+    chart,
+    legend,
+    values,
+    centerLabel: 'Filmes',
+    emptyText: 'Nenhum filme cadastrado por gênero.'
+  });
+}
+
+function renderAdminUserStatusChart(rows = []) {
+  const card = document.querySelector('.admin-chart-card[data-chart-kind="users"]');
+  const chart = card?.querySelector('.admin-status-donut');
+  const legend = card?.querySelector('.admin-chart-legend');
+  if (!chart || !legend) return;
+
+  const values = rows
+    .map((row) => ({
+      label: formatAdminStatusLabel(row.status || row.label || 'sem status'),
+      total: Number(row.total) || 0
+    }))
+    .filter((row) => row.total > 0);
+
+  renderAdminDonutChart({
+    chart,
+    legend,
+    values,
+    centerLabel: 'Usuários',
+    emptyText: 'Nenhum usuário cadastrado.'
+  });
+}
+
+function renderAdminDonutChart({ chart, legend, values, centerLabel, emptyText }) {
+  const total = values.reduce((sum, row) => sum + row.total, 0);
+  const colors = ['#d9811d', '#638d4f', '#2f5a78', '#7653a3', '#c65f63', '#b37425', '#7e8583'];
+  const labelClasses = ['action', 'drama', 'scifi', 'adventure', 'suspense', 'comedy', 'other'];
+
+  if (!total) {
+    chart.style.background = '';
+    chart.innerHTML = `<div class="donut-center"><strong>0</strong><span>${escapeHtml(centerLabel)}</span></div>`;
+    legend.innerHTML = `<span>${escapeHtml(emptyText)}</span>`;
+    return;
+  }
+
+  let current = 0;
+  const segments = values.map((row, index) => {
+    const start = current;
+    const degrees = (row.total / total) * 360;
+    current += degrees;
+    return `${colors[index % colors.length]} ${start.toFixed(2)}deg ${current.toFixed(2)}deg`;
+  });
+
+  chart.style.background = `radial-gradient(circle, rgba(9, 12, 15, 1) 0 31%, transparent 32%), conic-gradient(${segments.join(', ')})`;
+  chart.innerHTML = `
+    <div class="donut-center"><strong>${escapeHtml(formatAdminTotal(total))}</strong><span>${escapeHtml(centerLabel)}</span></div>
+    ${values.slice(0, 7).map((row, index) => {
+      const percent = ((row.total / total) * 100).toFixed(1).replace('.', ',');
+      return `<span class="donut-label ${labelClasses[index] || 'other'}">${escapeHtml(row.label)}<br />${escapeHtml(formatAdminTotal(row.total))} (${percent}%)</span>`;
+    }).join('')}
+  `;
+
+  legend.innerHTML = values.map((row, index) => {
+    const percent = ((row.total / total) * 100).toFixed(1).replace('.', ',');
+    const color = colors[index % colors.length];
+    return `<span><i style="background: ${color}"></i>${escapeHtml(row.label)} <b>${escapeHtml(formatAdminTotal(row.total))} (${percent}%)</b></span>`;
+  }).join('');
+}
+
+function formatAdminStatusLabel(status) {
+  const normalized = normalizeText(status);
+  if (normalized === 'ativo') return 'Ativos';
+  if (normalized === 'inativo') return 'Inativos';
+  return status || 'Sem status';
 }
 
 async function loadAdminDashboardStats() {
   try {
-    const dashboardData = await api('/relatorios/json');
+    const query = getAdminChartQueryString();
+    const dashboardData = await api(`/relatorios/json${query ? `?${query}` : ''}`);
     adminDashboardSummary = dashboardData || {};
     updateAdminDashboardStats(dashboardData);
     updateAdminDashboardCards(dashboardData);
   } catch (error) {
     console.warn('Nao foi possivel carregar os totais do dashboard.', error.message);
+    renderAdminDashboardCharts({});
   }
+}
+
+function getAdminChartQueryString() {
+  const params = new URLSearchParams();
+  const watchedPeriod = document.querySelector('.admin-chart-card[data-chart-kind="watched"] select')?.value;
+  const genre = document.querySelector('.admin-chart-card[data-chart-kind="genres"] select')?.value;
+  const usersPeriod = document.querySelector('.admin-chart-card[data-chart-kind="users"] select')?.value;
+  const commentsPeriod = document.querySelector('.admin-chart-card[data-chart-kind="comments"] select')?.value;
+
+  if (watchedPeriod) params.set('watchedPeriod', watchedPeriod);
+  if (genre) params.set('genero', genre);
+  if (usersPeriod) params.set('usersPeriod', usersPeriod);
+  if (commentsPeriod) params.set('commentsPeriod', commentsPeriod);
+
+  return params.toString();
 }
 
 function renderAdminLatestReviews(reviews = []) {
@@ -2822,21 +2978,21 @@ function buildAdminSystemPdfLines(data = adminDashboardSummary) {
   const filteredMovies = getAdminPdfPreviewMovies();
   const filteredUsers = getAdminPdfPreviewUsers();
   const lines = [
-    'Relatorio Geral do Sistema - Catalogo7',
+    'Relatório Geral do Sistema - Catálogo7',
     `Gerado em: ${new Date().toLocaleString('pt-BR')}`,
-    `Conteudo: ${getAdminPdfScopeLabel(scope)}`,
+    `Conteúdo: ${getAdminPdfScopeLabel(scope)}`,
     '',
   ];
 
   if (scope === 'filmes') {
     return [
       ...lines,
-      `Total de filmes no periodo: ${formatAdminTotal(filteredMovies.length)}`,
-      `Genero: ${getSelectedAdminPdfGenre() || 'Todos'}`,
+      `Total de filmes no período: ${formatAdminTotal(filteredMovies.length)}`,
+      `Gênero: ${getSelectedAdminPdfGenre() || 'Todos'}`,
       '',
       'Filmes',
       ...filteredMovies.map((movie) => {
-        return `${movie.titulo || 'Filme'} | ${movie.genero_nome || generoNameById(movie.genero_id) || 'Sem genero'} | ${movie.ano_lancamento || '-'} | ${movie.status || '-'}`;
+        return `${movie.titulo || 'Filme'} | ${movie.genero_nome || generoNameById(movie.genero_id) || 'Sem gênero'} | ${movie.ano_lancamento || '-'} | ${movie.status || '-'}`;
       })
     ];
   }
@@ -2844,10 +3000,10 @@ function buildAdminSystemPdfLines(data = adminDashboardSummary) {
   if (scope === 'usuarios') {
     return [
       ...lines,
-      `Total de usuarios no periodo: ${formatAdminTotal(filteredUsers.length)}`,
+      `Total de usuários no período: ${formatAdminTotal(filteredUsers.length)}`,
       '',
-      'Usuarios',
-      ...filteredUsers.map((user) => `${user.nome || 'Usuario'} | ${user.email || '-'} | ${user.tipo_usuario || '-'} | ${user.status || '-'}`)
+      'Usuários',
+      ...filteredUsers.map((user) => `${user.nome || 'Usuário'} | ${user.email || '-'} | ${user.tipo_usuario || '-'} | ${user.status || '-'}`)
     ];
   }
 
@@ -2859,8 +3015,8 @@ function buildAdminSystemPdfLines(data = adminDashboardSummary) {
       'Filmes mais favoritados',
       ...(data.filmesFavoritados || []).map((movie, index) => `${index + 1}. ${movie.titulo || 'Filme'} - ${formatAdminTotal(movie.total)} favoritos`),
       '',
-      'Ultimas avaliacoes',
-      ...(data.ultimasAvaliacoes || []).map((review) => `${review.usuario_nome || 'Usuario'} avaliou ${review.filme_titulo || 'Filme'} com ${review.nota || 0}/5`)
+      'Últimas avaliações',
+      ...(data.ultimasAvaliacoes || []).map((review) => `${review.usuario_nome || 'Usuário'} avaliou ${review.filme_titulo || 'Filme'} com ${review.nota || 0}/5`)
     ];
   }
 
@@ -2868,7 +3024,7 @@ function buildAdminSystemPdfLines(data = adminDashboardSummary) {
     return [
       ...lines,
       'Atividades recentes',
-      ...(data.atividadesRecentes || []).map((activity) => `${formatAdminDate(activity.timestamp)} | ${activity.usuario || 'anonimo'} | ${activity.descricao || activity.acao || '-'}`)
+      ...(data.atividadesRecentes || []).map((activity) => `${formatAdminDate(activity.timestamp)} | ${activity.usuario || 'anônimo'} | ${activity.descricao || activity.acao || '-'}`)
     ];
   }
 
@@ -2876,19 +3032,19 @@ function buildAdminSystemPdfLines(data = adminDashboardSummary) {
     ...lines,
     'Resumo',
     `Filmes cadastrados: ${formatAdminTotal(data.filmes)}`,
-    `Usuarios cadastrados: ${formatAdminTotal(data.usuarios)}`,
+    `Usuários cadastrados: ${formatAdminTotal(data.usuarios)}`,
     `Favoritos registrados: ${formatAdminTotal(data.favoritos)}`,
     `Clientes cadastrados: ${formatAdminTotal(data.clientes)}`,
-    `Locacoes registradas: ${formatAdminTotal(data.locacoes)}`,
+    `Locações registradas: ${formatAdminTotal(data.locacoes)}`,
     '',
     'Filmes mais favoritados',
     ...(data.filmesFavoritados || []).slice(0, 8).map((movie, index) => `${index + 1}. ${movie.titulo || 'Filme'} - ${formatAdminTotal(movie.total)} favoritos`),
     '',
-    'Ultimas avaliacoes',
-    ...(data.ultimasAvaliacoes || []).slice(0, 8).map((review) => `${review.usuario_nome || 'Usuario'} avaliou ${review.filme_titulo || 'Filme'} com ${review.nota || 0}/5`),
+    'Últimas avaliações',
+    ...(data.ultimasAvaliacoes || []).slice(0, 8).map((review) => `${review.usuario_nome || 'Usuário'} avaliou ${review.filme_titulo || 'Filme'} com ${review.nota || 0}/5`),
     '',
     'Atividades recentes',
-    ...(data.atividadesRecentes || []).slice(0, 8).map((activity) => `${formatAdminDate(activity.timestamp)} | ${activity.usuario || 'anonimo'} | ${activity.descricao || activity.acao || '-'}`)
+    ...(data.atividadesRecentes || []).slice(0, 8).map((activity) => `${formatAdminDate(activity.timestamp)} | ${activity.usuario || 'anônimo'} | ${activity.descricao || activity.acao || '-'}`)
   ];
 }
 function getAdminExportQueryString() {
@@ -3444,7 +3600,13 @@ document.getElementById('editProfileBtn').addEventListener('click', () => {
   renderProfileForm();
   showPage('editarPerfil');
 });
-document.getElementById('openExportPageBtn').addEventListener('click', () => showPage('exportar'));
+document.getElementById('openExportPageBtn').addEventListener('click', () => {
+  syncExportPageDates();
+  showPage('exportar');
+});
+document.getElementById('reportPeriod')?.addEventListener('change', renderReportsPage);
+document.getElementById('reportType')?.addEventListener('change', renderReportsPage);
+document.querySelector('.export-period-grid select')?.addEventListener('change', syncExportPageDates);
 document.getElementById('downloadPdfBtn').addEventListener('click', downloadPDFReport);
 document.getElementById('downloadPdfIconBtn').addEventListener('click', downloadPDFReport);
 document.getElementById('downloadXmlBtn').addEventListener('click', downloadXMLExport);
@@ -3504,6 +3666,132 @@ function showPage(page) {
   if (activeLink) {
     activeLink.classList.add('active');
   }
+
+  if (page === 'relatorios') {
+    loadReportsPage();
+  }
+
+  if (page === 'exportar') {
+    loadReportsPage();
+    syncExportPageDates();
+  }
+}
+
+async function loadReportsPage() {
+  if (!token) {
+    reportsLogsCache = [];
+    reportsSummaryCache = {};
+    renderReportsPage();
+    return;
+  }
+
+  try {
+    const [logs, summary] = await Promise.all([
+      api('/logs'),
+      api('/relatorios/json')
+    ]);
+    reportsLogsCache = Array.isArray(logs) ? logs : [];
+    reportsSummaryCache = summary || {};
+  } catch (error) {
+    console.warn('Nao foi possivel carregar dados reais para relatorios.', error.message);
+    if (!reportsLogsCache.length) reportsLogsCache = [];
+    if (!Object.keys(reportsSummaryCache).length) reportsSummaryCache = {};
+  }
+
+  renderReportsPage();
+}
+
+function renderReportsPage() {
+  const chart = document.querySelector('#relatoriosPage .chart-grid');
+  if (!chart) return;
+
+  const period = document.getElementById('reportPeriod')?.value || 'Últimos 6 meses';
+  const type = document.getElementById('reportType')?.value || 'Todos';
+  const months = getReportMonths(period);
+  const rows = months.map((month) => {
+    const logs = reportsLogsCache.filter((log) => isSameReportMonth(log.timestamp, month.date));
+    return {
+      label: month.label,
+      importacoes: logs.filter(isImportLog).length,
+      exportacoes: logs.filter(isExportLog).length
+    };
+  });
+  const maxValue = Math.max(1, ...rows.flatMap((row) => [row.importacoes, row.exportacoes]));
+  const normalizedType = normalizeText(type);
+  const scale = document.querySelector('#relatoriosPage .chart-scale');
+
+  if (scale) {
+    scale.innerHTML = [1, 0.8, 0.6, 0.4, 0.2, 0]
+      .map((factor) => `<span>${Math.round(maxValue * factor)}</span>`)
+      .join('');
+  }
+
+  chart.innerHTML = rows.map((row) => {
+    const showImports = normalizedType === normalizeText('Todos') || normalizedType.includes('import');
+    const showExports = normalizedType === normalizeText('Todos') || normalizedType.includes('export');
+    const importHeight = showImports && row.importacoes > 0 ? Math.max(2, Math.round((row.importacoes / maxValue) * 100)) : 0;
+    const exportHeight = showExports && row.exportacoes > 0 ? Math.max(2, Math.round((row.exportacoes / maxValue) * 100)) : 0;
+
+    return `
+      <article>
+        <div class="bar-group">
+          ${showImports ? `<span class="bar import" title="${row.importacoes} importações" style="height: ${importHeight}%"></span>` : ''}
+          ${showExports ? `<span class="bar export" title="${row.exportacoes} exportações" style="height: ${exportHeight}%"></span>` : ''}
+        </div>
+        <strong>${escapeHtml(row.label)}</strong>
+      </article>
+    `;
+  }).join('');
+}
+
+function getReportMonths(period) {
+  const normalized = normalizeText(period);
+  const total = normalized.includes('12') ? 12 : 6;
+  const now = new Date();
+  const start = normalized.includes('ano')
+    ? new Date(now.getFullYear(), 0, 1)
+    : new Date(now.getFullYear(), now.getMonth() - total + 1, 1);
+  const months = [];
+  const cursor = new Date(start);
+
+  while (cursor <= now) {
+    months.push({
+      date: new Date(cursor),
+      label: cursor.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '')
+    });
+    cursor.setMonth(cursor.getMonth() + 1);
+  }
+
+  return months;
+}
+
+function isSameReportMonth(value, monthDate) {
+  if (!value) return false;
+  const date = new Date(value);
+  return date.getFullYear() === monthDate.getFullYear()
+    && date.getMonth() === monthDate.getMonth();
+}
+
+function isImportLog(log = {}) {
+  const text = normalizeText([
+    log.acao,
+    log.tipoEvento,
+    log.descricao,
+    log.description,
+    log.endpoint
+  ].join(' '));
+  return text.includes('import');
+}
+
+function isExportLog(log = {}) {
+  const text = normalizeText([
+    log.acao,
+    log.tipoEvento,
+    log.descricao,
+    log.description,
+    log.endpoint
+  ].join(' '));
+  return text.includes('export');
 }
 
 async function loadMovies() {
@@ -3885,6 +4173,152 @@ function selectedExportItems() {
     .map((input) => input.parentElement.textContent.trim());
 }
 
+function getReportDateRange(periodValue) {
+  const normalized = normalizeText(periodValue || 'Ultimos 6 meses');
+  const now = new Date();
+  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+  const start = normalized.includes('ano')
+    ? new Date(now.getFullYear(), 0, 1)
+    : new Date(now.getFullYear(), now.getMonth() - (normalized.includes('12') ? 11 : 5), 1);
+
+  return { start, end };
+}
+
+function formatReportDate(value) {
+  return value.toLocaleDateString('pt-BR');
+}
+
+function syncExportPageDates() {
+  const period = document.querySelector('.export-period-grid select')?.value
+    || document.getElementById('reportPeriod')?.value
+    || 'Ultimos 6 meses';
+  const range = getReportDateRange(period);
+  const startInput = document.querySelector('[aria-label="Data inicial"]');
+  const endInput = document.querySelector('[aria-label="Data final"]');
+
+  if (startInput) startInput.value = formatReportDate(range.start);
+  if (endInput) endInput.value = formatReportDate(range.end);
+}
+
+function getExportDateQuery() {
+  const params = new URLSearchParams();
+  const startDate = parseAdminFilterDate(document.querySelector('[aria-label="Data inicial"]')?.value);
+  const endDate = parseAdminFilterDate(document.querySelector('[aria-label="Data final"]')?.value, true);
+
+  if (startDate) params.set('dataInicio', startDate);
+  if (endDate) params.set('dataFim', endDate);
+
+  return params;
+}
+
+function getReportPdfScopeFromSelection() {
+  const selected = selectedExportItems().map((item) => normalizeText(item));
+  if (!selected.length || selected.length > 1) return 'completo';
+
+  const [item] = selected;
+  if (item.includes('filme') || item.includes('genero')) return 'filmes';
+  if (item.includes('usuario')) return 'usuarios';
+  if (item.includes('logs') || item.includes('import') || item.includes('export')) return 'atividades';
+
+  return 'completo';
+}
+
+async function ensureReportExportData() {
+  const tasks = [];
+
+  if (!Object.keys(reportsSummaryCache).length && token) {
+    tasks.push(api('/relatorios/json').then((data) => {
+      reportsSummaryCache = data || {};
+    }));
+  }
+
+  if (!reportsLogsCache.length && token) {
+    tasks.push(api('/logs').then((data) => {
+      reportsLogsCache = Array.isArray(data) ? data : [];
+    }));
+  }
+
+  if (!movies.length) {
+    tasks.push(loadMovies());
+  }
+
+  await Promise.allSettled(tasks);
+}
+
+function filterReportLogsByExportDate(logs = []) {
+  const start = parseAdminFilterDate(document.querySelector('[aria-label="Data inicial"]')?.value);
+  const end = parseAdminFilterDate(document.querySelector('[aria-label="Data final"]')?.value, true);
+  const startDate = start ? new Date(start) : null;
+  const endDate = end ? new Date(end) : null;
+
+  return logs.filter((log) => {
+    const date = log.timestamp ? new Date(log.timestamp) : null;
+    if (!date || Number.isNaN(date.getTime())) return false;
+    return (!startDate || date >= startDate) && (!endDate || date <= endDate);
+  });
+}
+
+function buildReportExportLines() {
+  const selectedItems = selectedExportItems();
+  const summary = reportsSummaryCache || {};
+  const filteredLogs = filterReportLogsByExportDate(reportsLogsCache);
+  const importCount = filteredLogs.filter(isImportLog).length;
+  const exportCount = filteredLogs.filter(isExportLog).length;
+  const lines = [
+    `Período: ${document.querySelector('.export-period-grid select')?.value || '-'}`,
+    `Data inicial: ${document.querySelector('[aria-label="Data inicial"]')?.value || '-'}`,
+    `Data final: ${document.querySelector('[aria-label="Data final"]')?.value || '-'}`,
+    `Dados exportados: ${selectedItems.join(', ') || 'Nenhum item selecionado'}`,
+    ''
+  ];
+
+  if (selectedItems.some((item) => normalizeText(item).includes('filme'))) {
+    lines.push(`Total de filmes: ${formatAdminTotal(summary.filmes ?? movies.length)}`);
+  }
+
+  if (selectedItems.some((item) => normalizeText(item).includes('genero'))) {
+    const genres = new Set(movies.map((movie) => movie.genero_nome || movie.genero).filter(Boolean));
+    lines.push(`Total de gêneros: ${formatAdminTotal(genres.size || (summary.filmesPorGenero || []).length)}`);
+  }
+
+  if (selectedItems.some((item) => normalizeText(item).includes('usuario'))) {
+    lines.push(`Total de usuários: ${formatAdminTotal(summary.usuarios ?? adminUsersCache.length)}`);
+  }
+
+  if (selectedItems.some((item) => normalizeText(item).includes('logs'))) {
+    lines.push(`Logs no período: ${formatAdminTotal(filteredLogs.length)}`);
+  }
+
+  if (selectedItems.some((item) => normalizeText(item).includes('import') || normalizeText(item).includes('export'))) {
+    lines.push(`Importações no período: ${formatAdminTotal(importCount)}`);
+    lines.push(`Exportações no período: ${formatAdminTotal(exportCount)}`);
+  }
+
+  if (summary.filmesFavoritados?.length) {
+    lines.push('', 'Filmes mais favoritados');
+    summary.filmesFavoritados.slice(0, 5).forEach((movie, index) => {
+      lines.push(`${index + 1}. ${movie.titulo || 'Filme'} - ${formatAdminTotal(movie.total)} favoritos`);
+    });
+  }
+
+  if (summary.ultimasAvaliacoes?.length) {
+    lines.push('', 'Últimas avaliações');
+    summary.ultimasAvaliacoes.slice(0, 5).forEach((review) => {
+      lines.push(`${review.usuario_nome || 'Usuário'} avaliou ${review.filme_titulo || 'Filme'} com ${review.nota || 0}/5`);
+    });
+  }
+
+  if (filteredLogs.length) {
+    lines.push('', 'Atividades no período');
+    filteredLogs.slice(0, 8).forEach((log) => {
+      const date = log.timestamp ? new Date(log.timestamp).toLocaleString('pt-BR') : '-';
+      lines.push(`${date} | ${log.usuario || 'anônimo'} | ${log.descricao || log.acao || '-'}`);
+    });
+  }
+
+  return lines;
+}
+
 function escapePDFText(text) {
   return text.normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -3929,32 +4363,46 @@ function makeSimplePDF(lines) {
   return pdf;
 }
 
-function downloadPDFReport() {
-  const lines = [
-    `Período: ${document.querySelector('.export-period-grid select').value}`,
-    `Data inicial: ${document.querySelector('[aria-label="Data inicial"]').value}`,
-    `Data final: ${document.querySelector('[aria-label="Data final"]').value}`,
-    `Dados exportados: ${selectedExportItems().join(', ') || 'Nenhum item selecionado'}`,
-    'Resumo: Importações e exportações do sistema.'
-  ];
+async function downloadPDFReport() {
+  await ensureReportExportData();
 
-  downloadBlob(makeSimplePDF(lines), 'relatorio-catalogo7.pdf', 'application/pdf');
+  if (token) {
+    try {
+      const params = getExportDateQuery();
+      params.set('conteudo', 'completo');
+      const response = await fetch(`${API_URL}/relatorios/pdf?${params.toString()}`, {
+        headers: headers()
+      });
+
+      if (response.ok) {
+        downloadBlob(await response.arrayBuffer(), 'relatorio-catalogo7.pdf', 'application/pdf');
+        return;
+      }
+    } catch (error) {
+      console.warn('Relatorio PDF pela API indisponivel, usando dados carregados em tela.', error.message);
+    }
+  }
+
+  downloadBlob(makeSimplePDF(buildReportExportLines()), 'relatorio-catalogo7.pdf', 'application/pdf');
 }
 
 function buildFallbackXML() {
-  const items = selectedExportItems()
-    .map((item) => `    <item>${item}</item>`)
+  const items = buildReportExportLines()
+    .filter(Boolean)
+    .map((item) => `    <item>${escapeHtml(item)}</item>`)
     .join('\n');
 
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<exportacao>\n  <periodo>${document.querySelector('.export-period-grid select').value}</periodo>\n  <dataInicial>${document.querySelector('[aria-label="Data inicial"]').value}</dataInicial>\n  <dataFinal>${document.querySelector('[aria-label="Data final"]').value}</dataFinal>\n  <dados>\n${items}\n  </dados>\n</exportacao>`;
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<exportacao>\n  <periodo>${escapeHtml(document.querySelector('.export-period-grid select')?.value || '')}</periodo>\n  <dataInicial>${escapeHtml(document.querySelector('[aria-label="Data inicial"]')?.value || '')}</dataInicial>\n  <dataFinal>${escapeHtml(document.querySelector('[aria-label="Data final"]')?.value || '')}</dataFinal>\n  <dados>\n${items}\n  </dados>\n</exportacao>`;
 }
 
 async function downloadXMLExport() {
+  await ensureReportExportData();
   let xml = '';
 
   if (token) {
     try {
-      const response = await fetch(`${API_URL}/logs/exportar/xml`, {
+      const params = getExportDateQuery();
+      const response = await fetch(`${API_URL}/logs/exportar/xml?${params.toString()}`, {
         headers: headers()
       });
 

@@ -1,9 +1,31 @@
 const pool = require('../config/mysql');
 const mongoose = require('mongoose');
 const Log = require('../models/Log');
+const fs = require('fs');
+const path = require('path');
+const AuthService = require('./AuthService');
+const { isLocalMode } = require('../config/local_mode');
+
+const LOCAL_MOVIES_FILE = path.resolve(
+  process.env.LOCAL_FILMES_FILE || 'backend/data/local-filmes.json'
+);
+const LOCAL_FAVORITES_FILE = path.resolve(
+  process.env.LOCAL_FAVORITOS_FILE || 'backend/data/local-favoritos-filmes.json'
+);
+const LOCAL_REVIEWS_FILE = path.resolve(
+  process.env.LOCAL_AVALIACOES_FILE || 'backend/data/local-avaliacoes-filmes.json'
+);
 
 class RelatorioService {
-  async resumoJSON() {
+  constructor() {
+    this.authService = new AuthService();
+  }
+
+  async resumoJSON(filtros = {}) {
+    if (isLocalMode()) {
+      return this.resumoLocalJSON(filtros);
+    }
+
     const [[filmes]] = await pool.execute('SELECT COUNT(*) AS total FROM filmes');
     const [[usuarios]] = await pool.execute('SELECT COUNT(*) AS total FROM usuarios');
     const [[favoritos]] = await pool.execute('SELECT COUNT(*) AS total FROM favorito_filmes');
@@ -43,7 +65,49 @@ class RelatorioService {
       locacoes: locacoes.total,
       ultimasAvaliacoes,
       filmesFavoritados,
-      atividadesRecentes: await this.listarAtividadesRecentes()
+      atividadesRecentes: await this.listarAtividadesRecentes(),
+      graficos: await this.dadosGraficosDashboard(filtros)
+    };
+  }
+
+  async resumoLocalJSON(filtros = {}) {
+    const filmes = loadLocalJson(LOCAL_MOVIES_FILE);
+    const favoritos = loadLocalJson(LOCAL_FAVORITES_FILE);
+    const avaliacoes = loadLocalJson(LOCAL_REVIEWS_FILE);
+    const usuarios = await this.authService.listarUsuarios();
+    const movieById = new Map(filmes.map((filme) => [Number(filme.id), filme]));
+    const ultimasAvaliacoes = avaliacoes
+      .map((avaliacao) => ({
+        ...avaliacao,
+        usuario_nome: avaliacao.usuario_nome || 'Usuário',
+        filme_titulo: movieById.get(Number(avaliacao.filme_id))?.titulo || 'Filme'
+      }))
+      .sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0))
+      .slice(0, 10);
+    const favoritosPorFilme = countBy(favoritos, (favorito) => Number(favorito.filme_id));
+    const filmesFavoritados = Array.from(favoritosPorFilme.entries())
+      .map(([filmeId, total]) => {
+        const filme = movieById.get(Number(filmeId)) || {};
+        return {
+          id: Number(filmeId),
+          titulo: filme.titulo || 'Filme',
+          capa_url: filme.capa_url || null,
+          total
+        };
+      })
+      .sort((a, b) => b.total - a.total || String(a.titulo).localeCompare(String(b.titulo), 'pt-BR'))
+      .slice(0, 10);
+
+    return {
+      filmes: filmes.length,
+      usuarios: usuarios.length,
+      favoritos: favoritos.length,
+      clientes: 0,
+      locacoes: 0,
+      ultimasAvaliacoes,
+      filmesFavoritados,
+      atividadesRecentes: await this.listarAtividadesRecentes(),
+      graficos: await this.dadosGraficosDashboard(filtros)
     };
   }
 
@@ -84,10 +148,139 @@ class RelatorioService {
       labels: rows.map((row) => row.status),
       datasets: [
         {
-          label: 'Locacoes por status',
+          label: 'Locações por status',
           data: rows.map((row) => row.total)
         }
       ]
+    };
+  }
+
+  async dadosGraficosDashboard(filtros = {}) {
+    if (isLocalMode()) {
+      return this.dadosGraficosDashboardLocal(filtros);
+    }
+
+    const watchedDateFilter = buildChartDateFilter(filtros.watchedPeriod, 'favorito_filmes.created_at');
+    const genreDateFilter = buildChartDateFilter(filtros.genrePeriod, 'filmes.created_at');
+    const userDateFilter = buildChartDateFilter(filtros.usersPeriod, 'usuarios.created_at');
+    const commentsDateFilter = buildChartDateFilter(filtros.commentsPeriod, 'avaliacoes_filmes.updated_at');
+    const genreNameFilter = buildChartGenreFilter(filtros.genero);
+    const genreWhere = [genreDateFilter.sql, genreNameFilter.sql].filter(Boolean).join(' AND ');
+
+    const [filmesMaisFavoritados] = await pool.execute(`
+      SELECT
+        filmes.id,
+        filmes.titulo,
+        COUNT(favorito_filmes.id) AS total
+      FROM favorito_filmes
+      INNER JOIN filmes ON filmes.id = favorito_filmes.filme_id
+      ${watchedDateFilter.sql ? `WHERE ${watchedDateFilter.sql}` : ''}
+      GROUP BY filmes.id, filmes.titulo
+      ORDER BY total DESC, filmes.titulo ASC
+      LIMIT 10
+    `, watchedDateFilter.params);
+
+    const [filmesPorGenero] = await pool.execute(`
+      SELECT COALESCE(generos.nome, 'Sem gênero') AS genero, COUNT(filmes.id) AS total
+      FROM filmes
+      LEFT JOIN generos ON generos.id = filmes.genero_id
+      ${genreWhere ? `WHERE ${genreWhere}` : ''}
+      GROUP BY generos.nome
+      ORDER BY total DESC, genero ASC
+      LIMIT 7
+    `, [...genreDateFilter.params, ...genreNameFilter.params]);
+
+    const [usuariosPorStatus] = await pool.execute(`
+      SELECT COALESCE(status, 'sem status') AS status, COUNT(*) AS total
+      FROM usuarios
+      ${userDateFilter.sql ? `WHERE ${userDateFilter.sql}` : ''}
+      GROUP BY status
+      ORDER BY total DESC, status ASC
+    `, userDateFilter.params);
+
+    const [filmesMaisComentados] = await pool.execute(`
+      SELECT
+        filmes.id,
+        filmes.titulo,
+        COUNT(avaliacoes_filmes.id) AS total
+      FROM avaliacoes_filmes
+      INNER JOIN filmes ON filmes.id = avaliacoes_filmes.filme_id
+      WHERE avaliacoes_filmes.comentario IS NOT NULL
+        AND TRIM(avaliacoes_filmes.comentario) <> ''
+        ${commentsDateFilter.sql ? `AND ${commentsDateFilter.sql}` : ''}
+      GROUP BY filmes.id, filmes.titulo
+      ORDER BY total DESC, filmes.titulo ASC
+      LIMIT 10
+    `, commentsDateFilter.params);
+
+    return {
+      filmesMaisFavoritados,
+      filmesPorGenero,
+      usuariosPorStatus,
+      filmesMaisComentados
+    };
+  }
+
+  async dadosGraficosDashboardLocal(filtros = {}) {
+    const filmes = loadLocalJson(LOCAL_MOVIES_FILE);
+    const favoritos = loadLocalJson(LOCAL_FAVORITES_FILE);
+    const avaliacoes = loadLocalJson(LOCAL_REVIEWS_FILE);
+    const usuarios = await this.authService.listarUsuarios();
+    const movieById = new Map(filmes.map((filme) => [Number(filme.id), filme]));
+    const genreStart = getChartStartDate(filtros.genrePeriod);
+    const userStart = getChartStartDate(filtros.usersPeriod);
+    const commentsStart = getChartStartDate(filtros.commentsPeriod);
+    const favoritesStart = getChartStartDate(filtros.watchedPeriod);
+    const selectedGenre = normalizeText(filtros.genero);
+    const filteredGenreMovies = filmes.filter((filme) => {
+      const matchesDate = isDateAfterStart(filme.created_at, genreStart);
+      const matchesGenre = !selectedGenre || selectedGenre === normalizeText('Todos os gêneros')
+        || normalizeText(filme.genero_nome) === selectedGenre;
+      return matchesDate && matchesGenre;
+    });
+    const filmesPorGenero = Array.from(countBy(filteredGenreMovies, (filme) => filme.genero_nome || 'Sem gênero').entries())
+      .map(([genero, total]) => ({ genero, total }))
+      .sort((a, b) => b.total - a.total || String(a.genero).localeCompare(String(b.genero), 'pt-BR'))
+      .slice(0, 7);
+    const usuariosPorStatus = Array.from(countBy(
+      usuarios.filter((usuario) => isDateAfterStart(usuario.created_at, userStart)),
+      (usuario) => usuario.status || 'ativo'
+    ).entries())
+      .map(([status, total]) => ({ status, total }))
+      .sort((a, b) => b.total - a.total || String(a.status).localeCompare(String(b.status), 'pt-BR'));
+    const comentariosPorFilme = countBy(
+      avaliacoes.filter((avaliacao) => {
+        return String(avaliacao.comentario || '').trim()
+          && isDateAfterStart(avaliacao.updated_at || avaliacao.created_at, commentsStart);
+      }),
+      (avaliacao) => Number(avaliacao.filme_id)
+    );
+    const filmesMaisComentados = Array.from(comentariosPorFilme.entries())
+      .map(([filmeId, total]) => ({
+        id: Number(filmeId),
+        titulo: movieById.get(Number(filmeId))?.titulo || 'Filme',
+        total
+      }))
+      .sort((a, b) => b.total - a.total || String(a.titulo).localeCompare(String(b.titulo), 'pt-BR'))
+      .slice(0, 10);
+    const favoritosPorFilme = countBy(
+      favoritos.filter((favorito) => isDateAfterStart(favorito.created_at, favoritesStart)),
+      (favorito) => Number(favorito.filme_id)
+    );
+    const filmesMaisFavoritados = Array.from(favoritosPorFilme.entries())
+      .map(([filmeId, total]) => ({
+        id: Number(filmeId),
+        titulo: movieById.get(Number(filmeId))?.titulo || 'Filme',
+        total
+      }))
+      .sort((a, b) => b.total - a.total || String(a.titulo).localeCompare(String(b.titulo), 'pt-BR'))
+      .slice(0, 10);
+
+    return {
+      filmesMaisFavoritados,
+      filmesPorGenero,
+      usuariosPorStatus,
+      filmesMaisComentados
     };
   }
 
@@ -184,11 +377,11 @@ class RelatorioService {
     `, reviewDateFilter.params);
 
     const linhas = [
-      'Relatorio Geral do Sistema - Catalogo7',
+      'Relatório Geral do Sistema - Catálogo7',
       `Gerado em: ${new Date().toLocaleString('pt-BR')}`,
-      `Conteudo: ${getPdfScopeLabel(conteudo)}`,
-      `Periodo: ${formatPdfPeriodLabel(filtros)}`,
-      `Genero: ${shouldApplyPdfGenre(conteudo) ? filtros.genero || 'Todos' : 'Todos'}`
+      `Conteúdo: ${getPdfScopeLabel(conteudo)}`,
+      `Período: ${formatPdfPeriodLabel(filtros)}`,
+      `Gênero: ${shouldApplyPdfGenre(conteudo) ? filtros.genero || 'Todos' : 'Todos'}`
     ];
 
     if (shouldIncludePdfSection(conteudo, 'resumo')) {
@@ -196,18 +389,18 @@ class RelatorioService {
         '',
         'Resumo',
         `Filmes cadastrados: ${resumo.filmes}`,
-        `Usuarios cadastrados: ${resumo.usuarios}`,
+        `Usuários cadastrados: ${resumo.usuarios}`,
         `Favoritos registrados: ${resumo.favoritos}`,
         `Clientes cadastrados: ${resumo.clientes}`,
-        `Locacoes registradas: ${resumo.locacoes}`,
+        `Locações registradas: ${resumo.locacoes}`,
         '',
-        'Usuarios por status',
+        'Usuários por status',
         ...usuariosStatus.map((item) => `${item.status || 'sem status'}: ${item.total}`),
         '',
-        'Resumo dos graficos do dashboard',
-        'Filmes por genero:',
+        'Resumo dos gráficos do dashboard',
+        'Filmes por gênero:',
         ...filmesPorGenero.map((item) => `- ${item.genero}: ${item.total}`),
-        'Locacoes por status:',
+        'Locações por status:',
         ...locacoesStatus.map((item) => `- ${item.status || 'sem status'}: ${item.total}`)
       );
     }
@@ -220,12 +413,12 @@ class RelatorioService {
         const detalhes = [filme.genero_nome, filme.ano_lancamento, filme.duracao ? `${filme.duracao} min` : '']
           .filter(Boolean)
           .join(' | ');
-        return `${filme.titulo || 'Filme sem titulo'}${detalhes ? ` - ${detalhes}` : ''}`;
+        return `${filme.titulo || 'Filme sem título'}${detalhes ? ` - ${detalhes}` : ''}`;
         }),
         '',
         'Tabela resumida de filmes',
         ...filmesResumo.map((filme) => {
-          return `${filme.titulo || 'Filme'} | ${filme.genero_nome || 'Sem genero'} | ${filme.ano_lancamento || '-'} | ${filme.status || '-'}`;
+          return `${filme.titulo || 'Filme'} | ${filme.genero_nome || 'Sem gênero'} | ${filme.ano_lancamento || '-'} | ${filme.status || '-'}`;
         })
       );
     }
@@ -236,9 +429,9 @@ class RelatorioService {
         'Filmes mais favoritados',
         ...filmesFavoritados.map((filme, index) => `${index + 1}. ${filme.titulo} - ${filme.total} favoritos`),
         '',
-        'Ultimas avaliacoes',
+        'Últimas avaliações',
         ...ultimasAvaliacoes.map((avaliacao) => {
-        return `${avaliacao.usuario_nome || 'Usuario'} avaliou ${avaliacao.filme_titulo || 'Filme'} com ${avaliacao.nota || 0}/5`;
+        return `${avaliacao.usuario_nome || 'Usuário'} avaliou ${avaliacao.filme_titulo || 'Filme'} com ${avaliacao.nota || 0}/5`;
         })
       );
     }
@@ -250,7 +443,7 @@ class RelatorioService {
         'Atividades recentes',
         ...filteredActivities.slice(0, 8).map((atividade) => {
         const data = atividade.timestamp ? new Date(atividade.timestamp).toLocaleString('pt-BR') : '-';
-        return `${data} | ${atividade.usuario || 'anonimo'} | ${atividade.descricao || atividade.acao || '-'}`;
+        return `${data} | ${atividade.usuario || 'anônimo'} | ${atividade.descricao || atividade.acao || '-'}`;
         })
       );
     }
@@ -258,9 +451,9 @@ class RelatorioService {
     if (shouldIncludePdfSection(conteudo, 'usuarios')) {
       linhas.push(
         '',
-        'Tabela resumida de usuarios',
+        'Tabela resumida de usuários',
         ...usuariosResumo.map((usuario) => {
-          return `${usuario.nome || 'Usuario'} | ${usuario.email || '-'} | ${usuario.tipo_usuario || '-'} | ${usuario.status || '-'}`;
+          return `${usuario.nome || 'Usuário'} | ${usuario.email || '-'} | ${usuario.tipo_usuario || '-'} | ${usuario.status || '-'}`;
         })
       );
     }
@@ -287,11 +480,11 @@ function shouldApplyPdfGenre(scope) {
 
 function getPdfScopeLabel(scope) {
   const labels = {
-    completo: 'Relatorio completo',
+    completo: 'Relatório completo',
     resumo: 'Resumo geral',
     filmes: 'Filmes',
-    usuarios: 'Usuarios',
-    favoritos: 'Favoritos e avaliacoes',
+    usuarios: 'Usuários',
+    favoritos: 'Favoritos e avaliações',
     atividades: 'Atividades recentes'
   };
   return labels[scope] || labels.completo;
@@ -333,6 +526,93 @@ function buildMoviePdfFilter(filtros = {}, dateColumn = 'filmes.created_at') {
   };
 }
 
+function buildChartDateFilter(period, column) {
+  const startDate = getChartStartDate(period);
+
+  if (!startDate) {
+    return { sql: '', params: [] };
+  }
+
+  return {
+    sql: `${column} >= ?`,
+    params: [startDate]
+  };
+}
+
+function buildChartGenreFilter(genero) {
+  const value = String(genero || '').trim();
+
+  if (!value || normalizeText(value) === normalizeText('Todos os gêneros')) {
+    return { sql: '', params: [] };
+  }
+
+  return {
+    sql: 'generos.nome = ?',
+    params: [value]
+  };
+}
+
+function getChartStartDate(period) {
+  const normalized = normalizeText(period || '');
+  const now = new Date();
+
+  if (!normalized || normalized.includes('todos')) return null;
+
+  if (normalized.includes('7')) {
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+  }
+
+  if (normalized.includes('30')) {
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30);
+  }
+
+  if (normalized.includes('mes')) {
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  }
+
+  if (normalized.includes('ano')) {
+    return new Date(now.getFullYear(), 0, 1);
+  }
+
+  return null;
+}
+
+function isDateAfterStart(value, startDate) {
+  if (!startDate) return true;
+  if (!value) return true;
+
+  const date = new Date(value);
+  return !Number.isNaN(date.getTime()) && date >= startDate;
+}
+
+function loadLocalJson(filePath) {
+  try {
+    if (!fs.existsSync(filePath)) return [];
+    const content = fs.readFileSync(filePath, 'utf8');
+    const data = JSON.parse(content);
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.warn('Não foi possível carregar dados locais para relatório.', error.message);
+    return [];
+  }
+}
+
+function countBy(items = [], getKey) {
+  return items.reduce((map, item) => {
+    const key = getKey(item);
+    map.set(key, (map.get(key) || 0) + 1);
+    return map;
+  }, new Map());
+}
+
+function normalizeText(value = '') {
+  return String(value)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
 function filterRowsByDate(rows = [], filtros = {}, field = 'updated_at') {
   const startDate = filtros.dataInicio ? new Date(filtros.dataInicio) : null;
   const endDate = filtros.dataFim ? new Date(filtros.dataFim) : null;
@@ -349,9 +629,9 @@ function filterRowsByDate(rows = [], filtros = {}, field = 'updated_at') {
 }
 
 function formatPdfPeriodLabel(filtros = {}) {
-  const startDate = filtros.dataInicio ? new Date(filtros.dataInicio).toLocaleDateString('pt-BR') : 'inicio';
+  const startDate = filtros.dataInicio ? new Date(filtros.dataInicio).toLocaleDateString('pt-BR') : 'início';
   const endDate = filtros.dataFim ? new Date(filtros.dataFim).toLocaleDateString('pt-BR') : 'hoje';
-  return `${startDate} ate ${endDate}`;
+  return `${startDate} até ${endDate}`;
 }
 
 function escapePDFText(text) {

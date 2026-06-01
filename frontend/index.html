@@ -606,23 +606,23 @@
 
             <section class="admin-config-panel active" id="adminConfigChart">
               <div class="admin-chart-shell">
-                <section class="admin-chart-card" data-status="Ativo" data-chart-kind="watched" data-chart-search="filmes mais assistidos visualizacoes ultimos 30 dias">
+                <section class="admin-chart-card" data-status="Ativo" data-chart-kind="watched" data-chart-search="filmes mais favoritados favoritos ultimos 30 dias">
                   <header class="admin-chart-card-header">
                     <div class="admin-chart-card-title">
                       <span class="admin-chart-icon bars" aria-hidden="true"><i></i><i></i><i></i></span>
                       <div>
-                        <h2>Filmes mais assistidos</h2>
-                        <p>Top 10 filmes com mais visualizações</p>
+                        <h2>Filmes mais favoritados</h2>
+                        <p>Top 10 filmes por favoritos</p>
                       </div>
                     </div>
-                    <select aria-label="Período dos filmes mais assistidos">
+                    <select aria-label="Período dos filmes mais favoritados">
                       <option>Últimos 30 dias</option>
                       <option>Últimos 7 dias</option>
                       <option>Este ano</option>
                     </select>
                   </header>
 
-                  <div class="admin-horizontal-chart" aria-label="Filmes mais assistidos">
+                  <div class="admin-horizontal-chart" aria-label="Filmes mais favoritados">
                     <div class="chart-row"><span>Batman: O Cavaleiro das Trevas</span><i style="--bar: 100%"></i><b>432</b></div>
                     <div class="chart-row"><span>Interestelar</span><i style="--bar: 67%"></i><b>289</b></div>
                     <div class="chart-row"><span>A Origem</span><i style="--bar: 56%"></i><b>243</b></div>
@@ -636,7 +636,7 @@
                     <div class="chart-axis" aria-hidden="true"><span>0</span><span>100</span><span>200</span><span>300</span><span>400</span><span>500</span></div>
                   </div>
 
-                  <div class="admin-chart-legend small"><span><i></i>Visualizações</span></div>
+                  <div class="admin-chart-legend small"><span><i></i>Favoritos</span></div>
                 </section>
 
                 <section class="admin-chart-card" data-status="Ativo" data-chart-kind="genres" data-chart-search="filmes cadastrados sistema distribuicao genero acao drama ficcao aventura suspense comedia">
@@ -1191,7 +1191,7 @@
         <div class="admin-chart-filter-options">
           <label>
             <input type="checkbox" value="watched" checked />
-            <span>Filmes mais assistidos</span>
+            <span>Filmes mais favoritados</span>
           </label>
           <label>
             <input type="checkbox" value="genres" checked />

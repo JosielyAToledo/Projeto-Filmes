@@ -7,7 +7,7 @@ class RelatorioController {
 
   resumoJSON = async (req, res, next) => {
     try {
-      const resumo = await this.relatorioService.resumoJSON();
+      const resumo = await this.relatorioService.resumoJSON(req.query);
       return res.json(resumo);
     } catch (error) {
       return next(error);
