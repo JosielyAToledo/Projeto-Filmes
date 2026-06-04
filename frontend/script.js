@@ -3185,12 +3185,12 @@ function populateAdminPdfGenreFilter() {
 
   const currentValue = select.value;
   const genres = Array.from(new Set(adminMoviesCache
-    .map((movie) => movie.genero_nome || generoNameById(movie.genero_id) || '')
+    .map((movie) => normalizeGenreLabel(movie.genero_nome || generoNameById(movie.genero_id) || ''))
     .filter(Boolean)))
     .sort((a, b) => a.localeCompare(b, 'pt-BR'));
   select.innerHTML = '<option value="">Todos os gêneros</option>'
     + genres.map((genre) => `<option value="${escapeHtml(genre)}">${escapeHtml(genre)}</option>`).join('');
-  select.value = genres.includes(currentValue) ? currentValue : '';
+  select.value = genres.some((genre) => normalizeText(genre) === normalizeText(currentValue)) ? normalizeGenreLabel(currentValue) : '';
   updateAdminPdfGenreFilterState();
 }
 

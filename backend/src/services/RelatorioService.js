@@ -552,8 +552,8 @@ function buildMoviePdfFilter(filtros = {}, dateColumn = 'filmes.created_at') {
   const params = [...dateFilter.params];
 
   if (filtros.genero) {
-    clauses.push('generos.nome = ?');
-    params.push(filtros.genero);
+    clauses.push(`${normalizedSqlText('generos.nome')} = ?`);
+    params.push(normalizeText(filtros.genero));
   }
 
   return {
@@ -583,9 +583,25 @@ function buildChartGenreFilter(genero) {
   }
 
   return {
-    sql: 'generos.nome = ?',
-    params: [value]
+    sql: `${normalizedSqlText('generos.nome')} = ?`,
+    params: [normalizeText(value)]
   };
+}
+
+function normalizedSqlText(column) {
+  return [
+    ['Á', 'a'], ['À', 'a'], ['Â', 'a'], ['Ã', 'a'], ['Ä', 'a'],
+    ['á', 'a'], ['à', 'a'], ['â', 'a'], ['ã', 'a'], ['ä', 'a'],
+    ['É', 'e'], ['È', 'e'], ['Ê', 'e'], ['Ë', 'e'],
+    ['é', 'e'], ['è', 'e'], ['ê', 'e'], ['ë', 'e'],
+    ['Í', 'i'], ['Ì', 'i'], ['Î', 'i'], ['Ï', 'i'],
+    ['í', 'i'], ['ì', 'i'], ['î', 'i'], ['ï', 'i'],
+    ['Ó', 'o'], ['Ò', 'o'], ['Ô', 'o'], ['Õ', 'o'], ['Ö', 'o'],
+    ['ó', 'o'], ['ò', 'o'], ['ô', 'o'], ['õ', 'o'], ['ö', 'o'],
+    ['Ú', 'u'], ['Ù', 'u'], ['Û', 'u'], ['Ü', 'u'],
+    ['ú', 'u'], ['ù', 'u'], ['û', 'u'], ['ü', 'u'],
+    ['Ç', 'c'], ['ç', 'c']
+  ].reduce((expression, [from, to]) => `REPLACE(${expression}, '${from}', '${to}')`, `LOWER(${column})`);
 }
 
 function getChartStartDate(period) {
