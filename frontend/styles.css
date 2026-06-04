@@ -8843,14 +8843,33 @@ body.admin-theme-light .settings-preview-stats p {
   overflow: hidden;
   border: 1px solid rgba(232, 226, 214, 0.08);
   border-radius: 6px;
-  background:
-    linear-gradient(180deg, rgba(7, 9, 11, 0.1) 0%, rgba(7, 9, 11, 0.42) 42%, rgba(7, 9, 11, 0.94) 100%),
-    var(--movie-cover) center / cover no-repeat,
-    #0d1014;
+  background: #0d1014;
   cursor: pointer;
   transition: border-color 160ms ease, transform 160ms ease, filter 160ms ease;
   flex-direction: column;
   justify-content: flex-end;
+}
+
+.user-home-shell .movie-management-card-item::before,
+.user-home-shell .movie-management-card-item::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.user-home-shell .movie-management-card-item::before {
+  inset: -18px;
+  background: var(--movie-cover) center / cover no-repeat;
+  filter: blur(18px);
+  opacity: 0.68;
+  transform: scale(1.04);
+}
+
+.user-home-shell .movie-management-card-item::after {
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(7, 9, 11, 0.08) 0%, rgba(7, 9, 11, 0.35) 42%, rgba(7, 9, 11, 0.94) 100%),
+    var(--movie-cover) center / contain no-repeat;
 }
 
 .user-home-shell .movie-management-card-item:hover {

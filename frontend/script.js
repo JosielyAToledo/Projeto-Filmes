@@ -4500,7 +4500,7 @@ function renderMovieListRow(movie, index = 0) {
   const duration = movie.duracao || '2h 00min';
   const status = movie.status === 'rascunho' ? 'Rascunho' : 'Disponível';
 
-  const cover = getCuratedMovieImage(index);
+  const cover = movie.capa_url ? resolveImageUrl(movie.capa_url) : getCuratedMovieImage(index);
 
   return `
     <article class="movie-management-card-item" style="--movie-cover: url('${escapeHtml(cover)}')" onclick="openMovieModal(${movie.id})">
