@@ -56,6 +56,34 @@ class AuthController {
     }
   };
 
+  recuperarSenha = async (req, res, next) => {
+    try {
+      const result = await this.authService.recuperarSenha(req.body);
+      await this.logService.registrar({
+        usuario: req.body.email,
+        acao: 'RECUPERACAO_SENHA',
+        tipoEvento: 'autenticacao',
+        descricao: 'Senha atualizada por recuperacao de acesso',
+        sucesso: true,
+        ip: req.ip,
+        userAgent: req.get('user-agent')
+      });
+      return res.json(result);
+    } catch (error) {
+      await this.logService.registrar({
+        usuario: req.body.email || 'Nao informado',
+        acao: 'RECUPERACAO_SENHA',
+        tipoEvento: 'autenticacao',
+        descricao: 'Falha na recuperacao de senha',
+        sucesso: false,
+        erro: error.message,
+        ip: req.ip,
+        userAgent: req.get('user-agent')
+      });
+      return next(error);
+    }
+  };
+
   logout = async (req, res, next) => {
     try {
       await this.logService.registrar({
@@ -96,6 +124,26 @@ class AuthController {
     try {
       const usuarios = await this.authService.listarUsuarios();
       return res.json(usuarios);
+    } catch (error) {
+      return next(error);
+    }
+  };
+
+  atualizarStatusUsuario = async (req, res, next) => {
+    try {
+      const usuario = await this.authService.atualizarStatusUsuario(req.params.id, req.body.status, req.user);
+      await this.logService.registrar({
+        usuario: req.user.email,
+        acao: usuario.status === 'inativo' ? 'INATIVACAO_USUARIO' : 'ATIVACAO_USUARIO',
+        tipoEvento: 'usuario',
+        descricao: `Status do usuario ${usuario.email} alterado para ${usuario.status}`,
+        tabela: 'usuarios',
+        registroId: String(usuario.id),
+        dadosInseridos: usuario,
+        ip: req.ip,
+        userAgent: req.get('user-agent')
+      });
+      return res.json(usuario);
     } catch (error) {
       return next(error);
     }

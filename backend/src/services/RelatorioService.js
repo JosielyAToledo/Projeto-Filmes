@@ -397,22 +397,28 @@ class RelatorioService {
     const linhas = [
       'Relatório Geral do Sistema - Catálogo7',
       `Gerado em: ${new Date().toLocaleString('pt-BR')}`,
+      `Gerado por: ${filtros.usuario || 'Administrador'}`,
       `Conteúdo: ${getPdfScopeLabel(conteudo)}`,
       `Período: ${formatPdfPeriodLabel(filtros)}`,
-      `Gênero: ${shouldApplyPdfGenre(conteudo) ? filtros.genero || 'Todos' : 'Todos'}`
+      `Gênero: ${shouldApplyPdfGenre(conteudo) ? filtros.genero || 'Todos' : 'Todos'}`,
+      '',
+      '================================================================',
+      'RESUMO E ESTATÍSTICAS',
+      '================================================================'
     ];
 
     if (shouldIncludePdfSection(conteudo, 'resumo')) {
       linhas.push(
-        '',
-        'Resumo',
-        `Filmes cadastrados: ${resumo.filmes}`,
-        `Usuários cadastrados: ${resumo.usuarios}`,
-        `Favoritos registrados: ${resumo.favoritos}`,
-        `Clientes cadastrados: ${resumo.clientes}`,
-        `Locações registradas: ${resumo.locacoes}`,
+        'Indicador                                Total',
+        '---------------------------------------------------------------',
+        pdfTableRow('Filmes cadastrados', resumo.filmes),
+        pdfTableRow('Usuários cadastrados', resumo.usuarios),
+        pdfTableRow('Favoritos registrados', resumo.favoritos),
+        pdfTableRow('Clientes cadastrados', resumo.clientes),
+        pdfTableRow('Locações registradas', resumo.locacoes),
         '',
         'Usuários por status',
+        '---------------------------------------------------------------',
         ...usuariosStatus.map((item) => `${item.status || 'sem status'}: ${item.total}`),
         '',
         'Resumo dos gráficos do dashboard',
@@ -427,6 +433,8 @@ class RelatorioService {
       linhas.push(
         '',
         'Filmes adicionados recentemente',
+        'Título                         Gênero              Ano   Duração',
+        '---------------------------------------------------------------',
         ...filmesRecentes.map((filme) => {
         const detalhes = [filme.genero_nome, filme.ano_lancamento, filme.duracao ? `${filme.duracao} min` : '']
           .filter(Boolean)
@@ -435,6 +443,8 @@ class RelatorioService {
         }),
         '',
         'Tabela resumida de filmes',
+        'Título                         Gênero              Ano   Status',
+        '---------------------------------------------------------------',
         ...filmesResumo.map((filme) => {
           return `${filme.titulo || 'Filme'} | ${filme.genero_nome || 'Sem gênero'} | ${filme.ano_lancamento || '-'} | ${filme.status || '-'}`;
         })
@@ -445,9 +455,13 @@ class RelatorioService {
       linhas.push(
         '',
         'Filmes mais favoritados',
+        'Posição  Filme                                      Total',
+        '---------------------------------------------------------------',
         ...filmesFavoritados.map((filme, index) => `${index + 1}. ${filme.titulo} - ${filme.total} favoritos`),
         '',
         'Últimas avaliações',
+        'Usuário                    Filme                    Nota',
+        '---------------------------------------------------------------',
         ...ultimasAvaliacoes.map((avaliacao) => {
         return `${avaliacao.usuario_nome || 'Usuário'} avaliou ${avaliacao.filme_titulo || 'Filme'} com ${avaliacao.nota || 0}/5`;
         })
@@ -459,6 +473,8 @@ class RelatorioService {
       linhas.push(
         '',
         'Atividades recentes',
+        'Data/Hora                  Usuário                  Descrição',
+        '---------------------------------------------------------------',
         ...filteredActivities.slice(0, 8).map((atividade) => {
         const data = atividade.timestamp ? new Date(atividade.timestamp).toLocaleString('pt-BR') : '-';
         return `${data} | ${atividade.usuario || 'anônimo'} | ${atividade.descricao || atividade.acao || '-'}`;
@@ -470,6 +486,8 @@ class RelatorioService {
       linhas.push(
         '',
         'Tabela resumida de usuários',
+        'Nome                       E-mail                   Status',
+        '---------------------------------------------------------------',
         ...usuariosResumo.map((usuario) => {
           return `${usuario.nome || 'Usuário'} | ${usuario.email || '-'} | ${usuario.tipo_usuario || '-'} | ${usuario.status || '-'}`;
         })
@@ -660,6 +678,10 @@ function escapePDFText(text) {
     .replace(/[()\\]/g, '\\$&');
 }
 
+function pdfTableRow(label, value) {
+  return `${String(label).padEnd(40, ' ')} ${String(value ?? 0).padStart(8, ' ')}`;
+}
+
 function makeSimplePDF(lines) {
   const pageChunks = chunkLines(lines, 42);
   const objects = [
@@ -706,12 +728,16 @@ function buildPdfPageContent(lines, page, totalPages) {
     '/F1 18 Tf',
     '50 790 Td',
     '(Relatorio Geral Catalogo7) Tj',
+    '/F1 9 Tf',
+    '360 790 Td',
+    `(${escapePDFText(new Date().toLocaleString('pt-BR'))}) Tj`,
     '/F1 10 Tf',
     '14 TL',
-    '0 -26 Td',
+    '-360 -26 Td',
     ...lines.map((line) => `(${escapePDFText(line)}) Tj T*`),
     'T*',
-    `(Pagina ${page} de ${totalPages}) Tj`,
+    '0 -12 Td',
+    `(Catalogo7 - Pagina ${page} de ${totalPages}) Tj`,
     'ET'
   ].join('\n');
 }

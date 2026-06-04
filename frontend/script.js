@@ -285,6 +285,18 @@ const sampleMovies = [
   }
 ];
 
+sampleMovies.push({
+  id: 13,
+  titulo: 'Kung Fu Panda 4',
+  ano_lancamento: 2024,
+  genero_nome: 'Com\u00e9dia',
+  duracao: '1h 34min',
+  diretor: 'Mike Mitchell',
+  elenco: 'Jack Black, Awkwafina, Viola Davis',
+  descricao: 'Po precisa treinar uma nova guerreira enquanto enfrenta uma vila cheia de humor, aventura e autodescoberta.',
+  capa_url: 'https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?auto=format&fit=crop&w=500&q=80'
+});
+
 function setStatus(message) {
   authStatus.textContent = message;
 }
@@ -390,6 +402,7 @@ async function api(path, options = {}) {
 function formatApiError(message, status) {
   const knownMessages = {
     'Credenciais invalidas.': 'E-mail ou senha incorretos.',
+    'E-mail nao encontrado.': 'Nenhuma conta foi encontrada com este e-mail.',
     'E-mail ja cadastrado.': 'Este e-mail já está cadastrado.',
     'Campos obrigatorios ausentes.': 'Preencha todos os campos obrigatórios.',
     'Token invalido ou expirado.': 'Sessão expirada. Saia e entre novamente como admin.'
@@ -422,6 +435,68 @@ document.getElementById('togglePassword').addEventListener('click', () => {
   toggleButton.textContent = shouldShow ? '◎' : '◉';
   toggleButton.setAttribute('aria-label', shouldShow ? 'Ocultar senha' : 'Mostrar senha');
   toggleButton.setAttribute('aria-pressed', String(shouldShow));
+});
+
+function openPasswordResetModal() {
+  const modal = document.getElementById('passwordResetModal');
+  const resetEmail = document.getElementById('resetEmail');
+  const loginEmail = document.getElementById('email');
+
+  document.getElementById('passwordResetStatus').textContent = '';
+  document.getElementById('passwordResetForm').reset();
+  resetEmail.value = loginEmail.value.includes('@') ? loginEmail.value.trim() : '';
+  modal.classList.add('visible');
+  modal.setAttribute('aria-hidden', 'false');
+  resetEmail.focus();
+}
+
+function closePasswordResetModal() {
+  const modal = document.getElementById('passwordResetModal');
+  modal.classList.remove('visible');
+  modal.setAttribute('aria-hidden', 'true');
+}
+
+document.getElementById('forgotPasswordBtn').addEventListener('click', openPasswordResetModal);
+document.getElementById('closePasswordReset').addEventListener('click', closePasswordResetModal);
+document.getElementById('passwordResetModal').addEventListener('click', (event) => {
+  if (event.target.id === 'passwordResetModal') {
+    closePasswordResetModal();
+  }
+});
+
+document.getElementById('passwordResetForm').addEventListener('submit', async (event) => {
+  event.preventDefault();
+
+  const status = document.getElementById('passwordResetStatus');
+  const email = document.getElementById('resetEmail').value.trim();
+  const senha = document.getElementById('resetPassword').value;
+  const confirmarSenha = document.getElementById('resetPasswordConfirm').value;
+
+  if (senha !== confirmarSenha) {
+    status.textContent = 'As senhas nao conferem.';
+    status.textContent = 'As senhas nÃ£o conferem.';
+    status.textContent = 'As senhas nao conferem.';
+    return;
+  }
+
+  try {
+    await api('/auth/recuperar-senha', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, senha })
+    });
+
+    status.textContent = 'Senha atualizada com sucesso. Faca login com a nova senha.';
+    status.textContent = 'Senha atualizada com sucesso. FaÃ§a login com a nova senha.';
+    status.textContent = 'Senha atualizada com sucesso. Faca login com a nova senha.';
+    document.getElementById('senha').value = '';
+    document.getElementById('email').value = email;
+    closePasswordResetModal();
+    showLogin();
+    setStatus('Senha atualizada com sucesso. Faca login com a nova senha.');
+  } catch (error) {
+    status.textContent = error.message;
+  }
 });
 
 document.getElementById('loginForm').addEventListener('submit', async (event) => {
@@ -743,8 +818,9 @@ document.getElementById('adminConfirmDeleteMovie').addEventListener('click', () 
 
 document.querySelectorAll('.user-action.lock').forEach((button) => {
   button.addEventListener('click', () => {
-    const userName = button.closest('tr').querySelector('td strong').textContent;
-    openInactivateUserModal(userName);
+    const row = button.closest('tr');
+    const userName = row.querySelector('td strong').textContent;
+    openInactivateUserModal(userName, row.dataset.userId);
   });
 });
 
@@ -757,7 +833,7 @@ document.getElementById('adminInactivateUserModal').addEventListener('click', (e
 });
 
 document.getElementById('adminConfirmInactivateUser').addEventListener('click', () => {
-  closeInactivateUserModal();
+  inactivateAdminUser();
 });
 
 document.querySelectorAll('.user-action.delete').forEach((button) => {
@@ -799,7 +875,7 @@ document.querySelector('.admin-users-table tbody')?.addEventListener('click', (e
 
   if (button.classList.contains('lock')) {
     const userName = row.querySelector('td strong')?.textContent || 'este usuário';
-    openInactivateUserModal(userName);
+    openInactivateUserModal(userName, row.dataset.userId);
     return;
   }
 
@@ -1188,7 +1264,7 @@ function renderAdminHorizontalChart(kind, rows = [], emptyText, valueLabel) {
     renderAdminChartJsBar({
       instanceKey: kind,
       chart,
-      values,
+      values: values.map((row) => ({ ...row, label: normalizeGenreLabel(row.label) })),
       valueLabel
     });
     return;
@@ -1291,7 +1367,7 @@ function renderAdminGenreChart(rows = []) {
       instanceKey: 'genres',
       chart,
       legend,
-      values,
+      values: values.map((row) => ({ ...row, label: normalizeGenreLabel(row.label) })),
       centerLabel: 'Filmes',
       emptyText: 'Nenhum filme cadastrado por gênero.',
       colors: ['#d9811d', '#b37425', '#2f5a78', '#638d4f', '#7653a3', '#c65f63', '#7e8583']
@@ -1302,7 +1378,7 @@ function renderAdminGenreChart(rows = []) {
   renderAdminDonutChart({
     chart,
     legend,
-    values,
+    values: values.map((row) => ({ ...row, label: normalizeGenreLabel(row.label) })),
     centerLabel: 'Filmes',
     emptyText: 'Nenhum filme cadastrado por gênero.'
   });
@@ -1833,10 +1909,13 @@ async function deleteAdminMovie() {
 function generoNameById(id) {
   const genres = {
     1: 'Ação',
+    2: 'Com\u00e9dia',
     3: 'Drama',
     4: 'Ficção Científica',
     5: 'Suspense',
-    6: 'Romance'
+    6: 'Romance',
+    7: 'Terror',
+    9: 'Aventura'
   };
   return genres[Number(id)] || '';
 }
@@ -1845,7 +1924,26 @@ function getGenrePillClass(genre = '') {
   const normalized = genre.toLowerCase();
   if (normalized.includes('drama')) return 'drama';
   if (normalized.includes('ação') || normalized.includes('acao')) return 'action';
+  if (normalized.includes('comedia') || normalized.includes('com\u00e9dia')) return 'comedy';
   return 'sci-fi';
+}
+
+function normalizeGenreLabel(genre = '') {
+  const text = fixPortugueseText(genre).trim();
+  const normalized = normalizeText(text);
+  const labels = {
+    acao: 'A\u00e7\u00e3o',
+    aventura: 'Aventura',
+    comedia: 'Com\u00e9dia',
+    drama: 'Drama',
+    'ficcao cientifica': 'Fic\u00e7\u00e3o Cient\u00edfica',
+    terror: 'Terror',
+    romance: 'Romance',
+    suspense: 'Suspense',
+    animacao: 'Anima\u00e7\u00e3o'
+  };
+
+  return labels[normalized] || text;
 }
 
 function escapeHtml(value = '') {
@@ -1968,8 +2066,8 @@ function renderAdminDashboardModalContent(type, items) {
   `).join('')}</div>`;
 }
 
-function openInactivateUserModal(userName) {
-  pendingInactiveUser = userName;
+function openInactivateUserModal(userName, userId) {
+  pendingInactiveUser = { id: userId, name: userName };
   document.getElementById('adminInactivateUserName').textContent = userName || 'este usuário';
   document.getElementById('adminInactivateUserModal').classList.add('visible');
   document.getElementById('adminInactivateUserModal').setAttribute('aria-hidden', 'false');
@@ -1979,6 +2077,35 @@ function closeInactivateUserModal() {
   pendingInactiveUser = null;
   document.getElementById('adminInactivateUserModal').classList.remove('visible');
   document.getElementById('adminInactivateUserModal').setAttribute('aria-hidden', 'true');
+}
+
+async function inactivateAdminUser() {
+  const userId = pendingInactiveUser?.id;
+  const confirmButton = document.getElementById('adminConfirmInactivateUser');
+
+  if (!userId) {
+    closeInactivateUserModal();
+    return;
+  }
+
+  confirmButton.disabled = true;
+  confirmButton.textContent = 'Inativando...';
+
+  try {
+    await api(`/auth/usuarios/${encodeURIComponent(userId)}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'inativo' })
+    });
+    closeInactivateUserModal();
+    await loadAdminUsers();
+    await loadAdminDashboardStats();
+  } catch (error) {
+    alert(error.message || 'Nao foi possivel inativar o usuario.');
+  } finally {
+    confirmButton.disabled = false;
+    confirmButton.textContent = 'Inativar';
+  }
 }
 
 function openDeleteUserModal(userName, canDelete) {
@@ -2130,8 +2257,11 @@ function updateAdminTopFilter(view) {
   filter.innerHTML = `
     <option>Todos os gêneros</option>
     <option>Ação</option>
+    <option>Aventura</option>
+    <option>Com\u00e9dia</option>
     <option>Drama</option>
     <option>Ficção Científica</option>
+    <option>Terror</option>
     <option>Romance</option>
     <option>Suspense</option>
   `;
@@ -2845,29 +2975,29 @@ function updateAdminPdfPreview() {
   const preview = document.getElementById('adminPdfPreview');
   if (!preview) return;
 
-  const data = adminDashboardSummary || {};
   const scope = getSelectedAdminPdfScope();
-  const filteredMovies = getAdminPdfPreviewMovies();
-  const filteredUsers = getAdminPdfPreviewUsers();
-  const reviews = data.ultimasAvaliacoes || [];
-  const favorites = data.filmesFavoritados || [];
-  const activities = data.atividadesRecentes || [];
   const count = document.getElementById('adminPdfPreviewCount');
   if (count) count.textContent = getAdminPdfScopeLabel(scope);
 
-  preview.innerHTML = `
+  preview.innerHTML = renderAdminPdfPreviewFromLines(buildAdminSystemPdfLines());
+}
+
+function renderAdminPdfPreviewFromLines(lines = []) {
+  const title = lines[0] || 'Relatório Geral do Sistema - Catálogo7';
+  const metaLines = lines.slice(1, 5);
+  const bodyLines = lines.slice(5);
+
+  return `
     <div class="admin-pdf-page">
-      <h3>Catálogo7</h3>
-      <h4>${escapeHtml(getAdminPdfScopeLabel(scope))}</h4>
-      <p>Gerado em: ${escapeHtml(new Date().toLocaleString('pt-BR'))}</p>
-      ${buildAdminPdfPreviewBody(scope, {
-        data,
-        filteredMovies,
-        filteredUsers,
-        reviews,
-        favorites,
-        activities
-      })}
+      <div class="admin-pdf-print-header">
+        <h3>${escapeHtml(title)}</h3>
+        <span>${escapeHtml(new Date().toLocaleString('pt-BR'))}</span>
+      </div>
+      <div class="admin-pdf-print-meta">
+        ${metaLines.map((line) => `<p>${escapeHtml(line)}</p>`).join('')}
+      </div>
+      <pre class="admin-pdf-print-body">${escapeHtml(bodyLines.join('\n'))}</pre>
+      <footer>Catálogo7 - Página 1 de 1</footer>
     </div>
   `;
 }
@@ -3099,11 +3229,17 @@ function buildAdminSystemPdfLines(data = adminDashboardSummary) {
   const scope = getSelectedAdminPdfScope();
   const filteredMovies = getAdminPdfPreviewMovies();
   const filteredUsers = getAdminPdfPreviewUsers();
+  const generatedBy = currentUser?.nome || currentUser?.email || 'Administrador';
   const lines = [
     'Relatório Geral do Sistema - Catálogo7',
     `Gerado em: ${new Date().toLocaleString('pt-BR')}`,
+    `Gerado por: ${generatedBy}`,
     `Conteúdo: ${getAdminPdfScopeLabel(scope)}`,
+    `Período: ${document.getElementById('adminXmlPeriod')?.value || 'Todos'}`,
     '',
+    '================================================================',
+    'RESUMO E ESTATÍSTICAS',
+    '================================================================'
   ];
 
   if (scope === 'filmes') {
@@ -3113,6 +3249,8 @@ function buildAdminSystemPdfLines(data = adminDashboardSummary) {
       `Gênero: ${getSelectedAdminPdfGenre() || 'Todos'}`,
       '',
       'Filmes',
+      'Título                         Gênero              Ano   Status',
+      '---------------------------------------------------------------',
       ...filteredMovies.map((movie) => {
         return `${movie.titulo || 'Filme'} | ${movie.genero_nome || generoNameById(movie.genero_id) || 'Sem gênero'} | ${movie.ano_lancamento || '-'} | ${movie.status || '-'}`;
       })
@@ -3125,6 +3263,8 @@ function buildAdminSystemPdfLines(data = adminDashboardSummary) {
       `Total de usuários no período: ${formatAdminTotal(filteredUsers.length)}`,
       '',
       'Usuários',
+      'Nome                       E-mail                   Status',
+      '---------------------------------------------------------------',
       ...filteredUsers.map((user) => `${user.nome || 'Usuário'} | ${user.email || '-'} | ${user.tipo_usuario || '-'} | ${user.status || '-'}`)
     ];
   }
@@ -3135,9 +3275,13 @@ function buildAdminSystemPdfLines(data = adminDashboardSummary) {
       `Favoritos registrados: ${formatAdminTotal(data.favoritos)}`,
       '',
       'Filmes mais favoritados',
+      'Posição  Filme                                      Total',
+      '---------------------------------------------------------------',
       ...(data.filmesFavoritados || []).map((movie, index) => `${index + 1}. ${movie.titulo || 'Filme'} - ${formatAdminTotal(movie.total)} favoritos`),
       '',
       'Últimas avaliações',
+      'Usuário                    Filme                    Nota',
+      '---------------------------------------------------------------',
       ...(data.ultimasAvaliacoes || []).map((review) => `${review.usuario_nome || 'Usuário'} avaliou ${review.filme_titulo || 'Filme'} com ${review.nota || 0}/5`)
     ];
   }
@@ -3146,6 +3290,8 @@ function buildAdminSystemPdfLines(data = adminDashboardSummary) {
     return [
       ...lines,
       'Atividades recentes',
+      'Data/Hora                  Usuário                  Descrição',
+      '---------------------------------------------------------------',
       ...(data.atividadesRecentes || []).map((activity) => `${formatAdminDate(activity.timestamp)} | ${activity.usuario || 'anônimo'} | ${activity.descricao || activity.acao || '-'}`)
     ];
   }
@@ -3153,21 +3299,33 @@ function buildAdminSystemPdfLines(data = adminDashboardSummary) {
   return [
     ...lines,
     'Resumo',
-    `Filmes cadastrados: ${formatAdminTotal(data.filmes)}`,
-    `Usuários cadastrados: ${formatAdminTotal(data.usuarios)}`,
-    `Favoritos registrados: ${formatAdminTotal(data.favoritos)}`,
-    `Clientes cadastrados: ${formatAdminTotal(data.clientes)}`,
-    `Locações registradas: ${formatAdminTotal(data.locacoes)}`,
+    'Indicador                                Total',
+    '---------------------------------------------------------------',
+    pdfLineTableRow('Filmes cadastrados', formatAdminTotal(data.filmes)),
+    pdfLineTableRow('Usuários cadastrados', formatAdminTotal(data.usuarios)),
+    pdfLineTableRow('Favoritos registrados', formatAdminTotal(data.favoritos)),
+    pdfLineTableRow('Clientes cadastrados', formatAdminTotal(data.clientes)),
+    pdfLineTableRow('Locações registradas', formatAdminTotal(data.locacoes)),
     '',
     'Filmes mais favoritados',
+    'Posição  Filme                                      Total',
+    '---------------------------------------------------------------',
     ...(data.filmesFavoritados || []).slice(0, 8).map((movie, index) => `${index + 1}. ${movie.titulo || 'Filme'} - ${formatAdminTotal(movie.total)} favoritos`),
     '',
     'Últimas avaliações',
+    'Usuário                    Filme                    Nota',
+    '---------------------------------------------------------------',
     ...(data.ultimasAvaliacoes || []).slice(0, 8).map((review) => `${review.usuario_nome || 'Usuário'} avaliou ${review.filme_titulo || 'Filme'} com ${review.nota || 0}/5`),
     '',
     'Atividades recentes',
+    'Data/Hora                  Usuário                  Descrição',
+    '---------------------------------------------------------------',
     ...(data.atividadesRecentes || []).slice(0, 8).map((activity) => `${formatAdminDate(activity.timestamp)} | ${activity.usuario || 'anônimo'} | ${activity.descricao || activity.acao || '-'}`)
   ];
+}
+
+function pdfLineTableRow(label, value) {
+  return `${String(label).padEnd(40, ' ')} ${String(value ?? 0).padStart(8, ' ')}`;
 }
 function getAdminExportQueryString() {
   const params = new URLSearchParams();
@@ -3235,6 +3393,16 @@ async function downloadAdminExport(format) {
 }
 
 async function downloadAdminSystemPdf() {
+  await ensureReportExportData();
+  reportsSummaryCache = Object.keys(adminDashboardSummary || {}).length
+    ? adminDashboardSummary
+    : reportsSummaryCache;
+  try {
+    if (buildProfessionalReportPDF()) return;
+  } catch (error) {
+    console.warn('Falha ao gerar PDF administrativo no frontend.', error.message);
+  }
+
   try {
     const params = new URLSearchParams({
       conteudo: getSelectedAdminPdfScope()
@@ -3245,6 +3413,7 @@ async function downloadAdminSystemPdf() {
     if (startDate) params.set('dataInicio', startDate);
     if (endDate) params.set('dataFim', endDate);
     if (genre) params.set('genero', genre);
+    params.set('usuario', currentUser?.nome || currentUser?.email || 'Administrador');
     const response = await fetch(`${API_URL}/relatorios/pdf?${params.toString()}`, {
       headers: headers()
     });
@@ -3700,10 +3869,7 @@ document.querySelectorAll('.user-header .nav-link').forEach((link) => {
 });
 
 document.getElementById('genreSearch')?.addEventListener('input', (event) => {
-  const query = normalizeText(event.target.value);
-  document.querySelectorAll('#categoriasPage .categories-grid article').forEach((card) => {
-    card.hidden = query && !normalizeText(card.textContent).includes(query);
-  });
+  renderGenreCategoryCards(event.target.value);
 });
 document.getElementById('diarySearch')?.addEventListener('input', (event) => {
   applyDiaryFilters();
@@ -3763,6 +3929,28 @@ const categoryNames = [
   'Suspense'
 ];
 
+categoryNames.splice(0, categoryNames.length,
+  'A\u00e7\u00e3o',
+  'Aventura',
+  'Com\u00e9dia',
+  'Drama',
+  'Fic\u00e7\u00e3o Cient\u00edfica',
+  'Terror',
+  'Romance',
+  'Suspense'
+);
+
+const categoryFallbackCounts = {
+  [normalizeText('A\u00e7\u00e3o')]: 120,
+  [normalizeText('Aventura')]: 90,
+  [normalizeText('Com\u00e9dia')]: 150,
+  [normalizeText('Drama')]: 134,
+  [normalizeText('Fic\u00e7\u00e3o Cient\u00edfica')]: 70,
+  [normalizeText('Terror')]: 63,
+  [normalizeText('Romance')]: 98,
+  [normalizeText('Suspense')]: 41
+};
+
 document.querySelectorAll('.categories-grid article').forEach((card, index) => {
   const category = categoryNames[index];
 
@@ -3777,6 +3965,20 @@ document.querySelectorAll('.categories-grid article').forEach((card, index) => {
       showCategoryMovies(category);
     }
   });
+});
+
+document.querySelector('#categoriasPage .categories-grid')?.addEventListener('click', (event) => {
+  const card = event.target.closest('[data-category]');
+  if (!card) return;
+  showCategoryMovies(card.dataset.category || '');
+});
+
+document.querySelector('#categoriasPage .categories-grid')?.addEventListener('keydown', (event) => {
+  if (event.key !== 'Enter' && event.key !== ' ') return;
+  const card = event.target.closest('[data-category]');
+  if (!card) return;
+  event.preventDefault();
+  showCategoryMovies(card.dataset.category || '');
 });
 
 function showPage(page) {
@@ -3935,6 +4137,7 @@ async function loadMovies() {
 
   renderFeatured();
   populateMovieGenreFilter();
+  renderGenreCategoryCards();
   renderMovies(movies);
   renderProfile();
 }
@@ -3965,7 +4168,8 @@ function normalizeText(value = '') {
   return value.toString()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase();
+    .toLowerCase()
+    .trim();
 }
 
 function isAdminUser(usuario = {}) {
@@ -3995,7 +4199,7 @@ function showAllMovies() {
 
 function showCategoryMovies(category) {
   const filteredMovies = movies.filter((movie) => {
-    return normalizeText(movie.genero_nome) === normalizeText(category);
+    return normalizeText(getMovieGenre(movie)) === normalizeText(category);
   });
 
   document.getElementById('movieSearch').value = category;
@@ -4009,25 +4213,160 @@ function showCategoryMovies(category) {
   showPage('filmes');
 }
 
+function getGenreCategoryGroups(query = '') {
+  const normalizedQuery = normalizeText(query);
+  const initialGroups = categoryNames.map((genre, index) => {
+    const key = normalizeText(genre);
+    return [key, {
+      genre,
+      order: index,
+      fallbackCount: categoryFallbackCounts[key] || 0,
+      movies: [],
+      matches: []
+    }];
+  });
+  const groups = movies.reduce((map, movie) => {
+    const genre = getMovieGenre(movie) || 'Sem genero';
+    const key = normalizeText(genre);
+    if (!map.has(key)) {
+      map.set(key, {
+        genre,
+        order: categoryNames.length,
+        fallbackCount: 0,
+        movies: [],
+        matches: []
+      });
+    }
+
+    const group = map.get(key);
+    const searchable = normalizeText([
+      genre,
+      movie.titulo,
+      movie.titulo_original,
+      movie.diretor,
+      movie.ano_lancamento
+    ].filter(Boolean).join(' '));
+    group.movies.push(movie);
+    if (!normalizedQuery || searchable.includes(normalizedQuery)) {
+      group.matches.push(movie);
+    }
+
+    return map;
+  }, new Map(initialGroups));
+
+  return Array.from(groups.values())
+    .filter((group) => !normalizedQuery || normalizeText(group.genre).includes(normalizedQuery) || group.matches.length)
+    .sort((a, b) => a.order - b.order || a.genre.localeCompare(b.genre, 'pt-BR'));
+}
+
+function renderGenreCategoryCards(query = document.getElementById('genreSearch')?.value || '') {
+  const grid = document.querySelector('#categoriasPage .categories-grid');
+  if (!grid) return;
+
+  const groups = getGenreCategoryGroups(query);
+
+  if (!groups.length) {
+    grid.innerHTML = '<p class="genres-empty-state">Nenhum genero ou filme encontrado.</p>';
+    return;
+  }
+
+  grid.innerHTML = groups.map((group, index) => renderGenreCategoryCard(group, index, query)).join('');
+}
+
+function renderGenreCategoryCard(group, index, query = '') {
+  const normalizedQuery = normalizeText(query);
+  const count = group.movies.length;
+  const matchedCount = normalizedQuery ? group.matches.length : count;
+  const displayCount = count || group.fallbackCount || 0;
+  const label = displayCount === 1 ? 'filme' : 'filmes';
+  const resultLabel = normalizedQuery
+    ? `${formatAdminTotal(matchedCount)} de ${formatAdminTotal(displayCount)} ${label}`
+    : `${formatAdminTotal(displayCount)} ${label}`;
+  const sampleTitles = group.matches
+    .slice(0, 2)
+    .map((movie) => movie.titulo)
+    .filter(Boolean)
+    .join(', ');
+
+  return `
+    <article data-category="${escapeHtml(group.genre)}" tabindex="0" role="button" aria-label="Ver filmes de ${escapeHtml(group.genre)}">
+      <div class="category-icon ${getGenreCategoryColor(index)}" aria-hidden="true">
+        ${getGenreCategoryIcon(index)}
+      </div>
+      <div>
+        <strong>${escapeHtml(group.genre)}</strong>
+        <span>${escapeHtml(resultLabel)}</span>
+        ${normalizedQuery && sampleTitles ? `<small>${escapeHtml(sampleTitles)}</small>` : ''}
+      </div>
+    </article>
+  `;
+}
+
+function getGenreCategoryColor(index = 0) {
+  const colors = ['orange', 'yellow', 'amber', 'purple', 'blue', 'red', 'rose', 'violet'];
+  return colors[Math.abs(index) % colors.length];
+}
+
+function getGenreCategoryIcon(index = 0) {
+  const icons = [
+    '<svg viewBox="0 0 24 24" focusable="false"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1.8" /></svg>',
+    '<svg viewBox="0 0 24 24" focusable="false"><path d="M3 19h18L14.8 7.5l-4.1 7L8.6 11 3 19Z" /><path d="M15.5 5.2l3.2-1.2v4.4l-3.2-1.1" /></svg>',
+    '<svg viewBox="0 0 24 24" focusable="false"><circle cx="12" cy="12" r="8" /><path d="M8.5 10h.01M15.5 10h.01M8.7 14c.9 1.4 2 2 3.3 2s2.4-.6 3.3-2" /></svg>',
+    '<svg viewBox="0 0 24 24" focusable="false"><path d="M5 4c3.5.2 5.5 1.1 7 2.7C13.5 5.1 15.5 4.2 19 4v8c0 3.2-2.5 5.8-7 7-4.5-1.2-7-3.8-7-7V4Z" /></svg>',
+    '<svg viewBox="0 0 24 24" focusable="false"><ellipse cx="12" cy="12" rx="8" ry="3.2" transform="rotate(-25 12 12)" /><ellipse cx="12" cy="12" rx="3.2" ry="8" transform="rotate(-25 12 12)" /><circle cx="12" cy="12" r="2" /></svg>',
+    '<svg viewBox="0 0 24 24" focusable="false"><path d="M5 20V9l7-5 7 5v11" /><path d="M9 20v-6h6v6M9 9.5l3-2.1 3 2.1M4 15h3M17 15h3M17.5 5.5l1.8-1.8M19.2 7.6h2.2" /><circle cx="18.5" cy="6.4" r="1.5" /></svg>',
+    '<svg viewBox="0 0 24 24" focusable="false"><path d="M12 20s-7-4.5-8.5-9.1C2.4 7.6 4.4 5 7.5 5c1.8 0 3.3 1 4.5 2.5C13.2 6 14.7 5 16.5 5c3.1 0 5.1 2.6 4 5.9C19 15.5 12 20 12 20Z" /></svg>',
+    '<svg viewBox="0 0 24 24" focusable="false"><circle cx="11" cy="11" r="6" /><path d="M15.5 15.5 20 20" /></svg>'
+  ];
+  return icons[Math.abs(index) % icons.length];
+}
+
 function populateMovieGenreFilter() {
   const genreFilter = document.getElementById('genreFilter');
   const diaryGenreFilter = document.getElementById('diaryGenreFilter');
+  const selectedGenre = genreFilter?.value || '';
+  const selectedDiaryGenre = diaryGenreFilter?.value || '';
 
-  const genres = Array.from(new Set(movies.map(getMovieGenre).filter(Boolean)))
+  const genresByKey = movies.reduce((map, movie) => {
+    const genre = getMovieGenre(movie);
+    const key = normalizeText(genre);
+    if (key && !map.has(key)) {
+      map.set(key, genre.trim());
+    }
+    return map;
+  }, new Map());
+  const genres = Array.from(genresByKey.values())
     .sort((a, b) => a.localeCompare(b, 'pt-BR'));
 
   const options = '<option value="">Todos os gêneros</option>'
     + genres.map((genre) => `<option value="${escapeHtml(genre)}">${escapeHtml(genre)}</option>`).join('');
 
-  if (genreFilter) genreFilter.innerHTML = options;
-  if (diaryGenreFilter) diaryGenreFilter.innerHTML = options;
+  if (genreFilter) {
+    genreFilter.innerHTML = options;
+    genreFilter.value = genres.some((genre) => normalizeText(genre) === normalizeText(selectedGenre)) ? selectedGenre : '';
+  }
+  if (diaryGenreFilter) {
+    diaryGenreFilter.innerHTML = options;
+    diaryGenreFilter.value = genres.some((genre) => normalizeText(genre) === normalizeText(selectedDiaryGenre)) ? selectedDiaryGenre : '';
+  }
 }
 
 function applyMovieFilters() {
   const query = document.getElementById('movieSearch')?.value || '';
   const genre = document.getElementById('genreFilter')?.value || '';
   userMoviesPage = 1;
-  renderMovies(filterMovies(query, genre));
+  const filteredMovies = filterMovies(query, genre);
+  const hasGenre = Boolean(normalizeText(genre));
+  const hasQuery = Boolean(normalizeText(query));
+  const title = hasGenre ? `Filmes de ${genre}` : 'Filmes';
+  let subtitle = 'Explore todos os filmes disponiveis.';
+  if (hasGenre) {
+    subtitle = `Mostrando ${formatAdminTotal(filteredMovies.length)} filme(s) do genero ${genre}.`;
+  } else if (hasQuery) {
+    subtitle = `Mostrando ${formatAdminTotal(filteredMovies.length)} resultado(s) para a busca.`;
+  }
+  setMoviesHeader(title, subtitle);
+  renderMovies(filteredMovies);
 }
 
 function applyDiaryFilters() {
@@ -4061,7 +4400,14 @@ function filterFavoriteMovies(query = '', genre = '') {
 }
 
 function getMovieGenre(movie = {}) {
-  return movie.genero_nome || generoNameById(movie.genero_id) || '';
+  return normalizeGenreLabel(String(
+    movie.genero_nome
+      || movie.genero
+      || movie.genre
+      || movie.genreLabel
+      || generoNameById(movie.genero_id)
+      || ''
+  ).trim());
 }
 
 function renderFeatured() {
@@ -4348,16 +4694,18 @@ function getReportPdfScopeFromSelection() {
 async function ensureReportExportData() {
   const tasks = [];
 
-  if (!Object.keys(reportsSummaryCache).length && token) {
+  if (token) {
     tasks.push(api('/relatorios/json').then((data) => {
       reportsSummaryCache = data || {};
-    }));
-  }
-
-  if (!reportsLogsCache.length && token) {
+    }).catch(() => {}));
     tasks.push(api('/logs').then((data) => {
       reportsLogsCache = Array.isArray(data) ? data : [];
-    }));
+    }).catch(() => {}));
+    if (!adminUsersCache.length) {
+      tasks.push(api('/auth/usuarios').then((data) => {
+        adminUsersCache = Array.isArray(data) ? data : [];
+      }).catch(() => {}));
+    }
   }
 
   if (!movies.length) {
@@ -4387,11 +4735,17 @@ function buildReportExportLines() {
   const importCount = filteredLogs.filter(isImportLog).length;
   const exportCount = filteredLogs.filter(isExportLog).length;
   const lines = [
+    'Relatório Geral do Sistema - Catálogo7',
+    `Gerado em: ${new Date().toLocaleString('pt-BR')}`,
+    `Gerado por: ${currentUser?.nome || currentUser?.email || 'Usuário'}`,
     `Período: ${document.querySelector('.export-period-grid select')?.value || '-'}`,
     `Data inicial: ${document.querySelector('[aria-label="Data inicial"]')?.value || '-'}`,
     `Data final: ${document.querySelector('[aria-label="Data final"]')?.value || '-'}`,
     `Dados exportados: ${selectedItems.join(', ') || 'Nenhum item selecionado'}`,
-    ''
+    '',
+    '================================================================',
+    'RESUMO E ESTATÍSTICAS',
+    '================================================================'
   ];
 
   if (selectedItems.some((item) => normalizeText(item).includes('filme'))) {
@@ -4441,6 +4795,287 @@ function buildReportExportLines() {
   return lines;
 }
 
+function getExportDateRangeLabel() {
+  return {
+    period: document.querySelector('.export-period-grid select')?.value || '-',
+    start: document.querySelector('[aria-label="Data inicial"]')?.value || '-',
+    end: document.querySelector('[aria-label="Data final"]')?.value || '-'
+  };
+}
+
+function getSelectedExportFlags() {
+  const selected = selectedExportItems().map((item) => normalizeText(item));
+  return {
+    filmes: selected.some((item) => item.includes('filme')),
+    generos: selected.some((item) => item.includes('genero')),
+    usuarios: selected.some((item) => item.includes('usuario')),
+    logs: selected.some((item) => item.includes('logs')),
+    movimentacoes: selected.some((item) => item.includes('import') || item.includes('export')),
+    any: selected.length > 0
+  };
+}
+
+function filterReportMoviesByExportDate(items = movies) {
+  const start = parseAdminFilterDate(document.querySelector('[aria-label="Data inicial"]')?.value);
+  const end = parseAdminFilterDate(document.querySelector('[aria-label="Data final"]')?.value, true);
+  const startDate = start ? new Date(start) : null;
+  const endDate = end ? new Date(end) : null;
+
+  return items.filter((movie) => {
+    const rawDate = movie.created_at || movie.updated_at;
+    if (!rawDate) return true;
+    const date = new Date(rawDate);
+    if (Number.isNaN(date.getTime())) return true;
+    return (!startDate || date >= startDate) && (!endDate || date <= endDate);
+  });
+}
+
+function getReportGenreRows(summary = reportsSummaryCache) {
+  const chartRows = summary?.graficos?.filmesPorGenero || summary?.filmesPorGenero || [];
+  if (chartRows.length) {
+    return chartRows.map((item) => [
+      item.genero || 'Sem genero',
+      formatAdminTotal(item.total)
+    ]);
+  }
+
+  const counts = filterReportMoviesByExportDate().reduce((map, movie) => {
+    const genre = movie.genero_nome || movie.genero || generoNameById(movie.genero_id) || 'Sem genero';
+    map.set(genre, (map.get(genre) || 0) + 1);
+    return map;
+  }, new Map());
+
+  return Array.from(counts.entries())
+    .sort((a, b) => b[1] - a[1] || String(a[0]).localeCompare(String(b[0]), 'pt-BR'))
+    .map(([genre, total]) => [genre, formatAdminTotal(total)]);
+}
+
+function getReportUserStatusRows(summary = reportsSummaryCache) {
+  const chartRows = summary?.graficos?.usuariosPorStatus || [];
+  if (chartRows.length) {
+    return chartRows.map((item) => [
+      item.status || 'sem status',
+      formatAdminTotal(item.total)
+    ]);
+  }
+
+  if (adminUsersCache.length) {
+    const counts = adminUsersCache.reduce((map, user) => {
+      const status = user.status || 'sem status';
+      map.set(status, (map.get(status) || 0) + 1);
+      return map;
+    }, new Map());
+    return Array.from(counts.entries()).map(([status, total]) => [status, formatAdminTotal(total)]);
+  }
+
+  return [['Total de usuarios', formatAdminTotal(summary?.usuarios || 0)]];
+}
+
+function getReportMovieRows(summary = reportsSummaryCache) {
+  const filteredMovies = filterReportMoviesByExportDate();
+  const source = filteredMovies.length
+    ? filteredMovies
+    : (summary?.filmesRecentes?.length ? summary.filmesRecentes : movies);
+
+  return source.slice(0, 25).map((movie) => [
+    movie.titulo || 'Filme',
+    movie.genero_nome || movie.genero || generoNameById(movie.genero_id) || 'Sem genero',
+    movie.ano_lancamento || '-',
+    movie.status || 'disponivel'
+  ]);
+}
+
+function getReportLogRows() {
+  const filteredLogs = filterReportLogsByExportDate(reportsLogsCache);
+  const source = filteredLogs.length ? filteredLogs : reportsLogsCache;
+
+  return source.slice(0, 25).map((log) => [
+    log.timestamp ? new Date(log.timestamp).toLocaleString('pt-BR') : '-',
+    log.usuario || 'anonimo',
+    log.acao || log.tipoEvento || '-',
+    log.descricao || describeLogAction(log.acao || log.tipoEvento || '', log.endpoint || '') || '-'
+  ]);
+}
+
+function addProfessionalPdfHeader(doc, title, generatedAt) {
+  const pageWidth = doc.internal.pageSize.getWidth();
+  doc.setFillColor(24, 30, 42);
+  doc.rect(0, 0, pageWidth, 30, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(15);
+  doc.text(title, 14, 13);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.text(`Gerado em: ${generatedAt}`, pageWidth - 14, 13, { align: 'right' });
+  doc.setTextColor(31, 41, 55);
+}
+
+function addProfessionalPdfFooter(doc) {
+  const pageCount = doc.internal.getNumberOfPages();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+
+  for (let page = 1; page <= pageCount; page += 1) {
+    doc.setPage(page);
+    doc.setDrawColor(209, 213, 219);
+    doc.line(14, pageHeight - 16, pageWidth - 14, pageHeight - 16);
+    doc.setTextColor(107, 114, 128);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text('Catalogo7 - Relatorio gerado pelo sistema', 14, pageHeight - 9);
+    doc.text(`Pagina ${page} de ${pageCount}`, pageWidth - 14, pageHeight - 9, { align: 'right' });
+  }
+}
+
+function addProfessionalPdfTable(doc, title, head, body, startY) {
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 14;
+  const tableWidth = pageWidth - (margin * 2);
+  const columnWidth = tableWidth / head.length;
+  const safeBody = body.length ? body : [head.map((_, index) => (index === 0 ? 'Nenhum dado encontrado' : '-'))];
+  let y = startY;
+
+  if (y > pageHeight - 35) {
+    doc.addPage();
+    y = 22;
+  }
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.setTextColor(17, 24, 39);
+  doc.text(title, margin, y);
+  y += 6;
+
+  const drawHeader = () => {
+    doc.setFillColor(37, 99, 235);
+    doc.setDrawColor(209, 213, 219);
+    doc.setLineWidth(0.2);
+    doc.rect(margin, y, tableWidth, 9, 'FD');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8.5);
+    head.forEach((label, index) => {
+      doc.text(String(label), margin + (index * columnWidth) + 2, y + 6, {
+        maxWidth: columnWidth - 4
+      });
+      if (index > 0) {
+        doc.line(margin + (index * columnWidth), y, margin + (index * columnWidth), y + 9);
+      }
+    });
+    y += 9;
+  };
+
+  drawHeader();
+
+  safeBody.forEach((row, rowIndex) => {
+    const wrappedCells = row.map((cell) => {
+      return doc.splitTextToSize(String(cell ?? '-'), columnWidth - 4);
+    });
+    const rowHeight = Math.max(9, Math.max(...wrappedCells.map((lines) => lines.length)) * 4.2 + 4);
+
+    if (y + rowHeight > pageHeight - 22) {
+      doc.addPage();
+      y = 22;
+      drawHeader();
+    }
+
+    if (rowIndex % 2 === 0) {
+      doc.setFillColor(248, 250, 252);
+      doc.rect(margin, y, tableWidth, rowHeight, 'F');
+    }
+
+    doc.setDrawColor(209, 213, 219);
+    doc.rect(margin, y, tableWidth, rowHeight);
+    doc.setTextColor(31, 41, 55);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8.5);
+
+    wrappedCells.forEach((lines, index) => {
+      if (index > 0) {
+        doc.line(margin + (index * columnWidth), y, margin + (index * columnWidth), y + rowHeight);
+      }
+      doc.text(lines, margin + (index * columnWidth) + 2, y + 5);
+    });
+
+    y += rowHeight;
+  });
+
+  return y + 10;
+}
+
+function buildProfessionalReportPDF() {
+  const JsPDF = window.jspdf?.jsPDF;
+  if (!JsPDF || typeof JsPDF !== 'function') {
+    return false;
+  }
+
+  const doc = new JsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const summary = reportsSummaryCache || {};
+  const flags = getSelectedExportFlags();
+  const selectedItems = selectedExportItems();
+  const filteredLogs = filterReportLogsByExportDate(reportsLogsCache);
+  const filteredMovies = filterReportMoviesByExportDate();
+  const importCount = filteredLogs.filter(isImportLog).length;
+  const exportCount = filteredLogs.filter(isExportLog).length;
+  const generatedAt = new Date().toLocaleString('pt-BR');
+  const generatedBy = currentUser?.nome || currentUser?.email || 'Usuario';
+  const dateRange = getExportDateRangeLabel();
+  const title = 'Relatorio Geral do Sistema - Catalogo7';
+
+  addProfessionalPdfHeader(doc, title, generatedAt);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(55, 65, 81);
+  doc.text(`Usuario: ${generatedBy}`, 14, 40);
+  doc.text(`Periodo: ${dateRange.period}`, 14, 46);
+  doc.text(`Datas: ${dateRange.start} ate ${dateRange.end}`, 14, 52);
+  doc.text(`Dados selecionados: ${selectedItems.join(', ') || 'Nenhum item selecionado'}`, 14, 58, {
+    maxWidth: 180
+  });
+
+  let nextY = addProfessionalPdfTable(doc, 'Totais e estatisticas', ['Indicador', 'Total'], [
+    ['Filmes cadastrados', formatAdminTotal(summary.filmes ?? movies.length)],
+    ['Filmes no periodo', formatAdminTotal(filteredMovies.length)],
+    ['Usuarios cadastrados', formatAdminTotal(summary.usuarios ?? adminUsersCache.length)],
+    ['Favoritos registrados', formatAdminTotal(summary.favoritos || 0)],
+    ['Clientes cadastrados', formatAdminTotal(summary.clientes || 0)],
+    ['Locacoes registradas', formatAdminTotal(summary.locacoes || 0)],
+    ['Logs no periodo', formatAdminTotal(filteredLogs.length)],
+    ['Importacoes no periodo', formatAdminTotal(importCount)],
+    ['Exportacoes no periodo', formatAdminTotal(exportCount)]
+  ], 70);
+
+  if (!flags.any || flags.filmes) {
+    nextY = addProfessionalPdfTable(doc, 'Filmes cadastrados', ['Titulo', 'Genero', 'Ano', 'Status'], getReportMovieRows(summary), nextY);
+  }
+
+  if (!flags.any || flags.generos) {
+    nextY = addProfessionalPdfTable(doc, 'Filmes por genero', ['Genero', 'Total'], getReportGenreRows(summary), nextY);
+  }
+
+  if (!flags.any || flags.usuarios) {
+    nextY = addProfessionalPdfTable(doc, 'Usuarios por status', ['Status', 'Total'], getReportUserStatusRows(summary), nextY);
+  }
+
+  if (!flags.any || flags.movimentacoes) {
+    nextY = addProfessionalPdfTable(doc, 'Historico de movimentacoes', ['Tipo', 'Total'], [
+      ['Importacoes', formatAdminTotal(importCount)],
+      ['Exportacoes', formatAdminTotal(exportCount)],
+      ['Outras atividades', formatAdminTotal(Math.max(filteredLogs.length - importCount - exportCount, 0))]
+    ], nextY);
+  }
+
+  if (!flags.any || flags.logs) {
+    addProfessionalPdfTable(doc, 'Logs do sistema', ['Data/Hora', 'Usuario', 'Acao', 'Descricao'], getReportLogRows(), nextY);
+  }
+
+  addProfessionalPdfFooter(doc);
+  doc.save('relatorio-catalogo7.pdf');
+  return true;
+}
+
 function escapePDFText(text) {
   return text.normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -4454,10 +5089,15 @@ function makeSimplePDF(lines) {
     '/F1 18 Tf',
     '50 790 Td',
     '(Relatorio Catalogo7) Tj',
+    '/F1 9 Tf',
+    '360 790 Td',
+    `(${escapePDFText(new Date().toLocaleString('pt-BR'))}) Tj`,
     '/F1 11 Tf',
     '15 TL',
-    '0 -28 Td',
+    '-360 -28 Td',
     ...lines.map((line) => `(${escapePDFText(line)}) Tj T*`),
+    '0 -18 Td',
+    '(Catalogo7 - Pagina 1 de 1) Tj',
     'ET'
   ].join('\n');
   const objects = [
@@ -4485,13 +5125,14 @@ function makeSimplePDF(lines) {
   return pdf;
 }
 
-async function downloadPDFReport() {
+async function downloadPDFReportLegacy() {
   await ensureReportExportData();
 
   if (token) {
     try {
       const params = getExportDateQuery();
       params.set('conteudo', 'completo');
+      params.set('usuario', currentUser?.nome || currentUser?.email || 'Usuário');
       const response = await fetch(`${API_URL}/relatorios/pdf?${params.toString()}`, {
         headers: headers()
       });
@@ -4503,6 +5144,34 @@ async function downloadPDFReport() {
     } catch (error) {
       console.warn('Relatorio PDF pela API indisponivel, usando dados carregados em tela.', error.message);
     }
+  }
+
+  downloadBlob(makeSimplePDF(buildReportExportLines()), 'relatorio-catalogo7.pdf', 'application/pdf');
+}
+
+async function downloadPDFReport() {
+  await ensureReportExportData();
+
+  if (token) {
+    try {
+      const params = getExportDateQuery();
+      params.set('conteudo', getReportPdfScopeFromSelection());
+      const response = await fetch(`${API_URL}/relatorios/json?${params.toString()}`, {
+        headers: headers()
+      });
+
+      if (response.ok) {
+        reportsSummaryCache = await response.json();
+      }
+    } catch (error) {
+      console.warn('Relatorio JSON pela API indisponivel, usando dados carregados em tela.', error.message);
+    }
+  }
+
+  try {
+    if (buildProfessionalReportPDF()) return;
+  } catch (error) {
+    console.warn('Falha ao gerar PDF profissional, usando exportacao simples.', error.message);
   }
 
   downloadBlob(makeSimplePDF(buildReportExportLines()), 'relatorio-catalogo7.pdf', 'application/pdf');

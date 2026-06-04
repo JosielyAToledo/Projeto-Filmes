@@ -100,6 +100,29 @@ const defaultLocalMovies = [
     status: 'publicado',
     destaque: false,
     criado_por: 1
+  },
+  {
+    id: 5,
+    titulo: 'Kung Fu Panda 4',
+    titulo_original: 'Kung Fu Panda 4',
+    descricao: 'Po precisa treinar uma nova guerreira enquanto enfrenta uma vila que mistura aventura, humor e autodescoberta.',
+    ano_lancamento: 2024,
+    genero_id: 2,
+    genero_nome: 'Com\u00e9dia',
+    genero_secundario_id: null,
+    diretor: 'Mike Mitchell',
+    elenco: null,
+    duracao: '94 min',
+    classificacao: 'L',
+    pais: 'Estados Unidos',
+    preco_locacao: 9.9,
+    estoque: 1,
+    capa_url: 'https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?auto=format&fit=crop&w=80&q=80',
+    banner_url: null,
+    trailer_url: null,
+    status: 'publicado',
+    destaque: false,
+    criado_por: 1
   }
 ];
 
@@ -136,10 +159,13 @@ function nextLocalMovieId() {
 function genreNameById(id) {
   const genres = {
     1: 'Ação',
+    2: 'Com\u00e9dia',
     3: 'Drama',
     4: 'Ficção Científica',
     5: 'Suspense',
-    6: 'Romance'
+    6: 'Romance',
+    7: 'Terror',
+    9: 'Aventura'
   };
   return genres[Number(id)] || null;
 }

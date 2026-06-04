@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Catálogo7</title>
     <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg" />
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=user-responsive-7" />
   </head>
   <body>
     <section class="auth-screen catalog-login-screen" id="authScreen">
@@ -39,7 +39,7 @@
               <input type="checkbox" />
               Lembrar de mim
             </label>
-            <button type="button" class="link-button">Esqueceu sua senha?</button>
+            <button type="button" class="link-button" id="forgotPasswordBtn">Esqueceu sua senha?</button>
           </div>
 
           <button type="submit" class="primary-button">Entrar</button>
@@ -95,6 +95,39 @@
 
     </section>
 
+    <div class="password-reset-modal" id="passwordResetModal" aria-hidden="true">
+      <div class="password-reset-card" role="dialog" aria-modal="true" aria-labelledby="passwordResetTitle">
+        <button class="password-reset-close" id="closePasswordReset" type="button" aria-label="Fechar">Ã—</button>
+        <div class="auth-intro">
+          <h2 id="passwordResetTitle">Trocar senha</h2>
+          <p>Informe o e-mail cadastrado e escolha uma nova senha.</p>
+        </div>
+
+        <form id="passwordResetForm" class="auth-form">
+          <label for="resetEmail">E-mail cadastrado</label>
+          <div class="auth-field">
+            <span aria-hidden="true">âœ‰</span>
+            <input id="resetEmail" type="email" placeholder="seu@email.com" required />
+          </div>
+
+          <label for="resetPassword">Nova senha</label>
+          <div class="auth-field">
+            <span aria-hidden="true">â™™</span>
+            <input id="resetPassword" type="password" placeholder="Digite a nova senha" required />
+          </div>
+
+          <label for="resetPasswordConfirm">Confirmar nova senha</label>
+          <div class="auth-field">
+            <span aria-hidden="true">â™™</span>
+            <input id="resetPasswordConfirm" type="password" placeholder="Confirme a nova senha" required />
+          </div>
+
+          <button type="submit" class="primary-button">Salvar nova senha</button>
+        </form>
+        <p id="passwordResetStatus" class="status" aria-live="polite"></p>
+      </div>
+    </div>
+
     <section class="admin-shell" id="adminShell">
       <aside class="admin-sidebar">
         <a class="admin-brand" href="#adminDashboard" data-admin-view="dashboard" aria-label="Ir para Dashboard">catálogo<span>7</span></a>
@@ -132,8 +165,11 @@
               <select class="admin-genre-select" id="adminTopFilter" aria-label="Filtrar por gênero">
                 <option>Todos os gêneros</option>
                 <option>Ação</option>
+                <option>Aventura</option>
+                <option>Com&eacute;dia</option>
                 <option>Drama</option>
                 <option>Ficção Científica</option>
+                <option>Terror</option>
                 <option>Romance</option>
                 <option>Suspense</option>
               </select>
@@ -356,9 +392,12 @@
                       <option value="">Selecione o gênero</option>
                       <option value="4" selected>Ficção Científica</option>
                       <option value="1">Ação</option>
+                      <option value="9">Aventura</option>
+                      <option value="2">Com&eacute;dia</option>
                       <option value="3">Drama</option>
                       <option value="6">Romance</option>
                       <option value="5">Suspense</option>
+                      <option value="7">Terror</option>
                     </select>
                   </label>
                   <label class="movie-main-row movie-director-field">Diretor <em>*</em>
@@ -615,7 +654,12 @@
                     <select aria-label="Filtro de gênero dos filmes cadastrados">
                       <option>Todos os gêneros</option>
                       <option>Ação</option>
+                      <option>Aventura</option>
+                      <option>Com&eacute;dia</option>
                       <option>Drama</option>
+                      <option>Terror</option>
+                      <option>Romance</option>
+                      <option>Suspense</option>
                       <option>Ficção Científica</option>
                     </select>
                   </header>
@@ -1872,6 +1916,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.9/dist/chart.umd.min.js"></script>
-    <script src="./script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="./script.js?v=filtro-generos-2"></script>
   </body>
 </html>

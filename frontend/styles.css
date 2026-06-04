@@ -8,6 +8,407 @@
   --admin-primary-text: #07090c;
 }
 
+/* User mobile header alignment */
+@media (max-width: 720px) {
+  html body .user-home-shell .user-header {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    grid-template-areas:
+      "brand actions"
+      "nav nav" !important;
+    align-items: center !important;
+    gap: 12px 14px !important;
+    padding: 14px 14px 12px !important;
+  }
+
+  html body .user-home-shell .side-brand {
+    grid-area: brand !important;
+  }
+
+  html body .user-home-shell .sidebar nav {
+    grid-area: nav !important;
+    width: 100% !important;
+    justify-content: flex-start !important;
+    flex-wrap: nowrap !important;
+    gap: 16px !important;
+    overflow-x: auto !important;
+    padding: 0 0 2px !important;
+  }
+
+  html body .user-home-shell .header-actions {
+    grid-area: actions !important;
+    width: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    justify-self: end !important;
+    gap: 8px !important;
+  }
+
+  html body .user-home-shell .header-actions > .search-box,
+  html body .user-home-shell .header-actions > .notify-button {
+    display: none !important;
+  }
+
+  html body .user-home-shell .user-box {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 0 !important;
+  }
+
+  html body .user-home-shell .user-box > span {
+    display: none !important;
+  }
+
+  html body .user-home-shell .avatar {
+    width: 34px !important;
+    height: 34px !important;
+  }
+
+  html body .user-home-shell #logoutBtn {
+    width: 30px !important;
+    min-height: 30px !important;
+  }
+}
+
+/* User area responsive hardening */
+.user-home-shell,
+.user-home-shell * {
+  box-sizing: border-box;
+}
+
+.user-home-shell .content,
+.user-home-shell .page,
+.user-home-shell .movies-management-card,
+.user-home-shell .genres-management-card,
+.user-home-shell .diary-management-card,
+.user-home-shell .profile-panel,
+.user-home-shell .edit-profile-form {
+  min-width: 0;
+}
+
+.user-home-shell img {
+  max-width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .user-home-shell .user-header {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .user-home-shell .sidebar nav {
+    width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+  }
+
+  .user-home-shell .nav-link {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .user-home-shell .header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .user-home-shell .header-actions .search-box {
+    flex: 1 1 260px;
+    min-width: 0;
+  }
+
+  .user-home-shell #filmesPage .movies-page-top,
+  .user-home-shell #assistidosPage .diary-page-top,
+  .user-home-shell #categoriasPage .genres-page-top {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+
+  .user-home-shell #filmesPage .movies-toolbar,
+  .user-home-shell #assistidosPage .diary-toolbar,
+  .user-home-shell #categoriasPage .genres-toolbar {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .user-home-shell #filmesPage .movies-toolbar,
+  .user-home-shell #assistidosPage .diary-toolbar {
+    grid-template-columns: minmax(0, 1fr) minmax(180px, 240px);
+  }
+
+  .user-home-shell #categoriasPage .genre-search-field {
+    width: 100%;
+  }
+}
+
+@media (max-width: 720px) {
+  .user-home-shell.visible {
+    min-height: 100vh;
+  }
+
+  .user-home-shell .user-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    gap: 12px;
+    padding: 14px 14px 12px;
+  }
+
+  .user-home-shell .side-brand {
+    min-width: 0;
+  }
+
+  .user-home-shell .side-brand strong {
+    font-size: clamp(24px, 8vw, 32px);
+    white-space: nowrap;
+  }
+
+  .user-home-shell .sidebar nav {
+    gap: 14px;
+  }
+
+  .user-home-shell .nav-link {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+  }
+
+  .user-home-shell .header-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+  }
+
+  .user-home-shell .header-actions > .search-box {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .user-home-shell .user-box {
+    justify-self: end;
+  }
+
+  .user-home-shell .user-box > span {
+    display: none;
+  }
+
+  .user-home-shell .page:not(#inicioPage) {
+    padding: 18px 12px 32px;
+  }
+
+  .user-home-shell .hero {
+    min-height: calc(100vh - 144px);
+    padding: 56px 18px 34px;
+  }
+
+  .user-home-shell .hero > div {
+    width: min(100%, 520px);
+  }
+
+  .user-home-shell .hero h1 {
+    font-size: clamp(32px, 12vw, 54px);
+  }
+
+  .user-home-shell #filmesPage .movies-page-top,
+  .user-home-shell #assistidosPage .diary-page-top,
+  .user-home-shell #categoriasPage .genres-page-top {
+    padding: 18px 14px 22px;
+  }
+
+  .user-home-shell #filmesPage .movies-toolbar,
+  .user-home-shell #assistidosPage .diary-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .user-home-shell #filmesPage .movies-grid,
+  .user-home-shell #assistidosPage .watched-grid,
+  .user-home-shell #categoriasPage .categories-grid {
+    padding: 18px 12px;
+  }
+
+  .user-home-shell .movie-card-list {
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 14px;
+  }
+
+  .user-home-shell #categoriasPage .categories-grid {
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 12px;
+  }
+
+  .user-home-shell #filmesPage .movies-pagination {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .user-home-shell .user-header {
+    padding-inline: 10px;
+  }
+
+  .user-home-shell .sidebar nav {
+    gap: 10px;
+  }
+
+  .user-home-shell .nav-link {
+    font-size: 11px;
+  }
+
+  .user-home-shell .avatar {
+    width: 34px;
+    height: 34px;
+  }
+
+  .user-home-shell #logoutBtn {
+    min-width: 34px;
+    height: 34px;
+  }
+
+  .user-home-shell .hero {
+    min-height: calc(100vh - 136px);
+    padding: 44px 14px 28px;
+  }
+
+  .user-home-shell .hero h1 {
+    font-size: clamp(28px, 14vw, 42px);
+  }
+
+  .user-home-shell .hero p {
+    max-width: 100%;
+    font-size: 13px;
+  }
+
+  .hero-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .hero-arrow {
+    width: 34px;
+    height: 34px;
+  }
+
+  .user-home-shell #filmesPage .movies-header h1,
+  .user-home-shell #categoriasPage .movies-header h1,
+  .user-home-shell #assistidosPage .movies-header h1 {
+    font-size: 28px;
+  }
+
+  .user-home-shell .movie-card-list,
+  .user-home-shell #categoriasPage .categories-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .user-home-shell .movie-management-card-item {
+    min-height: 230px;
+  }
+
+  .user-home-shell #filmesPage .movies-pagination > div {
+    flex-wrap: wrap;
+  }
+
+  .user-home-shell .profile-hero,
+  .user-home-shell .account-info div {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 360px) and (max-width: 560px) {
+  body .user-home-shell #filmesPage .movies-page-top {
+    gap: 18px;
+  }
+
+  body .user-home-shell #filmesPage .movies-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  body .user-home-shell #filmesPage .movie-search-field,
+  body .user-home-shell #filmesPage .movies-toolbar select {
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
+  }
+
+  body .user-home-shell #filmesPage .movie-search-field {
+    padding-inline: 12px 8px;
+  }
+
+  body .user-home-shell #filmesPage .movie-search-field input {
+    font-size: 12px;
+  }
+
+  body .user-home-shell #filmesPage .movies-toolbar select {
+    padding-inline: 12px 34px;
+    background-position: right 12px center;
+    background-size: 14px 10px;
+    font-size: 12px;
+  }
+
+  body .user-home-shell #filmesPage .movies-header h1 {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  body .user-home-shell #filmesPage .empty-state {
+    min-height: 118px;
+    padding: 20px 16px;
+    font-size: 15px;
+    line-height: 1.25;
+  }
+}
+
+@media (min-width: 360px) and (max-width: 560px) {
+  .user-home-shell #filmesPage .movies-page-top {
+    gap: 18px;
+  }
+
+  .user-home-shell #filmesPage .movies-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .user-home-shell #filmesPage .movie-search-field,
+  .user-home-shell #filmesPage .movies-toolbar select {
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
+  }
+
+  .user-home-shell #filmesPage .movie-search-field {
+    padding-inline: 12px 8px;
+  }
+
+  .user-home-shell #filmesPage .movie-search-field input {
+    font-size: 12px;
+  }
+
+  .user-home-shell #filmesPage .movies-toolbar select {
+    padding-inline: 12px 34px;
+    background-position: right 12px center;
+    background-size: 14px 10px;
+    font-size: 12px;
+  }
+
+  .user-home-shell #filmesPage .movies-header h1 {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .user-home-shell #filmesPage .empty-state {
+    min-height: 118px;
+    padding: 20px 16px;
+    font-size: 15px;
+    line-height: 1.25;
+  }
+}
+
 html {
   overflow-x: hidden;
 }
@@ -20,6 +421,10 @@ body {
   margin: 0;
   min-height: 100vh;
   overflow-x: hidden;
+}
+
+body:not(.logged-in):not(.admin-logged-in) {
+  overflow: hidden;
 }
 
 button,
@@ -2562,8 +2967,11 @@ select:focus {
 
 /* Catalogo 7 login window */
 .catalog-login-screen {
-  min-height: 100vh;
-  padding: 36px 20px;
+  height: 100vh;
+  height: 100svh;
+  min-height: 0;
+  overflow: hidden;
+  padding: 12px 20px;
   background:
     linear-gradient(90deg, rgba(5, 6, 7, 0.94) 0%, rgba(5, 6, 7, 0.58) 45%, rgba(5, 6, 7, 0.94) 100%),
     url("./assets/login-noir-bg.png") center / cover;
@@ -2577,8 +2985,8 @@ select:focus {
 }
 
 .catalog-login-screen .auth-card {
-  width: min(100%, 520px);
-  padding: clamp(28px, 4vw, 58px);
+  width: min(100%, 410px);
+  padding: clamp(14px, 1.8vw, 20px);
   border: 1px solid rgba(232, 226, 214, 0.14);
   border-radius: 14px;
   background: rgba(13, 16, 20, 0.88);
@@ -2587,13 +2995,13 @@ select:focus {
 }
 
 .catalog-login-screen .brand {
-  margin-bottom: 24px;
+  margin-bottom: 8px;
 }
 
 .catalog-login-screen .brand strong {
   color: var(--noir-text);
   font-family: var(--font-logo);
-  font-size: clamp(44px, 7vw, 58px);
+  font-size: clamp(34px, 5.4vw, 44px);
   font-weight: 400;
   letter-spacing: 0.01em;
   line-height: 0.9;
@@ -2602,22 +3010,22 @@ select:focus {
 
 .catalog-login-screen .brand span {
   display: inline-grid;
-  width: 34px;
-  height: 42px;
+  width: 26px;
+  height: 32px;
   place-items: center;
   margin-left: 8px;
   border: 2px solid var(--noir-text);
   color: var(--noir-text);
   font-family: var(--font-title);
-  font-size: 32px;
+  font-size: 24px;
   line-height: 1;
 }
 
 .auth-intro {
   display: grid;
   justify-items: center;
-  gap: 8px;
-  margin-bottom: 28px;
+  gap: 6px;
+  margin-bottom: 12px;
   text-align: center;
 }
 
@@ -2625,7 +3033,7 @@ select:focus {
   margin: 0;
   color: var(--noir-text);
   font-family: var(--font-title);
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 600;
 }
 
@@ -2639,7 +3047,7 @@ select:focus {
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-top: 10px;
+  margin-top: 3px;
   color: var(--noir-text);
   font-size: 10px;
 }
@@ -2653,11 +3061,11 @@ select:focus {
 }
 
 .catalog-login-screen .auth-form {
-  gap: 12px;
+  gap: 7px;
 }
 
 .catalog-login-screen .auth-form label {
-  margin-top: 6px;
+  margin-top: 4px;
   color: rgba(232, 226, 214, 0.9);
   font-family: var(--font-title);
   font-size: 13px;
@@ -2666,7 +3074,7 @@ select:focus {
 }
 
 .auth-field {
-  min-height: 50px;
+  min-height: 42px;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -2704,7 +3112,7 @@ select:focus {
 }
 
 .catalog-login-screen .auth-field input {
-  min-height: 48px;
+  min-height: 40px;
   border: 0;
   padding: 0;
   background: transparent;
@@ -2722,7 +3130,7 @@ select:focus {
 }
 
 .catalog-login-screen .auth-row {
-  margin: 8px 0 14px;
+  margin: 4px 0 8px;
 }
 
 .catalog-login-screen .remember,
@@ -2737,7 +3145,7 @@ select:focus {
 }
 
 .catalog-login-screen .primary-button {
-  min-height: 54px;
+  min-height: 44px;
   border-radius: 5px;
   background: #e5cfb3;
   color: #111111;
@@ -2752,7 +3160,7 @@ select:focus {
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 18px;
-  margin: 26px 0 18px;
+  margin: 12px 0 10px;
   color: rgba(232, 226, 214, 0.72);
   font-size: 12px;
 }
@@ -2770,7 +3178,7 @@ select:focus {
 
 .catalog-login-screen .switch-text button {
   width: 100%;
-  min-height: 50px;
+  min-height: 42px;
   border: 1px solid rgba(229, 207, 179, 0.62);
   border-radius: 5px;
   color: #e5cfb3;
@@ -2781,8 +3189,172 @@ select:focus {
 }
 
 .catalog-login-screen .status {
+  margin-top: 8px;
+  color: #e5cfb3;
+}
+
+.password-reset-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: none;
+  place-items: center;
+  padding: 24px;
+  background:
+    linear-gradient(90deg, rgba(5, 6, 7, 0.94) 0%, rgba(5, 6, 7, 0.7) 45%, rgba(5, 6, 7, 0.94) 100%),
+    rgba(5, 6, 7, 0.82);
+  backdrop-filter: grayscale(1) contrast(1.08) brightness(0.72) blur(4px);
+}
+
+.password-reset-modal.visible {
+  display: grid;
+}
+
+.password-reset-card {
+  position: relative;
+  width: min(100%, 430px);
+  padding: clamp(18px, 2.4vw, 32px);
+  border: 1px solid rgba(232, 226, 214, 0.14);
+  border-radius: 14px;
+  background: rgba(13, 16, 20, 0.92);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.62);
+}
+
+.password-reset-card .auth-intro {
+  margin-bottom: 16px;
+}
+
+.password-reset-card .auth-intro h2 {
+  margin: 0 0 8px;
+  color: var(--noir-text);
+  font-family: var(--font-title);
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.password-reset-card .auth-intro p {
+  margin: 0;
+  color: rgba(232, 226, 214, 0.72);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.password-reset-card .auth-form {
+  gap: 10px;
+}
+
+.password-reset-card .auth-form label {
+  margin-top: 6px;
+  color: rgba(232, 226, 214, 0.9);
+  font-family: var(--font-title);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.password-reset-card .auth-field input {
+  min-height: 48px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--noir-text);
+  box-shadow: none;
+}
+
+.password-reset-card .auth-field:focus-within {
+  border-color: rgba(229, 207, 179, 0.46);
+  box-shadow: 0 0 0 2px rgba(90, 15, 15, 0.18);
+}
+
+.password-reset-card .auth-field input:focus {
+  box-shadow: none;
+}
+
+.password-reset-card .auth-field span {
+  width: 20px;
+  min-width: 20px;
+  height: 20px;
+  display: inline-block;
+  background: rgba(232, 226, 214, 0.62);
+  font-size: 0;
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: 18px 18px;
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: 18px 18px;
+}
+
+.password-reset-card .auth-form .auth-field:nth-of-type(1) span {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='black'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Crect%20x='3'%20y='5'%20width='18'%20height='14'%20rx='2'/%3E%3Cpath%20d='m3%207%209%206%209-6'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='black'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Crect%20x='3'%20y='5'%20width='18'%20height='14'%20rx='2'/%3E%3Cpath%20d='m3%207%209%206%209-6'/%3E%3C/svg%3E");
+}
+
+.password-reset-card .auth-form .auth-field:nth-of-type(2) span,
+.password-reset-card .auth-form .auth-field:nth-of-type(3) span {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='black'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Crect%20x='3'%20y='11'%20width='18'%20height='11'%20rx='2'%20ry='2'/%3E%3Cpath%20d='M7%2011V7a5%205%200%200%201%2010%200v4'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='black'%20stroke-width='2'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Crect%20x='3'%20y='11'%20width='18'%20height='11'%20rx='2'%20ry='2'/%3E%3Cpath%20d='M7%2011V7a5%205%200%200%201%2010%200v4'/%3E%3C/svg%3E");
+}
+
+.password-reset-card .auth-form .auth-field:nth-of-type(1) span::before {
+  content: none;
+}
+
+.password-reset-card .auth-form .auth-field:nth-of-type(1) span::after {
+  content: none;
+}
+
+.password-reset-card .auth-form .auth-field:nth-of-type(2) span::before,
+.password-reset-card .auth-form .auth-field:nth-of-type(3) span::before {
+  content: none;
+}
+
+.password-reset-card .auth-form .auth-field:nth-of-type(2) span::after,
+.password-reset-card .auth-form .auth-field:nth-of-type(3) span::after {
+  content: none;
+}
+
+.password-reset-card .primary-button {
+  min-height: 48px;
+  margin-top: 8px;
+  border-radius: 5px;
+  background: #e5cfb3;
+  color: #111111;
+  font-family: var(--font-title);
+  font-size: 17px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.password-reset-card .status {
   margin-top: 16px;
   color: #e5cfb3;
+}
+
+.password-reset-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 34px;
+  min-height: 34px;
+  border: 1px solid rgba(229, 207, 179, 0.2);
+  border-radius: 5px;
+  background: transparent;
+  color: #e5cfb3;
+  overflow: hidden;
+  font-size: 0;
+  line-height: 1;
+}
+
+.password-reset-close::before {
+  content: "x";
+  display: block;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 18px;
+  line-height: 1;
+  text-transform: uppercase;
 }
 
 .catalog-login-screen.register-mode {
@@ -2794,8 +3366,8 @@ select:focus {
 }
 
 .catalog-login-screen.register-mode .register-card {
-  width: min(100%, 520px);
-  padding: clamp(28px, 4vw, 58px);
+  width: min(100%, 410px);
+  padding: clamp(10px, 1.4vw, 14px);
   background: rgba(13, 16, 20, 0.88);
 }
 
@@ -2804,7 +3376,7 @@ select:focus {
 }
 
 .catalog-login-screen.register-mode .auth-intro {
-  margin-bottom: 22px;
+  margin-bottom: 8px;
 }
 
 .catalog-login-screen.register-mode .auth-intro::before {
@@ -2863,6 +3435,40 @@ select:focus {
   font-size: 12px;
   letter-spacing: 0;
   text-transform: none;
+}
+
+.catalog-login-screen.register-mode .auth-intro::before {
+  content: none;
+}
+
+.catalog-login-screen.register-mode .auth-intro h1 {
+  font-size: 20px;
+  letter-spacing: 0.05em;
+}
+
+.catalog-login-screen.register-mode .auth-form {
+  gap: 5px;
+}
+
+.catalog-login-screen.register-mode .auth-form label {
+  margin-top: 2px;
+  font-size: 12px;
+}
+
+.catalog-login-screen.register-mode .auth-field {
+  min-height: 38px;
+}
+
+.catalog-login-screen.register-mode .auth-field input {
+  min-height: 36px;
+}
+
+.catalog-login-screen.register-mode .primary-button {
+  margin-top: 4px;
+}
+
+.catalog-login-screen.register-mode .auth-divider {
+  margin: 8px 0 4px;
 }
 
 .catalog-login-screen.register-mode .auth-login::before {
@@ -4912,6 +5518,11 @@ body,
   color: #f3bb7a;
 }
 
+.genre-pill.comedy {
+  background: rgba(216, 173, 73, 0.24);
+  color: #f4d28a;
+}
+
 .rating-pill {
   display: inline-grid;
   min-width: 26px;
@@ -5967,6 +6578,48 @@ body,
 .admin-pdf-page h3 {
   font-family: var(--font-title);
   font-size: 24px;
+}
+
+.admin-pdf-print-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid rgba(21, 21, 21, 0.18);
+  padding-bottom: 12px;
+}
+
+.admin-pdf-print-header span {
+  color: #615950;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.admin-pdf-print-meta {
+  display: grid;
+  gap: 3px;
+  margin-top: 12px;
+}
+
+.admin-pdf-print-body {
+  min-height: 150px;
+  margin: 16px 0 0;
+  color: #222;
+  font-family: "Courier New", monospace;
+  font-size: 9px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+.admin-pdf-export-card .admin-pdf-page footer {
+  display: block;
+  justify-content: initial;
+  gap: 0;
+  margin-top: 18px;
+  border-top: 1px solid rgba(21, 21, 21, 0.18);
+  padding-top: 10px;
+  color: #615950;
+  font-size: 10px;
 }
 
 .admin-pdf-page h4 {
@@ -8452,6 +9105,28 @@ body.admin-theme-light .settings-preview-stats p {
   background: #11161c;
 }
 
+.user-home-shell #categoriasPage .categories-grid article small {
+  display: block;
+  max-width: 100%;
+  margin-top: 8px;
+  color: rgba(243, 238, 229, 0.58);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.user-home-shell #categoriasPage .genres-empty-state {
+  grid-column: 1 / -1;
+  min-height: 160px;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  border: 1px dashed rgba(232, 226, 214, 0.14);
+  border-radius: 6px;
+  color: rgba(243, 238, 229, 0.72);
+  font-weight: 800;
+}
+
 .user-home-shell #categoriasPage .category-icon {
   width: 54px;
   height: 54px;
@@ -8649,6 +9324,115 @@ body.admin-theme-light .settings-preview-stats p {
   color: #d8c9b4;
   font-size: 11px;
   font-weight: 900;
+}
+
+.user-home-shell #categoriasPage .categories-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  padding: 30px;
+}
+
+.user-home-shell #categoriasPage .categories-grid article {
+  min-height: 172px;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  align-content: stretch;
+  gap: 10px;
+  padding: 30px 18px 18px;
+  border: 1px solid rgba(232, 226, 214, 0.08);
+  border-radius: 6px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0)),
+    #151515;
+}
+
+.user-home-shell #categoriasPage .categories-grid article:nth-child(2) {
+  background:
+    linear-gradient(145deg, rgba(40, 64, 84, 0.16), rgba(255, 255, 255, 0)),
+    #10151a;
+}
+
+.user-home-shell #categoriasPage .categories-grid article > div:last-child {
+  align-self: center;
+  text-align: center;
+}
+
+.user-home-shell #categoriasPage .category-icon {
+  align-self: start;
+}
+
+.user-home-shell #categoriasPage .categories-grid strong {
+  font-size: 15px;
+  line-height: 1.05;
+}
+
+.user-home-shell #categoriasPage .categories-grid span {
+  margin-top: 8px;
+  font-size: 10px;
+}
+
+.user-home-shell #categoriasPage .categories-grid span::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 5px;
+  border: 1px solid currentColor;
+  border-radius: 1px;
+  transform: translateY(1px);
+}
+
+.user-home-shell #categoriasPage .categories-grid article::after {
+  content: "Ver filmes \2192";
+  align-self: end;
+  justify-self: start;
+  color: #d8c9b4;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.user-home-shell #categoriasPage .categories-grid article button {
+  display: none;
+}
+
+.user-home-shell #categoriasPage .categories-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  padding: 30px 30px 30px;
+}
+
+.user-home-shell #categoriasPage .categories-grid article {
+  min-height: 172px;
+  grid-template-rows: 44px auto 1fr;
+  gap: 10px;
+  padding: 32px 18px 18px;
+  border-radius: 6px;
+}
+
+.user-home-shell #categoriasPage .categories-grid article > div:last-child {
+  align-self: start;
+  text-align: center;
+}
+
+.user-home-shell #categoriasPage .category-icon {
+  align-self: start;
+  justify-self: center;
+}
+
+.user-home-shell #categoriasPage .category-icon svg {
+  width: 34px;
+  height: 34px;
+}
+
+.user-home-shell #categoriasPage .categories-grid strong {
+  font-size: 15px;
+  line-height: 1.1;
+}
+
+.user-home-shell #categoriasPage .categories-grid span {
+  margin-top: 7px;
+  font-size: 10px;
 }
 
 .user-home-shell .profile-page,
@@ -10954,5 +11738,548 @@ canvas {
   .user-home-shell .hero p {
     font-size: 13px;
     line-height: 1.55;
+  }
+}
+
+/* User area responsive hardening - final override */
+.user-home-shell,
+.user-home-shell * {
+  box-sizing: border-box;
+}
+
+.user-home-shell .content,
+.user-home-shell .page,
+.user-home-shell .movies-management-card,
+.user-home-shell .genres-management-card,
+.user-home-shell .diary-management-card,
+.user-home-shell .profile-panel,
+.user-home-shell .edit-profile-form {
+  min-width: 0;
+}
+
+.user-home-shell img {
+  max-width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .user-home-shell .user-header {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .user-home-shell .sidebar nav {
+    width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+  }
+
+  .user-home-shell .nav-link {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .user-home-shell .header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .user-home-shell .header-actions .search-box {
+    flex: 1 1 260px;
+    min-width: 0;
+  }
+
+  .user-home-shell #filmesPage .movies-page-top,
+  .user-home-shell #assistidosPage .diary-page-top,
+  .user-home-shell #categoriasPage .genres-page-top {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+  }
+
+  .user-home-shell #filmesPage .movies-toolbar,
+  .user-home-shell #assistidosPage .diary-toolbar,
+  .user-home-shell #categoriasPage .genres-toolbar {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .user-home-shell #filmesPage .movies-toolbar,
+  .user-home-shell #assistidosPage .diary-toolbar {
+    grid-template-columns: minmax(0, 1fr) minmax(180px, 240px);
+  }
+
+  .user-home-shell #categoriasPage .genre-search-field {
+    width: 100%;
+  }
+}
+
+@media (max-width: 720px) {
+  .user-home-shell.visible {
+    min-height: 100vh;
+  }
+
+  .user-home-shell .user-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    gap: 12px;
+    padding: 14px 14px 12px;
+  }
+
+  .user-home-shell .side-brand {
+    min-width: 0;
+  }
+
+  .user-home-shell .side-brand strong {
+    font-size: clamp(24px, 8vw, 32px);
+    white-space: nowrap;
+  }
+
+  .user-home-shell .sidebar nav {
+    gap: 14px;
+  }
+
+  .user-home-shell .nav-link {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+  }
+
+  .user-home-shell .header-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+  }
+
+  .user-home-shell .header-actions > .search-box {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .user-home-shell .user-box {
+    justify-self: end;
+  }
+
+  .user-home-shell .user-box > span {
+    display: none;
+  }
+
+  .user-home-shell .page:not(#inicioPage) {
+    padding: 18px 12px 32px;
+  }
+
+  .user-home-shell .hero {
+    min-height: calc(100vh - 144px);
+    padding: 56px 18px 34px;
+  }
+
+  .user-home-shell .hero > div {
+    width: min(100%, 520px);
+  }
+
+  .user-home-shell .hero h1 {
+    font-size: clamp(32px, 12vw, 54px);
+  }
+
+  .user-home-shell #filmesPage .movies-page-top,
+  .user-home-shell #assistidosPage .diary-page-top,
+  .user-home-shell #categoriasPage .genres-page-top {
+    padding: 18px 14px 22px;
+  }
+
+  .user-home-shell #filmesPage .movies-toolbar,
+  .user-home-shell #assistidosPage .diary-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .user-home-shell #filmesPage .movies-grid,
+  .user-home-shell #assistidosPage .watched-grid,
+  .user-home-shell #categoriasPage .categories-grid {
+    padding: 18px 12px;
+  }
+
+  .user-home-shell .movie-card-list {
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 14px;
+  }
+
+  .user-home-shell #categoriasPage .categories-grid {
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 12px;
+  }
+
+  .user-home-shell #filmesPage .movies-pagination {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .user-home-shell .user-header {
+    padding-inline: 10px;
+  }
+
+  .user-home-shell .sidebar nav {
+    gap: 10px;
+  }
+
+  .user-home-shell .nav-link {
+    font-size: 11px;
+  }
+
+  .user-home-shell .avatar {
+    width: 34px;
+    height: 34px;
+  }
+
+  .user-home-shell #logoutBtn {
+    min-width: 34px;
+    height: 34px;
+  }
+
+  .user-home-shell .hero {
+    min-height: calc(100vh - 136px);
+    padding: 44px 14px 28px;
+  }
+
+  .user-home-shell .hero h1 {
+    font-size: clamp(28px, 14vw, 42px);
+  }
+
+  .user-home-shell .hero p {
+    max-width: 100%;
+    font-size: 13px;
+  }
+
+  .hero-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .hero-arrow {
+    width: 34px;
+    height: 34px;
+  }
+
+  .user-home-shell #filmesPage .movies-header h1,
+  .user-home-shell #categoriasPage .movies-header h1,
+  .user-home-shell #assistidosPage .movies-header h1 {
+    font-size: 28px;
+  }
+
+  .user-home-shell .movie-card-list,
+  .user-home-shell #categoriasPage .categories-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .user-home-shell .movie-management-card-item {
+    min-height: 230px;
+  }
+
+  .user-home-shell #filmesPage .movies-pagination > div {
+    flex-wrap: wrap;
+  }
+
+  .user-home-shell .profile-hero,
+  .user-home-shell .account-info div {
+    grid-template-columns: 1fr;
+  }
+}
+/* User mobile filter final position override */
+@media (min-width: 360px) and (max-width: 560px) {
+  html body .user-home-shell #filmesPage .movies-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  html body .user-home-shell #filmesPage .movie-search-field,
+  html body .user-home-shell #filmesPage .movies-toolbar select {
+    width: 100%;
+    min-width: 0;
+    min-height: 46px;
+  }
+
+  html body .user-home-shell #filmesPage .movie-search-field {
+    padding-inline: 12px 8px;
+  }
+
+  html body .user-home-shell #filmesPage .movie-search-field input {
+    font-size: 12px;
+  }
+
+  html body .user-home-shell #filmesPage .movies-toolbar select {
+    padding-inline: 12px 34px;
+    background-position: right 12px center;
+    background-size: 14px 10px;
+    font-size: 12px;
+  }
+
+  html body .user-home-shell #filmesPage .empty-state {
+    min-height: 118px;
+    padding: 20px 16px;
+    font-size: 15px;
+    line-height: 1.25;
+  }
+}
+
+/* User mobile filters: keep search and genre side by side */
+@media (max-width: 560px) {
+  html body .user-home-shell #filmesPage .movies-page-top {
+    gap: 16px !important;
+    padding: 18px 16px 20px !important;
+  }
+
+  html body .user-home-shell #filmesPage .movies-toolbar {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(112px, 0.82fr) !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+
+  html body .user-home-shell #filmesPage .movie-search-field,
+  html body .user-home-shell #filmesPage .movies-toolbar select {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 46px !important;
+    margin: 0 !important;
+  }
+
+  html body .user-home-shell #filmesPage .movie-search-field {
+    padding: 0 10px 0 12px !important;
+  }
+
+  html body .user-home-shell #filmesPage .movie-search-field input {
+    min-width: 0 !important;
+    font-size: 12px !important;
+  }
+
+  html body .user-home-shell #filmesPage .movie-search-field span {
+    flex: 0 0 auto !important;
+    font-size: 12px !important;
+  }
+
+  html body .user-home-shell #filmesPage .movies-toolbar select {
+    padding: 0 30px 0 12px !important;
+    background-position: right 10px center !important;
+    background-size: 13px 9px !important;
+    font-size: 12px !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+  }
+
+  html body .user-home-shell #filmesPage .movies-grid {
+    padding: 16px 16px 18px !important;
+  }
+
+  html body .user-home-shell #filmesPage .empty-state {
+    min-height: 112px !important;
+    padding: 18px 16px !important;
+    font-size: 15px !important;
+    line-height: 1.22 !important;
+  }
+}
+
+/* User movies mobile alignment */
+@media (max-width: 560px) {
+  html body .user-home-shell #filmesPage {
+    padding: 16px 8px 28px !important;
+  }
+
+  html body .user-home-shell #filmesPage .movies-management-card {
+    width: 100% !important;
+    margin: 0 auto !important;
+    border-radius: 5px !important;
+  }
+
+  html body .user-home-shell #filmesPage .movies-header h1 {
+    margin-left: 0 !important;
+    font-size: 30px !important;
+    line-height: 1 !important;
+  }
+
+  html body .user-home-shell #filmesPage .movies-header h1::after {
+    bottom: -8px !important;
+    width: 48px !important;
+  }
+
+  html body .user-home-shell #filmesPage .movies-toolbar {
+    margin-top: 2px !important;
+  }
+
+  html body .user-home-shell #filmesPage .movie-card-list {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  html body .user-home-shell #filmesPage .movie-management-card-item {
+    width: 100% !important;
+    min-height: 230px !important;
+    border-radius: 5px !important;
+  }
+
+  html body .user-home-shell #filmesPage .movie-management-info {
+    padding: 16px 16px 8px !important;
+  }
+
+  html body .user-home-shell #filmesPage .movie-management-card-item .movie-list-actions {
+    padding: 0 16px 16px !important;
+  }
+}
+
+/* User genres mobile alignment */
+@media (max-width: 720px) {
+  html body .user-home-shell #categoriasPage {
+    padding: 16px 8px 28px !important;
+  }
+
+  html body .user-home-shell #categoriasPage .genres-management-card {
+    width: 100% !important;
+    margin: 0 auto !important;
+    border-radius: 5px !important;
+  }
+
+  html body .user-home-shell #categoriasPage .genres-page-top {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 18px !important;
+    padding: 18px 16px 20px !important;
+  }
+
+  html body .user-home-shell #categoriasPage .movies-header h1 {
+    font-size: 30px !important;
+    line-height: 1 !important;
+  }
+
+  html body .user-home-shell #categoriasPage .movies-header h1::after {
+    bottom: -8px !important;
+    width: 48px !important;
+  }
+
+  html body .user-home-shell #categoriasPage .genres-toolbar {
+    width: 100% !important;
+    display: block !important;
+  }
+
+  html body .user-home-shell #categoriasPage .genre-search-field {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 48px !important;
+  }
+
+  html body .user-home-shell #categoriasPage .categories-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)) !important;
+    gap: 14px !important;
+    padding: 16px !important;
+  }
+
+  html body .user-home-shell #categoriasPage .categories-grid article {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 172px !important;
+    padding: 22px 18px 18px !important;
+    border-radius: 5px !important;
+  }
+
+  html body .user-home-shell #categoriasPage .categories-grid article button {
+    display: none !important;
+  }
+}
+
+@media (max-width: 420px) {
+  html body .user-home-shell .sidebar nav {
+    gap: 13px !important;
+  }
+
+  html body .user-home-shell .nav-link {
+    font-size: 11px !important;
+    letter-spacing: 0.06em !important;
+  }
+
+  html body .user-home-shell #categoriasPage .categories-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* User compact header: nav and user button on the same row */
+@media (max-width: 560px) {
+  html body .user-home-shell .user-header {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    grid-template-areas: "nav actions" !important;
+    align-items: center !important;
+    gap: 10px !important;
+    min-height: 84px !important;
+    padding: 12px 14px !important;
+  }
+
+  html body .user-home-shell .side-brand {
+    display: none !important;
+  }
+
+  html body .user-home-shell .sidebar nav {
+    grid-area: nav !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    flex-wrap: nowrap !important;
+    gap: 16px !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+  }
+
+  html body .user-home-shell .nav-link {
+    flex: 0 1 auto !important;
+    min-width: 0 !important;
+    font-size: 11px !important;
+    letter-spacing: 0.06em !important;
+    white-space: nowrap !important;
+  }
+
+  html body .user-home-shell .header-actions {
+    grid-area: actions !important;
+    width: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    justify-self: end !important;
+    gap: 8px !important;
+  }
+
+  html body .user-home-shell .user-box {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+}
+
+@media (max-width: 380px) {
+  html body .user-home-shell .user-header {
+    padding-inline: 10px !important;
+    gap: 8px !important;
+  }
+
+  html body .user-home-shell .sidebar nav {
+    gap: 11px !important;
+  }
+
+  html body .user-home-shell .nav-link {
+    font-size: 10px !important;
+    letter-spacing: 0.04em !important;
+  }
+
+  html body .user-home-shell .avatar {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  html body .user-home-shell #logoutBtn {
+    width: 28px !important;
+    min-height: 28px !important;
   }
 }

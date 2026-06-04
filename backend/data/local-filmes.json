@@ -159,5 +159,28 @@
     "status": "publicado",
     "destaque": false,
     "criado_por": null
+  },
+  {
+    "id": 8,
+    "titulo": "Kung Fu Panda 4",
+    "titulo_original": "Kung Fu Panda 4",
+    "descricao": "Po precisa treinar uma nova guerreira enquanto enfrenta uma vila que mistura aventura, humor e autodescoberta.",
+    "ano_lancamento": 2024,
+    "genero_id": 2,
+    "genero_nome": "Com\u00e9dia",
+    "genero_secundario_id": null,
+    "diretor": "Mike Mitchell",
+    "elenco": null,
+    "duracao": "94 min",
+    "classificacao": "L",
+    "pais": "Estados Unidos",
+    "preco_locacao": 9.9,
+    "estoque": 1,
+    "capa_url": "https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?auto=format&fit=crop&w=80&q=80",
+    "banner_url": "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=520&q=80",
+    "trailer_url": null,
+    "status": "publicado",
+    "destaque": false,
+    "criado_por": null
   }
 ]

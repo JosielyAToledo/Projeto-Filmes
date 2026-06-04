@@ -6,6 +6,11 @@ class UsuarioDAO {
     return rows[0] || null;
   }
 
+  async findById(id) {
+    const [rows] = await pool.execute('SELECT * FROM usuarios WHERE id = ?', [id]);
+    return rows[0] || null;
+  }
+
   async findByLogin(login) {
     const [rows] = await pool.execute(
       `SELECT *
@@ -32,6 +37,15 @@ class UsuarioDAO {
       email: usuario.email,
       tipo_usuario: 'usuario'
     };
+  }
+
+  async updatePasswordByEmail(email, senhaHash) {
+    const [result] = await pool.execute(
+      'UPDATE usuarios SET senha_hash = ? WHERE email = ?',
+      [senhaHash, email]
+    );
+
+    return result.affectedRows > 0;
   }
 
   async createAdmin(usuario) {
@@ -89,6 +103,16 @@ class UsuarioDAO {
     );
 
     return rows;
+  }
+
+  async updateStatusById(id, status) {
+    const normalizedStatus = status === 'inativo' ? 'inativo' : 'ativo';
+    const [result] = await pool.execute(
+      'UPDATE usuarios SET status = ? WHERE id = ?',
+      [normalizedStatus, id]
+    );
+
+    return result.affectedRows > 0;
   }
 
   async deleteAdminByEmail(email) {

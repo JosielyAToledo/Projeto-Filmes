@@ -11,6 +11,7 @@ const LOCAL_ADMIN = {
 };
 const localUsers = [];
 const localAdmins = [];
+let localAdminPasswordHash = null;
 
 class AuthService {
   constructor() {
@@ -34,7 +35,8 @@ class AuthService {
         nome: dados.nome,
         email: dados.email,
         senha_hash: await bcrypt.hash(dados.senha, 10),
-        tipo_usuario: 'usuario'
+        tipo_usuario: 'usuario',
+        status: 'ativo'
       };
 
       localUsers.push(usuario);
@@ -57,6 +59,42 @@ class AuthService {
 
     const senhaHash = await bcrypt.hash(dados.senha, 10);
     return this.usuarioDAO.create({ ...dados, senha: senhaHash });
+  }
+
+  async recuperarSenha(dados) {
+    const email = String(dados.email || '').trim();
+
+    if (isLocalMode()) {
+      if (email.toLowerCase() === LOCAL_ADMIN.email) {
+        localAdminPasswordHash = await bcrypt.hash(dados.senha, 10);
+        return { message: 'Senha atualizada com sucesso.' };
+      }
+
+      const usuario = [...localAdmins, ...localUsers].find((item) => {
+        return item.email.toLowerCase() === email.toLowerCase();
+      });
+
+      if (!usuario) {
+        const error = new Error('E-mail nao encontrado.');
+        error.statusCode = 404;
+        throw error;
+      }
+
+      usuario.senha_hash = await bcrypt.hash(dados.senha, 10);
+      return { message: 'Senha atualizada com sucesso.' };
+    }
+
+    const usuario = await this.usuarioDAO.findByEmail(email);
+
+    if (!usuario) {
+      const error = new Error('E-mail nao encontrado.');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const senhaHash = await bcrypt.hash(dados.senha, 10);
+    await this.usuarioDAO.updatePasswordByEmail(email, senhaHash);
+    return { message: 'Senha atualizada com sucesso.' };
   }
 
   async login(login, senha) {
@@ -109,7 +147,11 @@ class AuthService {
     const normalizedLogin = String(login || '').trim().toLowerCase();
     const isAdminLogin = normalizedLogin === 'admin' || normalizedLogin === LOCAL_ADMIN.email;
 
-    if (isAdminLogin && senha === '123456') {
+    if (isAdminLogin && localAdminPasswordHash && bcrypt.compareSync(senha, localAdminPasswordHash)) {
+      return this.createTokenResponse(LOCAL_ADMIN);
+    }
+
+    if (isAdminLogin && !localAdminPasswordHash && senha === '123456') {
       return this.createTokenResponse(LOCAL_ADMIN);
     }
 
@@ -234,6 +276,51 @@ class AuthService {
     }
 
     return this.usuarioDAO.listAll();
+  }
+
+  async atualizarStatusUsuario(id, status, usuarioLogado = {}) {
+    const usuarioId = Number(id);
+    const normalizedStatus = normalizeStatus(status);
+
+    if (!usuarioId) {
+      const error = new Error('Usuario invalido.');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (Number(usuarioLogado.id) === usuarioId && normalizedStatus === 'inativo') {
+      const error = new Error('Nao e possivel inativar o proprio usuario logado.');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (isLocalMode()) {
+      const usuario = [...localAdmins, ...localUsers].find((item) => Number(item.id) === usuarioId);
+
+      if (!usuario) {
+        const error = new Error('Usuario nao encontrado.');
+        error.statusCode = 404;
+        throw error;
+      }
+
+      usuario.status = normalizedStatus;
+      return sanitizeUser(usuario);
+    }
+
+    const usuario = await this.usuarioDAO.findById(usuarioId);
+
+    if (!usuario) {
+      const error = new Error('Usuario nao encontrado.');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    await this.usuarioDAO.updateStatusById(usuarioId, normalizedStatus);
+    return sanitizeUser({
+      ...usuario,
+      status: normalizedStatus,
+      updated_at: new Date()
+    });
   }
 
   async excluirAdministrador(email) {
