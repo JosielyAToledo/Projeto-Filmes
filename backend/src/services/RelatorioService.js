@@ -205,7 +205,6 @@ class RelatorioService {
       ${genreWhere ? `WHERE ${genreWhere}` : ''}
       GROUP BY generos.nome
       ORDER BY total DESC, genero ASC
-      LIMIT 7
     `, [...genreDateFilter.params, ...genreNameFilter.params]);
 
     const [usuariosPorStatus] = await pool.execute(`
@@ -258,8 +257,7 @@ class RelatorioService {
     });
     const filmesPorGenero = Array.from(countBy(filteredGenreMovies, (filme) => filme.genero_nome || 'Sem gênero').entries())
       .map(([genero, total]) => ({ genero, total }))
-      .sort((a, b) => b.total - a.total || String(a.genero).localeCompare(String(b.genero), 'pt-BR'))
-      .slice(0, 7);
+      .sort((a, b) => b.total - a.total || String(a.genero).localeCompare(String(b.genero), 'pt-BR'));
     const usuariosPorStatus = Array.from(countBy(
       usuarios.filter((usuario) => isDateAfterStart(usuario.created_at, userStart)),
       (usuario) => usuario.status || 'ativo'
