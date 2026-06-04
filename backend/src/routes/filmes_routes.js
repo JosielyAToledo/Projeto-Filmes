@@ -20,6 +20,7 @@ class FilmesRoutes {
     this.router.get('/', this.filmeController.index);
     this.router.get('/exportar/json', authMiddleware, adminMiddleware, this.filmeController.exportarJSON);
     this.router.post('/importar/json', authMiddleware, adminMiddleware, upload.single('arquivo'), this.filmeController.importarJSON);
+    this.router.post('/sincronizar-tmdb', authMiddleware, adminMiddleware, this.filmeController.sincronizarTmdb);
     this.router.get('/favoritos/me', authMiddleware, this.favoritoFilmeController.index);
     this.router.get('/avaliacoes/me', authMiddleware, this.avaliacaoFilmeController.minhas);
     this.router.get('/:id/avaliacoes', this.avaliacaoFilmeController.index);

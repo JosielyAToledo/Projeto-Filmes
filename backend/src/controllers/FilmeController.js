@@ -125,7 +125,8 @@ class FilmeController extends IController {
       const capaUrl = cloudinaryUrl || (req.file ? `/uploads/${req.file.filename}` : filmeAtual.capa_url);
       const filme = await this.filmeService.atualizar(req.params.id, {
         ...req.body,
-        capa_url: capaUrl || req.body.capa_url || filmeAtual.capa_url
+        capa_url: capaUrl || req.body.capa_url || filmeAtual.capa_url,
+        banner_url: req.body.banner_url || filmeAtual.banner_url
       });
       await this.logService.registrar({
         usuario: req.user.email,
@@ -140,6 +141,26 @@ class FilmeController extends IController {
         userAgent: req.get('user-agent')
       });
       return res.json(filme);
+    } catch (error) {
+      return next(error);
+    }
+  };
+
+  sincronizarTmdb = async (req, res, next) => {
+    try {
+      const overwrite = String(req.body?.overwrite || req.query?.overwrite || '').toLowerCase() === 'true';
+      const resultado = await this.filmeService.sincronizarTmdb({ overwrite });
+      await this.logService.registrar({
+        usuario: req.user.email,
+        acao: 'SINCRONIZACAO_TMDB',
+        tipoEvento: 'integracao',
+        descricao: `${resultado.atualizados} filmes atualizados com imagens da TMDB`,
+        tabela: 'filmes',
+        dadosInseridos: resultado,
+        ip: req.ip,
+        userAgent: req.get('user-agent')
+      });
+      return res.json(resultado);
     } catch (error) {
       return next(error);
     }

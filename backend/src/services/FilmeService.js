@@ -1,5 +1,6 @@
 const IService = require('../interfaces/IService');
 const FilmeDAO = require('../dao/FilmeDAO');
+const TMDBService = require('./TMDBService');
 const { isLocalMode } = require('../config/local_mode');
 const fs = require('fs');
 const path = require('path');
@@ -217,29 +218,31 @@ class FilmeService extends IService {
   }
 
   async criar(dados) {
+    const dadosComImagens = await TMDBService.enrichMovieImages(dados);
+
     if (isLocalMode()) {
       const filme = {
         id: nextLocalMovieId(),
-        titulo: dados.titulo,
-        titulo_original: dados.titulo_original || null,
-        descricao: dados.descricao || null,
-        ano_lancamento: Number(dados.ano_lancamento) || null,
-        genero_id: Number(dados.genero_id) || null,
-        genero_nome: genreNameById(dados.genero_id),
-        genero_secundario_id: dados.genero_secundario_id || null,
-        diretor: dados.diretor || null,
-        elenco: dados.elenco || null,
-        duracao: dados.duracao || null,
-        classificacao: dados.classificacao || null,
-        pais: dados.pais || null,
-        preco_locacao: Number(dados.preco_locacao) || 0,
-        estoque: Number(dados.estoque) || 0,
-        capa_url: dados.capa_url || null,
-        banner_url: dados.banner_url || null,
-        trailer_url: dados.trailer_url || null,
-        status: dados.status || 'publicado',
-        destaque: Boolean(dados.destaque),
-        criado_por: dados.criado_por || null
+        titulo: dadosComImagens.titulo,
+        titulo_original: dadosComImagens.titulo_original || null,
+        descricao: dadosComImagens.descricao || null,
+        ano_lancamento: Number(dadosComImagens.ano_lancamento) || null,
+        genero_id: Number(dadosComImagens.genero_id) || null,
+        genero_nome: genreNameById(dadosComImagens.genero_id),
+        genero_secundario_id: dadosComImagens.genero_secundario_id || null,
+        diretor: dadosComImagens.diretor || null,
+        elenco: dadosComImagens.elenco || null,
+        duracao: dadosComImagens.duracao || null,
+        classificacao: dadosComImagens.classificacao || null,
+        pais: dadosComImagens.pais || null,
+        preco_locacao: Number(dadosComImagens.preco_locacao) || 0,
+        estoque: Number(dadosComImagens.estoque) || 0,
+        capa_url: dadosComImagens.capa_url || null,
+        banner_url: dadosComImagens.banner_url || null,
+        trailer_url: dadosComImagens.trailer_url || null,
+        status: dadosComImagens.status || 'publicado',
+        destaque: Boolean(dadosComImagens.destaque),
+        criado_por: dadosComImagens.criado_por || null
       };
 
       localMovies.push(filme);
@@ -247,32 +250,34 @@ class FilmeService extends IService {
       return filme;
     }
 
-    return this.filmeDAO.create(dados);
+    return this.filmeDAO.create(dadosComImagens);
   }
 
   async atualizar(id, dados) {
+    const dadosComImagens = await TMDBService.enrichMovieImages(dados);
+
     if (isLocalMode()) {
       const filmeAtual = await this.buscarPorId(id);
       Object.assign(filmeAtual, {
-        titulo: dados.titulo,
-        titulo_original: dados.titulo_original || null,
-        descricao: dados.descricao || null,
-        ano_lancamento: Number(dados.ano_lancamento) || null,
-        genero_id: Number(dados.genero_id) || null,
-        genero_nome: genreNameById(dados.genero_id),
-        genero_secundario_id: dados.genero_secundario_id || null,
-        diretor: dados.diretor || null,
-        elenco: dados.elenco || null,
-        duracao: dados.duracao || null,
-        classificacao: dados.classificacao || null,
-        pais: dados.pais || null,
-        preco_locacao: Number(dados.preco_locacao) || 0,
-        estoque: Number(dados.estoque) || 0,
-        capa_url: dados.capa_url || null,
-        banner_url: dados.banner_url || null,
-        trailer_url: dados.trailer_url || null,
-        status: dados.status || 'publicado',
-        destaque: Boolean(dados.destaque)
+        titulo: dadosComImagens.titulo,
+        titulo_original: dadosComImagens.titulo_original || null,
+        descricao: dadosComImagens.descricao || null,
+        ano_lancamento: Number(dadosComImagens.ano_lancamento) || null,
+        genero_id: Number(dadosComImagens.genero_id) || null,
+        genero_nome: genreNameById(dadosComImagens.genero_id),
+        genero_secundario_id: dadosComImagens.genero_secundario_id || null,
+        diretor: dadosComImagens.diretor || null,
+        elenco: dadosComImagens.elenco || null,
+        duracao: dadosComImagens.duracao || null,
+        classificacao: dadosComImagens.classificacao || null,
+        pais: dadosComImagens.pais || null,
+        preco_locacao: Number(dadosComImagens.preco_locacao) || 0,
+        estoque: Number(dadosComImagens.estoque) || 0,
+        capa_url: dadosComImagens.capa_url || null,
+        banner_url: dadosComImagens.banner_url || null,
+        trailer_url: dadosComImagens.trailer_url || null,
+        status: dadosComImagens.status || 'publicado',
+        destaque: Boolean(dadosComImagens.destaque)
       });
 
       saveLocalMovies();
@@ -280,7 +285,70 @@ class FilmeService extends IService {
     }
 
     await this.buscarPorId(id);
-    return this.filmeDAO.update(id, dados);
+    return this.filmeDAO.update(id, dadosComImagens);
+  }
+
+  async sincronizarTmdb(opcoes = {}) {
+    const overwrite = Boolean(opcoes.overwrite);
+
+    if (!TMDBService.hasApiKey()) {
+      const error = new Error('Configure TMDB_API_KEY no .env para sincronizar imagens.');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const filmes = await this.listar();
+    const resultado = {
+      total: filmes.length,
+      atualizados: 0,
+      ignorados: 0,
+      overwrite,
+      filmes: []
+    };
+
+    for (const filme of filmes) {
+      const precisaImagem = !filme.capa_url || !filme.banner_url;
+      if (!overwrite && !precisaImagem) {
+        resultado.ignorados += 1;
+        resultado.filmes.push({
+          id: filme.id,
+          titulo: filme.titulo,
+          status: 'ignorado',
+          motivo: 'capa e banner ja preenchidos'
+        });
+        continue;
+      }
+
+      const enriquecido = await TMDBService.enrichMovieImages(filme, { overwrite });
+      const mudou = enriquecido.capa_url !== filme.capa_url || enriquecido.banner_url !== filme.banner_url;
+
+      if (!mudou) {
+        resultado.ignorados += 1;
+        resultado.filmes.push({
+          id: filme.id,
+          titulo: filme.titulo,
+          status: 'nao_encontrado'
+        });
+        continue;
+      }
+
+      await this.atualizar(filme.id, {
+        ...filme,
+        capa_url: enriquecido.capa_url,
+        banner_url: enriquecido.banner_url
+      });
+
+      resultado.atualizados += 1;
+      resultado.filmes.push({
+        id: filme.id,
+        titulo: filme.titulo,
+        status: 'atualizado',
+        capaAtualizada: enriquecido.capa_url !== filme.capa_url,
+        bannerAtualizado: enriquecido.banner_url !== filme.banner_url
+      });
+    }
+
+    return resultado;
   }
 
   async remover(id) {

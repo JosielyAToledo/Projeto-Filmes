@@ -4433,8 +4433,11 @@ function renderHeroMovie() {
   const genre = getMovieGenre(movie) || 'Cinema para quem observa.';
   const director = movie.diretor || 'Diretor não informado';
   const description = movie.descricao || 'Filme disponível no catálogo.';
+  const heroImage = movie.banner_url
+    ? resolveImageUrl(movie.banner_url)
+    : movie.capa_url ? resolveImageUrl(movie.capa_url) : getCuratedMovieImage(index);
 
-  hero.style.setProperty('--hero-image', `url("${getCuratedMovieImage(index)}")`);
+  hero.style.setProperty('--hero-image', `url("${heroImage}")`);
   hero.querySelector('h1').innerHTML = `${escapeHtml(title)} <span>${escapeHtml(String(year))}</span>`;
   hero.querySelector('.hero-kicker').textContent = genre;
   hero.querySelector('.hero-director').textContent = `Direção: ${director}`;
