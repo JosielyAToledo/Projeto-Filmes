@@ -149,6 +149,26 @@ class AuthController {
     }
   };
 
+  excluirUsuario = async (req, res, next) => {
+    try {
+      const usuario = await this.authService.excluirUsuarioInativo(req.params.id, req.user);
+      await this.logService.registrar({
+        usuario: req.user.email,
+        acao: 'EXCLUSAO_USUARIO',
+        tipoEvento: 'usuario',
+        descricao: `Usuario excluido: ${usuario.email}`,
+        tabela: 'usuarios',
+        registroId: String(usuario.id),
+        dadosExcluidos: usuario,
+        ip: req.ip,
+        userAgent: req.get('user-agent')
+      });
+      return res.status(204).send();
+    } catch (error) {
+      return next(error);
+    }
+  };
+
   excluirAdministrador = async (req, res, next) => {
     try {
       await this.authService.excluirAdministrador(req.params.email);

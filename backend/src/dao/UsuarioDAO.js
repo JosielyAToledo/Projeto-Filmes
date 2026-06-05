@@ -115,6 +115,24 @@ class UsuarioDAO {
     return result.affectedRows > 0;
   }
 
+  async countLocacoesByUsuarioId(id) {
+    const [rows] = await pool.execute(
+      'SELECT COUNT(*) AS total FROM locacoes WHERE usuario_id = ?',
+      [id]
+    );
+
+    return Number(rows[0]?.total) || 0;
+  }
+
+  async deleteById(id) {
+    const [result] = await pool.execute(
+      'DELETE FROM usuarios WHERE id = ?',
+      [id]
+    );
+
+    return result.affectedRows > 0;
+  }
+
   async deleteAdminByEmail(email) {
     const [result] = await pool.execute(
       `DELETE FROM usuarios

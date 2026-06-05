@@ -844,7 +844,7 @@ document.querySelectorAll('.user-action.delete').forEach((button) => {
     const row = button.closest('tr');
     const userName = row.querySelector('td strong').textContent;
     const isInactive = row.querySelector('.user-status-pill')?.classList.contains('inactive');
-    openDeleteUserModal(userName, isInactive);
+    openDeleteUserModal(userName, isInactive, row.dataset.userId);
   });
 });
 
@@ -857,7 +857,7 @@ document.getElementById('adminDeleteUserModal').addEventListener('click', (event
 });
 
 document.getElementById('adminConfirmDeleteUser').addEventListener('click', () => {
-  closeDeleteUserModal();
+  deleteAdminUser();
 });
 
 document.querySelectorAll('.user-action.view').forEach((button) => {
@@ -885,7 +885,7 @@ document.querySelector('.admin-users-table tbody')?.addEventListener('click', (e
   if (button.classList.contains('delete')) {
     const userName = row.querySelector('td strong')?.textContent || 'este usuário';
     const isInactive = row.querySelector('.user-status-pill')?.classList.contains('inactive');
-    openDeleteUserModal(userName, isInactive);
+    openDeleteUserModal(userName, isInactive, row.dataset.userId);
   }
 });
 
@@ -2111,8 +2111,8 @@ async function inactivateAdminUser() {
   }
 }
 
-function openDeleteUserModal(userName, canDelete) {
-  pendingDeleteUser = canDelete ? userName : null;
+function openDeleteUserModal(userName, canDelete, userId) {
+  pendingDeleteUser = canDelete ? { id: userId, name: userName } : null;
   document.getElementById('adminDeleteUserName').textContent = userName || 'este usuário';
   document.getElementById('adminDeleteUserMessage').innerHTML = canDelete
     ? `Deseja excluir <strong id="adminDeleteUserName">${userName}</strong>?`
@@ -2122,6 +2122,33 @@ function openDeleteUserModal(userName, canDelete) {
   document.getElementById('adminCancelDeleteUser').style.display = canDelete ? '' : 'none';
   document.getElementById('adminDeleteUserModal').classList.add('visible');
   document.getElementById('adminDeleteUserModal').setAttribute('aria-hidden', 'false');
+}
+
+async function deleteAdminUser() {
+  const confirmButton = document.getElementById('adminConfirmDeleteUser');
+  const userId = pendingDeleteUser?.id;
+
+  if (!userId) {
+    closeDeleteUserModal();
+    return;
+  }
+
+  confirmButton.disabled = true;
+  confirmButton.textContent = 'Excluindo...';
+
+  try {
+    await api(`/auth/usuarios/${encodeURIComponent(userId)}`, {
+      method: 'DELETE'
+    });
+    closeDeleteUserModal();
+    await loadAdminUsers();
+    await loadAdminDashboardStats();
+  } catch (error) {
+    alert(error.message || 'Não foi possível excluir o usuário.');
+  } finally {
+    confirmButton.disabled = false;
+    confirmButton.textContent = 'Excluir usuário';
+  }
 }
 
 function closeDeleteUserModal() {

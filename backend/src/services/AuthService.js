@@ -323,6 +323,72 @@ class AuthService {
     });
   }
 
+  async excluirUsuarioInativo(id, usuarioLogado = {}) {
+    const usuarioId = Number(id);
+
+    if (!usuarioId) {
+      const error = new Error('Usuario invalido.');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (Number(usuarioLogado.id) === usuarioId) {
+      const error = new Error('Nao e possivel excluir o proprio usuario logado.');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (isLocalMode()) {
+      const collections = [localAdmins, localUsers];
+
+      for (const collection of collections) {
+        const index = collection.findIndex((item) => Number(item.id) === usuarioId);
+
+        if (index >= 0) {
+          const usuario = collection[index];
+
+          if (usuario.status !== 'inativo') {
+            const error = new Error('Para excluir este usuario, primeiro inative-o.');
+            error.statusCode = 400;
+            throw error;
+          }
+
+          collection.splice(index, 1);
+          return sanitizeUser(usuario);
+        }
+      }
+
+      const error = new Error('Usuario nao encontrado.');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const usuario = await this.usuarioDAO.findById(usuarioId);
+
+    if (!usuario) {
+      const error = new Error('Usuario nao encontrado.');
+      error.statusCode = 404;
+      throw error;
+    }
+
+    if (usuario.status !== 'inativo') {
+      const error = new Error('Para excluir este usuario, primeiro inative-o.');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const totalLocacoes = await this.usuarioDAO.countLocacoesByUsuarioId(usuarioId);
+
+    if (totalLocacoes > 0) {
+      const error = new Error('Nao e possivel excluir usuario com locacoes vinculadas.');
+      error.statusCode = 409;
+      throw error;
+    }
+
+    await this.usuarioDAO.deleteById(usuarioId);
+    return sanitizeUser(usuario);
+  }
+
   async excluirAdministrador(email) {
     if (isLocalMode()) {
       const index = localAdmins.findIndex((admin) => admin.email.toLowerCase() === String(email || '').toLowerCase());
