@@ -20,11 +20,14 @@ let adminMoviesPage = 1;
 let adminUsersCache = [];
 let adminCurrentView = 'dashboard';
 let adminLogsCache = [];
+let adminLogsPage = 1;
+let adminLogsFilterKey = '';
 let adminDashboardSummary = {};
 let reportsLogsCache = [];
 let reportsSummaryCache = {};
 let pendingDeleteLogIndex = null;
 const ADMIN_MOVIES_PER_PAGE = 4;
+const ADMIN_LOGS_PER_PAGE = 20;
 const USER_MOVIES_PER_PAGE = 5;
 let pendingInactiveUser = null;
 let pendingDeleteUser = null;
@@ -3606,10 +3609,12 @@ async function loadAdminLogs() {
 
   try {
     const logs = await api('/logs');
-    adminLogsCache = logs.length ? logs.slice(0, 20) : sampleAdminLogs;
+    adminLogsCache = logs.length ? logs : sampleAdminLogs;
+    adminLogsPage = 1;
     filterAdminLogs();
   } catch (error) {
     adminLogsCache = sampleAdminLogs;
+    adminLogsPage = 1;
     filterAdminLogs();
   }
 }
@@ -3757,11 +3762,17 @@ function describeLogAction(action, endpoint) {
 function filterAdminLogs() {
   const logsBody = document.getElementById('adminLogsBody');
   const logsCount = document.getElementById('adminLogsTableCount');
+  const pagination = document.getElementById('adminLogsPagination');
   if (!logsBody) return;
 
   const query = normalizeText(document.getElementById('adminTopSearch').value);
   const selectedStatus = normalizeText(document.getElementById('adminTopFilter').value);
   const shouldFilterStatus = selectedStatus && selectedStatus !== normalizeText('Todos os status');
+  const filterKey = `${query}|${selectedStatus}`;
+  if (filterKey !== adminLogsFilterKey) {
+    adminLogsPage = 1;
+    adminLogsFilterKey = filterKey;
+  }
   const filteredLogs = adminLogsCache.filter((log) => {
     const status = normalizeText(log.statusCode || '');
     const searchable = normalizeText([
@@ -3777,17 +3788,55 @@ function filterAdminLogs() {
 
     return (!query || searchable.includes(query)) && (!shouldFilterStatus || status === selectedStatus);
   });
+  const total = filteredLogs.length;
+  const totalPages = Math.max(1, Math.ceil(total / ADMIN_LOGS_PER_PAGE));
+  adminLogsPage = Math.min(Math.max(adminLogsPage, 1), totalPages);
+  const start = (adminLogsPage - 1) * ADMIN_LOGS_PER_PAGE;
+  const pageItems = filteredLogs.slice(start, start + ADMIN_LOGS_PER_PAGE);
 
-  logsBody.innerHTML = filteredLogs.length
-    ? filteredLogs.map((log) => renderAdminLogRow(log, adminLogsCache.indexOf(log))).join('')
+  logsBody.innerHTML = pageItems.length
+    ? pageItems.map((log) => renderAdminLogRow(log, adminLogsCache.indexOf(log))).join('')
     : '<tr><td colspan="9">Nenhum log encontrado.</td></tr>';
 
   if (logsCount) {
-    logsCount.textContent = filteredLogs.length
-      ? `Mostrando 1 a ${filteredLogs.length} de ${filteredLogs.length} logs`
+    logsCount.textContent = total
+      ? `Mostrando ${start + 1} a ${start + pageItems.length} de ${total} logs`
       : 'Nenhum log encontrado.';
   }
+
+  if (pagination) {
+    renderAdminLogsPagination(totalPages);
+  }
 }
+
+function renderAdminLogsPagination(totalPages) {
+  const pagination = document.getElementById('adminLogsPagination');
+  if (!pagination) return;
+
+  const pages = Array.from({ length: totalPages }, (_, index) => index + 1);
+  const visiblePages = pages.filter((page) => {
+    return page === 1
+      || page === totalPages
+      || Math.abs(page - adminLogsPage) <= 1;
+  });
+  let lastPage = 0;
+  const pageButtons = visiblePages.map((page) => {
+    const gap = page - lastPage > 1 ? '<span class="admin-pagination-gap">...</span>' : '';
+    lastPage = page;
+    return `${gap}<button class="${page === adminLogsPage ? 'active' : ''}" type="button" onclick="goToAdminLogsPage(${page})">${page}</button>`;
+  }).join('');
+
+  pagination.innerHTML = `
+    <button type="button" ${adminLogsPage === 1 ? 'disabled' : ''} onclick="goToAdminLogsPage(${adminLogsPage - 1})">&lsaquo;</button>
+    ${pageButtons}
+    <button type="button" ${adminLogsPage === totalPages ? 'disabled' : ''} onclick="goToAdminLogsPage(${adminLogsPage + 1})">&rsaquo;</button>
+  `;
+}
+
+window.goToAdminLogsPage = function goToAdminLogsPage(page) {
+  adminLogsPage = page;
+  filterAdminLogs();
+};
 
 function buildAdminMoviePayload(status) {
   const secondGenre = document.getElementById('adminMovieSecondGenre').value;
