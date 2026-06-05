@@ -1,25 +1,37 @@
-# Projeto-Filmes
+# Catalogo7 - Projeto-Filmes 🎬
 
-Sistema web full stack para uma locadora de filmes, criado com Node.js, Express, MySQL como banco principal e MongoDB para logs do sistema.
+Sistema web full stack para uma locadora/catalogo de filmes. O projeto tem uma area administrativa para gerenciar filmes, usuarios, logs, exportacoes e relatorios, e uma area de usuario para navegar pelo catalogo, favoritar filmes e registrar avaliacoes.
 
-## Link Online
+O sistema foi desenvolvido para o trabalho de aplicacao web full stack, usando Node.js + Express no backend, HTML/CSS/JavaScript no frontend, MySQL como banco principal e MongoDB para logs.
 
-- Sistema no Render: https://projeto-filmes.onrender.com
+## Link do sistema 🔗
+
+- Aplicacao no Render: https://projeto-filmes.onrender.com
 - Health check: https://projeto-filmes.onrender.com/health
 
-## Arquitetura
+## Principais recursos ✨
 
-O backend foi organizado com MVC, Service Layer, Router, DAO, Models, Interfaces e Middlewares. Essa separacao deixa o projeto preparado para crescer sem misturar regra de negocio, SQL, HTTP e infraestrutura.
+- Login, registro, logout e recuperacao de senha.
+- Autenticacao com JWT.
+- Painel administrativo.
+- CRUD de filmes com upload de capa.
+- Cadastro, edicao e exclusao de usuarios administradores.
+- Listagem e controle de usuarios.
+- Catalogo de filmes para usuario comum.
+- Favoritos e avaliacoes de filmes.
+- Busca e filtros por titulo, genero e status.
+- Dashboard com totais do sistema.
+- Graficos com Chart.js.
+- Importacao de filmes por arquivo JSON.
+- Exportacao de filmes em JSON.
+- Exportacao de logs em XML, JSON e PDF.
+- Relatorio PDF com filtros.
+- Logs registrados no MongoDB.
+- Integracao opcional com TMDB para capas e banners dos filmes.
 
-- `controllers`: recebem requisicoes e chamam services.
-- `services`: concentram regras de negocio.
-- `dao`: acessam o MySQL.
-- `routes`: definem endpoints por modulo.
-- `middlewares`: autenticacao JWT, logs, validacao e erros.
-- `models`: entidades de referencia e schema MongoDB.
-- `interfaces`: contratos base para DAO, Service e Controller.
+## Tecnologias 🧰
 
-## Tecnologias
+Backend:
 
 - Node.js
 - Express
@@ -30,102 +42,349 @@ O backend foi organizado com MVC, Service Layer, Router, DAO, Models, Interfaces
 - multer
 - dotenv
 - cors
-- Chart.js no frontend
-- jsPDF para relatorio PDF
+
+Frontend:
+
+- HTML5
+- CSS3
+- JavaScript
+- Chart.js
+- jsPDF
+
+Infraestrutura:
+
+- Render para hospedagem
 - Railway MySQL
 - MongoDB Atlas
-- Render
+- Cloudinary opcional para imagens
+- TMDB opcional para imagens de filmes
 
-## Rodar Localmente Sem Banco
+## Arquitetura 🏗️
 
-Para abrir na sua maquina sem depender de MySQL ou MongoDB, deixe `LOCAL_MODE=true` no arquivo `.env` e rode:
+O backend foi organizado seguindo MVC com Service Layer, DAO, Router, Middlewares e Interfaces.
 
-```bash
-npm install
-npm run dev
+Estrutura principal:
+
+```text
+backend/
+  src/
+    config/
+    controllers/
+    dao/
+    interfaces/
+    middlewares/
+    models/
+    routes/
+    services/
+frontend/
+  index.html
+  script.js
+  styles.css
+database/
+  schema.sql
+  seed.sql
+scripts/
+  db-migrate.js
+docs/
 ```
 
-Depois acesse `http://localhost:3000` e entre com:
+Responsabilidades:
 
-- Login: `admin`
-- Senha: `123456`
+- `controllers`: recebem as requisicoes e chamam os services.
+- `services`: concentram as regras de negocio.
+- `dao`: acessam o MySQL.
+- `routes`: organizam as rotas por recurso.
+- `middlewares`: autenticacao, validacao, logs, upload e tratamento de erros.
+- `models`: modelos de referencia e schema MongoDB.
+- `interfaces`: contratos base para DAO, Service e Controller.
 
-Se entrar como admin, o sistema abre o painel administrativo. Se criar uma conta pela janela "Criar conta" e fizer login com esse usuario, o sistema abre a area de usuario comum. As contas criadas no modo local ficam apenas enquanto o servidor estiver rodando.
+## Bancos de dados 🗄️
 
-No Windows, tambem da para abrir tudo dando dois cliques no arquivo `Abrir-Projeto.bat`. Ele inicia o servidor e abre a janela de login no navegador.
+O projeto usa dois bancos:
 
-Nesse modo local, o sistema pula as conexoes externas. Para publicar/deploy, use `LOCAL_MODE=false` ou remova essa variavel e preencha as credenciais `DB_*` e `MONGODB_URI`.
+- MySQL: banco principal, usado para usuarios, clientes, generos, filmes, locacoes, favoritos e avaliacoes.
+- MongoDB: usado para os logs da aplicacao.
 
-## Produção: Render + Railway + MongoDB Atlas
+Tabelas principais do MySQL:
 
-Arquitetura oficial mantida:
+- `usuarios`
+- `clientes`
+- `generos`
+- `filmes`
+- `locacoes`
+- `itens_locacao`
+- `avaliacoes_filmes`
+- `favorito_filmes`
 
-- Frontend entregue pelo backend hospedado.
-- Backend Node.js/Express no Render.
-- MySQL no Railway para dados relacionais.
-- MongoDB Atlas para logs.
-- GitHub conectado ao deploy automatico do Render.
+Relacionamentos importantes:
 
-Variaveis obrigatorias no Render:
+- 1:N entre generos e filmes.
+- 1:N entre clientes e locacoes.
+- 1:N entre usuarios e locacoes.
+- N:N entre locacoes e filmes por `itens_locacao`.
+- N:N entre usuarios e filmes por favoritos e avaliacoes.
 
-```bash
+O schema fica em:
+
+```text
+database/schema.sql
+```
+
+## Variaveis de ambiente ⚙️
+
+Crie um arquivo `.env` baseado no `.env.example`.
+
+Exemplo para rodar sem banco externo:
+
+```env
+PORT=3000
+NODE_ENV=development
+LOCAL_MODE=true
+JWT_SECRET=troque_esta_chave_em_producao
+JWT_EXPIRES_IN=1d
+UPLOAD_DIR=backend/src/uploads
+TMDB_API_KEY=
+```
+
+Exemplo para producao:
+
+```env
+PORT=3000
+NODE_ENV=production
 LOCAL_MODE=false
-DB_HOST=host-do-railway
-DB_PORT=porta-do-railway
-DB_USER=usuario-do-railway
-DB_PASSWORD=senha-do-railway
-DB_NAME=nome-do-banco
-MONGODB_URI=mongodb+srv://...
-JWT_SECRET=uma_chave_forte
+
+DB_HOST=
+DB_PORT=
+DB_USER=
+DB_PASSWORD=
+DB_NAME=catalogo7
+
+MONGODB_URI=
+
+CLOUDINARY_CLOUD_NAME=
+CLOUDINARY_API_KEY=
+CLOUDINARY_API_SECRET=
+
+TMDB_API_KEY=
+
+JWT_SECRET=
 JWT_EXPIRES_IN=1d
 UPLOAD_DIR=backend/src/uploads
 ```
 
-O Render executa `npm run db:migrate` no build, conforme `render.yaml`. Para rodar manualmente contra o MySQL do Railway quando precisar:
+Observacao: `.env` nao deve ser enviado para o GitHub.
+
+## Como rodar localmente ▶️
+
+Instale as dependencias:
+
+```bash
+npm install
+```
+
+Rode em modo desenvolvimento:
+
+```bash
+npm run dev
+```
+
+Abra no navegador:
+
+```text
+http://localhost:3000
+```
+
+Usuario admin local:
+
+```text
+Login: admin
+Senha: 123456
+```
+
+No Windows tambem existe o arquivo:
+
+```text
+Abrir-Projeto.bat
+```
+
+Ele inicia o servidor e abre o projeto no navegador.
+
+## Rodar com MySQL e MongoDB 🧪
+
+Configure o `.env` com `LOCAL_MODE=false` e preencha as credenciais do MySQL e MongoDB.
+
+Execute a migracao:
 
 ```bash
 npm run db:migrate
+```
+
+Se quiser inserir dados iniciais:
+
+```bash
 npm run db:seed
 ```
 
-O schema oficial fica em `database/schema.sql`. O script e seguro para producao academica: ele cria tabelas com `CREATE TABLE IF NOT EXISTS`, nao executa `DROP TABLE`, e preserva dados existentes. O admin inicial e criado automaticamente quando o backend sobe em producao:
+Depois rode:
 
-- Login: `admin` ou `admin@catalogo7.com`
-- Senha: `123456`
+```bash
+npm run dev
+```
 
-Dados persistidos no MySQL:
+## Scripts 📌
 
-- usuarios e administradores em `usuarios`;
-- clientes em `clientes`;
-- filmes em `filmes`;
-- locacoes em `locacoes`;
-- filmes de cada locacao em `itens_locacao`.
+```bash
+npm run dev
+```
 
-## Funcionalidades
+Inicia o backend com nodemon.
 
-- Login, registro e logout com JWT.
-- CRUD completo de filmes com upload de capa.
-- CRUD completo de clientes.
-- Busca de filmes por titulo/genero e busca de clientes.
-- Dashboard com totais vindos do MySQL.
-- Exportacao JSON de filmes.
-- Importacao JSON de filmes por upload de arquivo.
-- Exportacao XML dos logs armazenados no MongoDB.
-- Relatorio PDF gerado no frontend com jsPDF.
-- Grafico Chart.js com dados da API.
-- Logs de acesso, login, logout, inclusao, alteracao, exclusao e erros.
+```bash
+npm start
+```
 
-## Bancos de Dados
+Inicia o backend com Node.
 
-O sistema utiliza dois bancos:
+```bash
+npm run db:migrate
+```
 
-- MySQL Railway: banco relacional principal, com as tabelas `usuarios`, `clientes`, `generos`, `filmes`, `locacoes` e `itens_locacao`.
-- MongoDB Atlas: banco NoSQL usado para logs do sistema, com registros de acesso, autenticacao, cadastro, alteracao, exclusao e erros.
+Cria ou ajusta as tabelas no MySQL sem apagar dados existentes.
 
-O MySQL atende aos relacionamentos exigidos no trabalho:
+```bash
+npm run db:seed
+```
 
-- 1:N entre `generos` e `filmes`.
-- 1:N entre `clientes` e `locacoes`.
-- 1:N entre `usuarios` e `locacoes`.
-- N:N entre `locacoes` e `filmes`, usando `itens_locacao`.
+Insere dados iniciais para teste.
 
+## Deploy 🚀
+
+O deploy esta configurado para o Render.
+
+No Render, as variaveis principais sao:
+
+```env
+LOCAL_MODE=false
+DB_HOST=
+DB_PORT=
+DB_USER=
+DB_PASSWORD=
+DB_NAME=
+MONGODB_URI=
+JWT_SECRET=
+JWT_EXPIRES_IN=1d
+UPLOAD_DIR=backend/src/uploads
+TMDB_API_KEY=
+```
+
+O arquivo `render.yaml` executa a migracao no build:
+
+```bash
+npm run db:migrate
+```
+
+Isso cria tabelas e colunas que estiverem faltando, sem usar `DROP TABLE`.
+
+## Endpoints principais 📡
+
+Autenticacao:
+
+- `POST /auth/registrar`
+- `POST /auth/login`
+- `POST /auth/recuperar-senha`
+- `POST /auth/logout`
+- `GET /auth/usuarios`
+
+Filmes:
+
+- `GET /filmes`
+- `GET /filmes/:id`
+- `POST /filmes`
+- `PUT /filmes/:id`
+- `DELETE /filmes/:id`
+- `GET /filmes/exportar/json`
+- `POST /filmes/importar/json`
+- `POST /filmes/sincronizar-tmdb`
+
+Logs:
+
+- `GET /logs`
+- `GET /logs/exportar/xml`
+- `GET /logs/exportar/json`
+- `GET /logs/exportar/pdf`
+
+Relatorios:
+
+- `GET /relatorios/json`
+- `GET /relatorios/grafico-locacoes`
+- `GET /relatorios/pdf`
+
+Clientes:
+
+- `GET /clientes`
+- `POST /clientes`
+- `PUT /clientes/:id`
+- `DELETE /clientes/:id`
+
+## TMDB 🖼️
+
+A integracao com TMDB e opcional. Ela serve para buscar poster e banner dos filmes.
+
+Para ativar, informe:
+
+```env
+TMDB_API_KEY=sua_chave
+```
+
+Rota de sincronizacao:
+
+```http
+POST /filmes/sincronizar-tmdb
+```
+
+Modo seguro:
+
+- preenche somente imagens vazias.
+
+Modo com sobrescrita:
+
+```http
+POST /filmes/sincronizar-tmdb?overwrite=true
+```
+
+- substitui imagens quando encontra resultado na TMDB;
+- se nao encontrar, mantem a imagem atual.
+
+## Logs 🧾
+
+Os logs ficam no MongoDB e registram:
+
+- endpoint
+- metodo
+- usuario
+- IP
+- status code
+- tempo de resposta
+- login/logout
+- inclusao
+- alteracao
+- exclusao
+- erros
+- importacoes e exportacoes
+
+A tela administrativa mostra os logs mais recentes e permite exportar em XML, JSON e PDF.
+
+## Documentacao 📚
+
+A documentacao do trabalho foi preparada separadamente em PDF para entrega.
+
+Arquivos auxiliares do projeto:
+
+- `docs/api.md`
+- `docs/arquitetura.md`
+- `docs/der.md`
+- `docs/documentacao_trabalho.md`
+
+## Observacoes finais ✅
+
+O projeto tambem possui `LOCAL_MODE=true`, que permite testar a aplicacao sem MySQL e MongoDB. Esse modo e util para desenvolvimento local, mas para demonstrar todos os requisitos do trabalho, o ideal e usar o ambiente com MySQL e MongoDB ativos, como no Render.
